@@ -8,6 +8,7 @@
 
 /* Begin PBXBuildFile section */
 		28E370FDEA8EEA4EFCC3229D /* llama.xcframework in Embed Frameworks */ = {isa = PBXBuildFile; fileRef = C6D58FA8A8908E0C17D5857C /* llama.xcframework */; settings = {ATTRIBUTES = (CodeSignOnCopy, RemoveHeadersOnCopy, ); }; };
+		29820508D09BFC2918878273 /* Downloads.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0B98262F7A8E003534A325F9 /* Downloads.swift */; };
 		446465BBA976741BA8FE4C5B /* llama.xcframework in Frameworks */ = {isa = PBXBuildFile; fileRef = C6D58FA8A8908E0C17D5857C /* llama.xcframework */; };
 		4529F7A2FBDC33143A4EDB98 /* ContentView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 526CE7B87EA48DCF0C8A8CA7 /* ContentView.swift */; };
 		45B9A324E7DC5F666074B6FA /* DeviceInfo.swift in Sources */ = {isa = PBXBuildFile; fileRef = B7D2A595F3381EF1776992A6 /* DeviceInfo.swift */; };
@@ -31,6 +32,8 @@
 /* End PBXCopyFilesBuildPhase section */
 
 /* Begin PBXFileReference section */
+		06A9F68CEEBE56761A0EC121 /* Signing.xcconfig */ = {isa = PBXFileReference; lastKnownFileType = text.xcconfig; path = Signing.xcconfig; sourceTree = "<group>"; };
+		0B98262F7A8E003534A325F9 /* Downloads.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Downloads.swift; sourceTree = "<group>"; };
 		3C9ECD5BE1C03AC04BE906E6 /* BonsaiBench.app */ = {isa = PBXFileReference; includeInIndex = 0; lastKnownFileType = wrapper.application; path = BonsaiBench.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		526CE7B87EA48DCF0C8A8CA7 /* ContentView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ContentView.swift; sourceTree = "<group>"; };
 		7131E03FDDC3743959F19494 /* Bench.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Bench.swift; sourceTree = "<group>"; };
@@ -66,6 +69,7 @@
 			isa = PBXGroup;
 			children = (
 				E83796DD281C500366088447 /* BonsaiBench */,
+				F2481C006BE014AEF5DD9E66 /* Config */,
 				B1FE1B0291AEC24A74E3AAF1 /* Frameworks */,
 				2A1C5A6D9BD008F9350E781F /* Products */,
 			);
@@ -87,10 +91,19 @@
 				8E9177C2A28F303E12F6EA4F /* BonsaiBenchApp.swift */,
 				526CE7B87EA48DCF0C8A8CA7 /* ContentView.swift */,
 				B7D2A595F3381EF1776992A6 /* DeviceInfo.swift */,
+				0B98262F7A8E003534A325F9 /* Downloads.swift */,
 				84662EE001062C38068950F6 /* Engine.swift */,
 				EC892D783CB72DE085265E82 /* Info.plist */,
 			);
 			path = BonsaiBench;
+			sourceTree = "<group>";
+		};
+		F2481C006BE014AEF5DD9E66 /* Config */ = {
+			isa = PBXGroup;
+			children = (
+				06A9F68CEEBE56761A0EC121 /* Signing.xcconfig */,
+			);
+			path = Config;
 			sourceTree = "<group>";
 		};
 /* End PBXGroup section */
@@ -103,6 +116,7 @@
 				A63FD9C9320B69B0E13B1783 /* Sources */,
 				5A46FCDCA5B271B712ED22DF /* Frameworks */,
 				115135A9330B929A2581213F /* Embed Frameworks */,
+				7528808B4B09287CC10DC487 /* Stamp build */,
 			);
 			buildRules = (
 			);
@@ -149,6 +163,28 @@
 		};
 /* End PBXProject section */
 
+/* Begin PBXShellScriptBuildPhase section */
+		7528808B4B09287CC10DC487 /* Stamp build */ = {
+			isa = PBXShellScriptBuildPhase;
+			alwaysOutOfDate = 1;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			inputFileListPaths = (
+			);
+			inputPaths = (
+			);
+			name = "Stamp build";
+			outputFileListPaths = (
+			);
+			outputPaths = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+			shellPath = /bin/sh;
+			shellScript = "ROOT=\"$SRCROOT/../../../..\"\nOUT=\"$TARGET_BUILD_DIR/$UNLOCALIZED_RESOURCES_FOLDER_PATH/BuildStamp.plist\"\nREV=$(git -C \"$ROOT\" rev-parse HEAD 2>/dev/null || echo unknown)\nDIRTY=$(git -C \"$ROOT\" status --porcelain -- ggml src include 2>/dev/null | wc -l | tr -d ' ')\nFW=$(shasum -a 256 \"$ROOT/build-apple/llama.xcframework/ios-arm64/llama.framework/llama\" | cut -d' ' -f1)\nrm -f \"$OUT\"\n/usr/libexec/PlistBuddy -c \"Add :BBSourceRevision string $REV\" -c \"Add :BBSourceDirtyFiles string $DIRTY\" \\\n  -c \"Add :BBFrameworkSHA256 string $FW\" \"$OUT\"\n";
+		};
+/* End PBXShellScriptBuildPhase section */
+
 /* Begin PBXSourcesBuildPhase section */
 		A63FD9C9320B69B0E13B1783 /* Sources */ = {
 			isa = PBXSourcesBuildPhase;
@@ -158,6 +194,7 @@
 				A19113653643E61358BAF794 /* BonsaiBenchApp.swift in Sources */,
 				4529F7A2FBDC33143A4EDB98 /* ContentView.swift in Sources */,
 				45B9A324E7DC5F666074B6FA /* DeviceInfo.swift in Sources */,
+				29820508D09BFC2918878273 /* Downloads.swift in Sources */,
 				5836F629AA44E2E22CB8B345 /* Engine.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
@@ -167,11 +204,13 @@
 /* Begin XCBuildConfiguration section */
 		3AED6BDB0B4AB8D71AA17CF3 /* Release */ = {
 			isa = XCBuildConfiguration;
+			baseConfigurationReference = 06A9F68CEEBE56761A0EC121 /* Signing.xcconfig */;
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				CODE_SIGN_ENTITLEMENTS = BonsaiBench/BonsaiBench.entitlements;
 				CODE_SIGN_IDENTITY = "iPhone Developer";
 				CURRENT_PROJECT_VERSION = 1;
+				ENABLE_USER_SCRIPT_SANDBOXING = NO;
 				FRAMEWORK_SEARCH_PATHS = (
 					"$(inherited)",
 					"\"../../../../build-apple\"",
@@ -182,7 +221,6 @@
 					"@executable_path/Frameworks",
 				);
 				MARKETING_VERSION = 1.0;
-				PRODUCT_BUNDLE_IDENTIFIER = dev.bonsaibench.app;
 				SDKROOT = iphoneos;
 				TARGETED_DEVICE_FAMILY = "1,2";
 			};
@@ -224,7 +262,6 @@
 				CODE_SIGN_STYLE = Automatic;
 				COPY_PHASE_STRIP = NO;
 				DEBUG_INFORMATION_FORMAT = dwarf;
-				DEVELOPMENT_TEAM = "";
 				ENABLE_STRICT_OBJC_MSGSEND = YES;
 				ENABLE_TESTABILITY = YES;
 				GCC_C_LANGUAGE_STANDARD = gnu11;
@@ -290,7 +327,6 @@
 				CODE_SIGN_STYLE = Automatic;
 				COPY_PHASE_STRIP = NO;
 				DEBUG_INFORMATION_FORMAT = "dwarf-with-dsym";
-				DEVELOPMENT_TEAM = "";
 				ENABLE_NS_ASSERTIONS = NO;
 				ENABLE_STRICT_OBJC_MSGSEND = YES;
 				GCC_C_LANGUAGE_STANDARD = gnu11;
@@ -315,11 +351,13 @@
 		};
 		EC98B0FDB59394238BEC94F3 /* Debug */ = {
 			isa = XCBuildConfiguration;
+			baseConfigurationReference = 06A9F68CEEBE56761A0EC121 /* Signing.xcconfig */;
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				CODE_SIGN_ENTITLEMENTS = BonsaiBench/BonsaiBench.entitlements;
 				CODE_SIGN_IDENTITY = "iPhone Developer";
 				CURRENT_PROJECT_VERSION = 1;
+				ENABLE_USER_SCRIPT_SANDBOXING = NO;
 				FRAMEWORK_SEARCH_PATHS = (
 					"$(inherited)",
 					"\"../../../../build-apple\"",
@@ -330,7 +368,6 @@
 					"@executable_path/Frameworks",
 				);
 				MARKETING_VERSION = 1.0;
-				PRODUCT_BUNDLE_IDENTIFIER = dev.bonsaibench.app;
 				SDKROOT = iphoneos;
 				TARGETED_DEVICE_FAMILY = "1,2";
 			};

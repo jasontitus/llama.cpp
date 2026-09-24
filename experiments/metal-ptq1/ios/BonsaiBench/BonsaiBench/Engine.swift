@@ -11,9 +11,57 @@ let researchFlagNames: [String] = [
     "GGML_METAL_BATCH_INVARIANT", "GGML_METAL_Q1_0_POPCNT",
 ]
 
+/// GGML_* / LLAMA_* variables the app was launched with (an Xcode scheme, devicectl). Recorded with every
+/// result and cleared before every observation, so they cannot leak into either arm. Read it once before the
+/// first applyFlags (globals are initialized lazily).
+let launchEnvironment: [String: String] = ProcessInfo.processInfo.environment.filter { isBackendVariable($0.key) }
+
+func isBackendVariable(_ name: String) -> Bool { name.hasPrefix("GGML_") || name.hasPrefix("LLAMA_") }
+
 func applyFlags(_ flags: [String: String]) {
-    for name in researchFlagNames { unsetenv(name) }
+    for name in Set(researchFlagNames + ProcessInfo.processInfo.environment.keys.filter(isBackendVariable)) { unsetenv(name) }
     for (k, v) in flags { setenv(k, v, 1) }
+}
+
+/// The library's warnings and errors (e.g. Metal's reason for a failed command buffer), collected per
+/// observation. Everything is also written to stderr, which `devicectl device process launch --console`
+/// shows.
+final class LibraryLog {
+    static let shared = LibraryLog()
+    private let lock = NSLock()
+    private var lines: [String] = []
+    private var keeping = false          // the current message is a warning or error (for CONT pieces)
+
+    func install() {
+        llama_log_set({ level, text, _ in
+            guard let text else { return }
+            fputs(text, stderr)
+            LibraryLog.shared.add(level: level, String(cString: text))
+        }, nil)
+    }
+
+    private func add(level: ggml_log_level, _ text: String) {
+        lock.lock(); defer { lock.unlock() }
+        if level != GGML_LOG_LEVEL_CONT { keeping = level == GGML_LOG_LEVEL_WARN || level == GGML_LOG_LEVEL_ERROR }
+        guard keeping else { return }
+        if level == GGML_LOG_LEVEL_CONT, let last = lines.popLast() { lines.append(last + text) } else { lines.append(text) }
+        if lines.count > 200 { lines.removeFirst(lines.count - 200) }
+    }
+
+    /// Lines collected since the last call, trimmed.
+    func drain() -> [String] {
+        lock.lock(); defer { lock.unlock() }
+        defer { lines = [] }
+        return lines.map { $0.trimmingCharacters(in: .whitespacesAndNewlines) }.filter { !$0.isEmpty }
+    }
+}
+
+/// Memory seen while a context is alive (the per-context buffers are gone once it is freed).
+struct Probe: Codable {
+    var footprintBytes: UInt64
+    var availableBytes: UInt64
+
+    static func now() -> Probe { Probe(footprintBytes: physicalFootprint(), availableBytes: UInt64(max(0, availableMemory()))) }
 }
 
 enum EngineError: Error, LocalizedError {
@@ -39,6 +87,7 @@ final class Engine {
     let nParams: UInt64
 
     init(path: String) throws {
+        LibraryLog.shared.install()
         llama_backend_init()
         var mp = llama_model_default_params()
         #if targetEnvironment(simulator)
@@ -79,6 +128,9 @@ final class Engine {
     private func makeContext(nCtx: UInt32) throws -> OpaquePointer {
         var cp = llama_context_default_params()
         cp.n_ctx = nCtx
+        // Only the last token's logits are ever read. The default (n_batch rows) would reserve
+        // 512 x 248k floats (~0.5 GB) of compute buffer that a phone cannot spare.
+        cp.n_outputs_max = 1
         cp.n_batch = 512
         cp.n_ubatch = 512
         cp.n_seq_max = 1
@@ -105,18 +157,36 @@ final class Engine {
         guard rc == 0 else { throw EngineError.decodeFailed(rc) }
     }
 
+    private func now() -> UInt64 { DispatchTime.now().uptimeNanoseconds }
+
+    /// A failed Metal command buffer only marks the backend; the next decode reports it. One more decode
+    /// after the timed work makes a failure there an error instead of a (fast) measurement.
+    private func checkBackend(_ ctx: OpaquePointer, token: llama_token, pos: Int32) throws {
+        try decode(ctx, [token], startPos: pos, logitsLast: true)
+        llama_synchronize(ctx)
+    }
+
+    private func randomTokens(_ k: Int) -> [llama_token] {
+        let n = llama_vocab_n_tokens(vocab)
+        var rng = SystemRandomNumberGenerator()
+        return (0..<k).map { _ in llama_token(Int32.random(in: 100..<min(n, 30000), using: &rng)) }
+    }
+
     struct Generation {
         var promptTokens: Int
         var promptSeconds: Double
         var generated: [llama_token]
+        var decodes: Int                  // timed single-token decodes (each followed by greedy sampling)
         var generateSeconds: Double
-        var tokensPerSecond: Double { generateSeconds > 0 ? Double(max(generated.count - 1, 0)) / generateSeconds : 0 }
+        var probe: Probe
+        var tokensPerSecond: Double { generateSeconds > 0 ? Double(decodes) / generateSeconds : 0 }
     }
 
-    /// Greedy generation of n tokens after a chat prompt, on a fresh context. Generation time excludes
-    /// the first token (it comes from the prompt pass), like llama-server's timings.
+    /// "chat128": greedy generation of up to n tokens after a chat prompt, on a fresh context, returning the
+    /// tokens so arms can be compared. The rate covers the decodes after the first token (which comes from
+    /// the prompt pass) including greedy sampling, like llama-server's generation timing.
     func generate(prompt: String, n: Int, warmup: Int = 16) throws -> Generation {
-        let ctx = try makeContext(nCtx: 2048)
+        let ctx = try makeContext(nCtx: 1024)
         defer { llama_free(ctx) }
         let sampler = llama_sampler_init_greedy()!
         defer { llama_sampler_free(sampler) }
@@ -132,48 +202,72 @@ final class Engine {
         }
         llama_synchronize(ctx)
         llama_memory_clear(llama_get_memory(ctx), true)
+        llama_sampler_reset(sampler)
 
-        let t0 = DispatchTime.now().uptimeNanoseconds
+        let t0 = now()
         try decode(ctx, promptTokens, startPos: 0, logitsLast: true)
         llama_synchronize(ctx)
-        let t1 = DispatchTime.now().uptimeNanoseconds
+        let t1 = now()
         pos = Int32(promptTokens.count)
-        var out: [llama_token] = []
-        var tFirst: UInt64 = 0
-        for i in 0..<n {
-            let t = llama_sampler_sample(sampler, ctx, -1)
-            out.append(t)
-            if llama_vocab_is_eog(vocab, t) { break }
-            if i == 0 { tFirst = DispatchTime.now().uptimeNanoseconds }
+        var t = llama_sampler_sample(sampler, ctx, -1)
+        var out = [t]
+        var decodes = 0
+        let tStart = now()
+        while out.count < n && !llama_vocab_is_eog(vocab, t) {
             try decode(ctx, [t], startPos: pos, logitsLast: true)
             pos += 1
+            decodes += 1
+            t = llama_sampler_sample(sampler, ctx, -1)   // waits for the logits
+            out.append(t)
         }
-        llama_synchronize(ctx)
-        let t2 = DispatchTime.now().uptimeNanoseconds
-        return Generation(promptTokens: promptTokens.count,
-                          promptSeconds: Double(t1 - t0) / 1e9,
-                          generated: out,
-                          generateSeconds: tFirst > 0 ? Double(t2 - tFirst) / 1e9 : 0)
+        let t2 = now()
+        let probe = Probe.now()
+        try checkBackend(ctx, token: t, pos: pos)
+        return Generation(promptTokens: promptTokens.count, promptSeconds: Double(t1 - t0) / 1e9, generated: out,
+                          decodes: decodes, generateSeconds: Double(t2 - tStart) / 1e9, probe: probe)
     }
 
-    /// Batch-of-k processing rate (llama-bench ppK): k tokens per decode call, repeated `reps` times on a
-    /// fresh context after one warmup call; tokens/s over the timed calls.
-    func batchRate(k: Int, reps: Int) throws -> Double {
-        let ctx = try makeContext(nCtx: UInt32(max(2048, k + 64)))
+    /// "tgN" as llama-bench measures it: N single-token decodes from an empty context, random tokens, no
+    /// sampling; tokens/s.
+    func generationRate(n: Int, warmup: Int = 16) throws -> (rate: Double, probe: Probe) {
+        let ctx = try makeContext(nCtx: 1024)
         defer { llama_free(ctx) }
-        let n = llama_vocab_n_tokens(vocab)
-        var rng = SystemRandomNumberGenerator()
-        let tokens = (0..<k).map { _ in llama_token(Int32.random(in: 100..<min(n, 30000), using: &rng)) }
-        try decode(ctx, tokens, startPos: 0, logitsLast: true)
+        let tokens = randomTokens(n + 1)
+        for i in 0..<warmup { try decode(ctx, [tokens[i % n]], startPos: Int32(i), logitsLast: true) }
         llama_synchronize(ctx)
-        var total: Double = 0
-        for _ in 0..<reps {
+        llama_memory_clear(llama_get_memory(ctx), true)
+        let t0 = now()
+        for i in 0..<n { try decode(ctx, [tokens[i]], startPos: Int32(i), logitsLast: true) }
+        llama_synchronize(ctx)
+        let secs = Double(now() - t0) / 1e9
+        let probe = Probe.now()
+        try checkBackend(ctx, token: tokens[n], pos: Int32(n))
+        return (Double(n) / secs, probe)
+    }
+
+    /// "ppK": k tokens per decode call (llama-bench ppK; the step shape of MTP verification and concurrent
+    /// requests), on a fresh context. One decode of a small batch is ~0.1 s on a phone, so both the warmup
+    /// (which also brings the GPU clocks up) and the measurement run for a minimum time, not a count.
+    func batchRate(k: Int, warmupSeconds: Double = 1, minSeconds: Double = 2.5, minReps: Int = 2) throws -> (rate: Double, probe: Probe, calls: [Double]) {
+        let ctx = try makeContext(nCtx: UInt32(max(1024, k + 64)))
+        defer { llama_free(ctx) }
+        let tokens = randomTokens(k + 1)
+        let batch = Array(tokens.prefix(k))
+        func once() throws -> Double {
             llama_memory_clear(llama_get_memory(ctx), true)
-            let t0 = DispatchTime.now().uptimeNanoseconds
-            try decode(ctx, tokens, startPos: 0, logitsLast: true)
+            let t0 = now()
+            try decode(ctx, batch, startPos: 0, logitsLast: true)
             llama_synchronize(ctx)
-            total += Double(DispatchTime.now().uptimeNanoseconds - t0) / 1e9
+            return Double(now() - t0) / 1e9
         }
-        return Double(k * reps) / total
+        var warm = 0.0
+        repeat { warm += try once() } while warm < warmupSeconds
+        var calls: [Double] = []
+        while calls.count < minReps || calls.reduce(0, +) < minSeconds {
+            calls.append(try once())
+        }
+        let probe = Probe.now()
+        try checkBackend(ctx, token: tokens[k], pos: Int32(k))
+        return (Double(k * calls.count) / calls.reduce(0, +), probe, calls)
     }
 }

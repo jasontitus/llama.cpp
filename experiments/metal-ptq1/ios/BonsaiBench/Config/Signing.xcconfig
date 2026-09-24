@@ -1,0 +1,11 @@
+// Signing for BonsaiBench. Put your team, and if dev.bonsaibench.app is already registered to another team
+// your own bundle identifier, in Local.xcconfig next to this file:
+//
+//     DEVELOPMENT_TEAM = ABCDE12345
+//     PRODUCT_BUNDLE_IDENTIFIER = com.example.bonsaibench
+//
+// Local.xcconfig is gitignored. Do not pick a team in Xcode's Signing & Capabilities pane: that writes it
+// into the committed project.pbxproj.
+DEVELOPMENT_TEAM =
+PRODUCT_BUNDLE_IDENTIFIER = dev.bonsaibench.app
+#include? "Local.xcconfig"

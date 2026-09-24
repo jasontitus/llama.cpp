@@ -1,61 +1,186 @@
 # BonsaiBench (iOS)
 
-Paired A-B-B-A benchmarking of the Bonsai Metal research flags on iPhone, using the same protocol as the
-Mac studies in [`../../m5`](../../m5/README.md). Research tool; not an App Store app.
+Paired A-B-B-A benchmarking of the Bonsai Metal research flags on iPhone, with the protocol of the Mac
+studies in [`../../m5`](../../m5/README.md) adapted to a phone (see "Differences from the Mac studies").
+Research tool; not an App Store app.
 
 ## What it measures
 
-- **tg128**: greedy generation of 128 tokens after a short chat prompt (plain decoding speed), with the
-  generated token IDs compared between arms.
-- **pp2 / pp4 / pp8**: k-token batches, the step shapes of MTP verification and concurrent requests.
-- **pp512**: prompt processing.
+| Cell | What | Compare with |
+|---|---|---|
+| **tg128** | 128 single-token decodes from an empty context, random tokens, no sampling | llama-bench tg128 (the Mac studies' tg128) |
+| **chat128** | greedy generation of 128 tokens after a chat prompt, including sampling; the generated tokens are compared between arms | llama-server generation speed; bit-exactness |
+| **pp2 / pp4 / pp8** | k-token batches: the step shapes of MTP verification and concurrent requests | llama-bench ppK |
+| **pp512** | a 512-token prompt batch | llama-bench pp512 |
 
-For each cell: A-B-B-A quartets (default 3), a cooldown before every observation (default 8 s), a fresh
-llama context per observation (the research flags are re-read when a context is created), and the
-spread gate (the two A runs, and the two B runs, within 1.20x of each other; failed quartets are kept and
-repeated, at most 3 times). Every observation records thermal state, process footprint and the memory
-the app may still allocate. Results are saved as JSON in the app's Documents and can be shared.
+Every observation creates a fresh llama context, so the research flags (environment variables, re-read
+when a context is created) take effect per arm. The context keeps one output row (`n_outputs_max = 1`,
+which spares ~0.5 GB of logits buffer) and n_ctx 1024.
 
-Arms: upstream (no flags), bit-exact (in-place delta-net state only), the recommended stack for the
-model's weight type (read from the GGUF), the stack plus batch-invariant mode, and per type the tensor
-path (PTQ1) or PrismML's popcount path (Q1_0).
+For each cell, per cycle:
 
-MTP is not included: llama.cpp's speculative decoding lives in its server/common library, which the iOS
-framework does not build.
+1. An A-B-B-A quartet.
+2. Before every observation:
+   - wait (up to 5 min) while the phone is `serious`/`critical`;
+   - a cooldown (default 8 s);
+   - pause while the app is not in the foreground.
+3. The quartet is rejected if any of these hold:
+   - the two A runs, or the two B runs, differ by more than the spread gate (default 1.20x);
+   - the thermal state changed during the quartet;
+   - the app left the foreground;
+   - an observation failed (a Metal command buffer error, a context that could not be created).
+4. A rejected quartet is kept and repeated, at most 3 times; the fastest is never chosen.
+5. A cell without an accepted quartet for every cycle is marked incomplete.
+
+The speedup is the geometric mean of the accepted quartets' mean(B)/mean(A).
+
+ppK cells warm up for at least 1 s and measure for at least 2.5 s, since one small decode is ~0.1 s on a
+phone. Each call's time is recorded.
+
+A result JSON is written to Documents at the start and after every quartet, so a study that iOS kills
+keeps what it measured. It records:
+
+- **Build:** the git revision the app was built from, and the SHA-256 of the embedded llama.framework.
+- **Launch environment:** any `GGML_*`/`LLAMA_*` variables the app was launched with. They are cleared
+  before every observation.
+- **Device:** hardware, OS, GPU family, memory limits.
+- **Model:** the model file, and whether it matched its published SHA-256.
+- **Per observation:**
+  - thermal state before and after;
+  - the process footprint and the memory iOS still allows, while the context is alive;
+  - any library warnings or errors, including Metal's reason for a failed command buffer.
+
+Arms:
+
+- **upstream:** no flags.
+- **bit-exact (rows mode):** the in-place delta-net state only.
+- **The recommended stack** for the model's weight type, read from the GGUF.
+- **The stack plus batch-invariant mode.**
+- **Per type:** the tensor path (PTQ1_0) or PrismML's popcount kernel (Q1_0).
+- **"only X":** each flag of the stack on its own, to find which one causes a difference.
+
+MTP is not included. The framework exposes the MTP context type, but speculative decoding (the draft and
+verify loop) lives in llama.cpp's common library, which the iOS framework does not build, and the grafted
+MTP GGUFs are not in the download list.
+
+### Differences from the Mac studies
+
+- **Cooldowns and thermal gating.** A phone throttles in steps, so the thermal gate and the paused-in-
+  background rule are additions.
+- **Retries.** The Mac aborts a cell after 3 failed quartets; the app marks it incomplete and continues.
+- **tg128 repetitions.** llama-bench averages 3 repetitions per observation; the app runs 1.
 
 ## Build and install
 
-1. Build the framework from the repository root: `./build-xcframework.sh ios-device ios-sim`
-   (writes `build-apple/llama.xcframework`).
-2. Generate the project: `cd experiments/metal-ptq1/ios/BonsaiBench && xcodegen generate`
-   (or open the committed `BonsaiBench.xcodeproj`).
-3. Open it in Xcode, select the BonsaiBench target, Signing & Capabilities, choose your team, and run on
-   the phone.
+One-time setup:
+
+1. **Sign in to Xcode.** Xcode › Settings › Accounts › + › your Apple Account. A paid team can sign both
+   memory entitlements; the first build creates the development certificate.
+2. **Enable Developer Mode on the phone.** Settings › Privacy & Security › Developer Mode, then restart.
+   Connect by USB the first time and trust the Mac.
+3. **Build the framework** from the repository root: `./build-xcframework.sh ios-device ios-sim`. This
+   writes `build-apple/llama.xcframework`.
+4. **Create `Config/Local.xcconfig`** (gitignored) with your team:
+
+   ```
+   DEVELOPMENT_TEAM = ABCDE12345
+   // PRODUCT_BUNDLE_IDENTIFIER = com.example.bonsaibench   (if dev.bonsaibench.app is taken)
+   ```
+
+   Do not pick a team in Xcode's Signing & Capabilities pane: that writes it into the committed
+   `project.pbxproj`.
+5. **Install xcodegen** (`brew install xcodegen`) and run `xcodegen generate` in this directory.
+
+Build and install from the command line (`$DEVICE` from `xcrun devicectl list devices`; keep it out of
+committed files):
+
+```
+xcodebuild -project BonsaiBench.xcodeproj -scheme BonsaiBench -configuration Release \
+  -destination "id=$DEVICE" -allowProvisioningUpdates -allowProvisioningDeviceRegistration build
+xcrun devicectl device install app --device "$DEVICE" <DerivedData>/Build/Products/Release-iphoneos/BonsaiBench.app
+```
+
+Then start the app from the home screen. Do not use Xcode's Run button for measurements: the debugger, Metal
+API validation and frame capture change GPU timings. The shared scheme's Run action is Release with all
+three off, but a home-screen launch is the reference.
 
 The app requests `com.apple.developer.kernel.increased-memory-limit` and
-`extended-virtual-addressing`, which the 4-8 GB Bonsai models need. If your account cannot sign with
-them, remove the `entitlements` block from `project.yml`, regenerate, and expect only the smallest model
-to load.
+`extended-virtual-addressing`. On a 12 GB iPhone 17 Pro Max the limit then reports about 6.3 GB at launch.
+Weights are memory-mapped from flash and do not count toward the footprint: a 3.8 GB model ran at a
+0.4 GB footprint.
 
-## Loading models
+## Getting models onto the phone
 
-Connect the phone to a Mac, open it in Finder, Files tab, BonsaiBench, and drag a `.gguf` in (or use
-"Import a .gguf…" in the app, which copies the file). Pull to refresh the list. Each model shows its file
-size, an estimated total need (weights + ~0.5 GB compute buffer + recurrent state + KV cache), and
-whether that is likely to fit in what iOS currently allows the app.
+- **Download in the app.** "Download from Hugging Face" lists the four Bonsai 27B GGUFs at the PrismML
+  revisions the Mac studies used.
+  - Downloads use a background session, so they continue while the phone is locked.
+  - They are Wi-Fi only unless "Use cellular data" is on.
+  - A download is installed only if its size and SHA-256 match.
+- **Copy from a Mac over USB.** This took about 400 MB/s here:
 
-Expected on a 12 GB iPhone 17 Pro / Pro Max (estimates; the app reports the real limit):
+  ```
+  xcrun devicectl device copy to --device "$DEVICE" --domain-type appDataContainer \
+    --domain-identifier dev.bonsaibench.app --source Ternary-Bonsai-2-27B-PTQ1_0.gguf \
+    --destination Documents/Ternary-Bonsai-2-27B-PTQ1_0.gguf
+  ```
 
-| Model | File | Likely |
-|---|---:|---|
-| Bonsai 1 binary (Q1_0) | 3.8 GB | fits |
-| Bonsai 2 PTQ1_0 | 5.9 GB | fits with the increased memory limit |
-| Bonsai 2 PQ2_0 / Bonsai 1 ternary (PQ2_0) | 7.2 GB | borderline |
+- **Finder or the Files app.** Put the file in the app's Documents, or use "Import a .gguf…".
 
-An out-of-memory termination is a failed configuration, not a result; record it.
+Tap **Verify** on a model that was copied rather than downloaded, to check it against the published hash.
+Every model in Documents is excluded from iCloud backup.
+
+Each model row shows an estimate of what it needs (weights + compute buffer + recurrent state + KV cache +
+app) against what iOS currently allows. If iOS kills the app while it loads a model, the next launch says
+so: that model does not fit.
 
 ## Running a study
 
-Load a model, pick arm A (usually "upstream") and arm B, choose cells, and tap "Run A-B-B-A". Keep the app
-in the foreground, the phone on power and on a hard surface, Low Power Mode off. Phones throttle much
-sooner than laptops, so expect rejected quartets and wider ranges; the JSON keeps every observation.
+1. Load a model.
+2. Pick arm A (usually "upstream") and arm B.
+3. Choose cells and tap "Run A-B-B-A".
+4. Keep the app in the foreground, the phone on a hard surface (ideally on power), and Low Power Mode off.
+
+Run is disabled while a download or hash check is in progress, because those would skew the timings.
+
+**Unattended, from a Mac.** With the phone unlocked:
+
+```
+xcrun devicectl device process launch --device "$DEVICE" --terminate-existing --console \
+  --environment-variables '{"BONSAIBENCH_AUTORUN":"{\"model\":\"Bonsai-27B-Q1_0.gguf\",\"a\":\"upstream\",\"b\":\"only SMALLM_MM\",\"cells\":[\"pp512\"],\"cycles\":1}"}' \
+  dev.bonsaibench.app
+```
+
+- `--console` shows the library log.
+- Arms are preset names as shown in the app.
+- Cells may be any `tgN`, `chatN` or `ppK`.
+- `cycles` and `cooldown` are optional.
+
+Fetch the results with:
+
+```
+xcrun devicectl device copy from --device "$DEVICE" --domain-type appDataContainer \
+  --domain-identifier dev.bonsaibench.app --source Documents/<file>.json --destination .
+```
+
+**Sending results from the phone.** Use "Share JSON" after a study, or Files › On My iPhone ›
+BonsaiBench, and send or save the `bonsaibench-*.json` files (e.g. to iCloud Drive).
+
+## Findings so far (iPhone 17 Pro Max, A19 Pro, iOS 27)
+
+These are from one partial study (Bonsai 1 binary, Q1_0), one quartet per cell, so they are early signals.
+
+- **Small batches gain.** Stack vs upstream:
+  - pp2 **1.16x** (15.8 → 18.4 tok/s);
+  - pp4 **1.07x** (17.5 → 18.8);
+  - pp8 **1.03x** (18.2 → 18.8).
+- **The Q1_0 kernels are compute-bound on the phone GPU.** Throughput barely grows from 2 to 8 tokens
+  per call. On the M5 Max it grows strongly, so batching and multi-token prediction help less on the phone.
+- **pp512 regressed.** With the Q1_0 stack it dropped from 78.9 to 54.0 tok/s, and then a Metal command
+  buffer failed (`llama_decode` -3). On the M5 Max the same flags give 1.035x at pp512. The only stack
+  changes at a 512-token batch are:
+  - the in-place delta-net state (neutral at pp512 on the M5, where the delta-net op costs the same in both
+    modes);
+  - `SMALLM_MM`, which routes the 48-row gate projections to the mat-vec kernel.
+
+  Diagnosis is pending: the per-flag arms and the Metal error text in this version are there to settle it.
+  Until then, leave pp512 out of phone studies with the Q1_0 stack.
