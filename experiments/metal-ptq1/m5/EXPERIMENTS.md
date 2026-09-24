@@ -425,3 +425,12 @@ generated text was identical in every slot. The iPhone 17 Pro Max shows the same
 ## M1 regression repair and final device study
 
 The M1 Ultra investigation restored the MTP performance lost with M5-selected staged geometry, specialized complete PTQ1 tiles, and fixed scratch alignment and research-profile lifetime hazards. See [the M1 experiment log](../m1/EXPERIMENTS.md) for controlled/rejected candidates and [the final 30-cell results](../m1/results/final-device/RESULTS.md). The shared chart preserves historical M5 and preliminary phone evidence and adds the M1 column; its separate M1 profile uses STAGE=0. The final merged kernels/safety fixes still require M5/phone revalidation before their historical gains can be attributed to this revision.
+
+## M1 changes re-checked on M5 Max (no change)
+
+After the M1 session's library commits (`7414230`, `dad539c`, `6f068ec`): the correctness matrix is
+identical to the earlier one (12/12 configurations, same kernel variants; the M1 4-row default is
+GPU-family-7 only), and a paired A-B-B-A of the pre-M1 build (`754d1fb`) against the current build with
+the PTQ1 flags in both arms gives tg128 1.005x, pp2 0.989x, pp4 0.994x, pp8 1.000x, 2 requests 0.992x,
+MTP 1 request 0.998x (3 quartets each, all accepted first attempt, identical tokens in the server cells).
+Results in `results/m1-change-check/`.

@@ -96,6 +96,26 @@ verification falls back to a generic kernel; the fast multi-column kernels are w
 
 The following modes and numerical evidence describe the historical M5 snapshots. They are not new quality or bitwise guarantees for the final merged M1 code.
 
+Re-checked on the M5 Max after the M1 changes (`results/m1-change-check/`):
+
+- **Correctness is unchanged.** The correctness matrix (test-backend-ops suites, fixtures and the strict
+  1e-8 checkers for PTQ1_0, PQ2_0 and Q1_0) gives the same results as before, 12 of 12 configurations,
+  with the same kernel variants.
+- **Speed is unchanged.** A paired A-B-B-A of the pre-M1 build (`754d1fb`) against the current build, same
+  PTQ1 flags, stays within 1.1% on every cell, with identical tokens in the server cells:
+
+  | Cell | Paired (current vs pre-M1) |
+  |---|---:|
+  | tg128 | 1.005x |
+  | pp2 | 0.989x |
+  | pp4 | 0.994x |
+  | pp8 | 1.000x |
+  | 2 requests | 0.992x |
+  | MTP, 1 request | 0.998x |
+
+- **The M5 numbers above therefore stand for the current branch.** On the M5 the M1 changes are
+  memory-layout and M1-only tuning; the 4-row PTQ1 default applies to GPU family 7 only.
+
 | Guarantee | Flags | Single-request speedup vs upstream |
 |---|---|---|
 | **Bit-identical to upstream** | `GGML_GDN_ROWS_PLAIN=1` | plain decoding +7-9% (PTQ1 1.07-1.08x, PQ2 1.09x); Bonsai 1 binary +14% with `GGML_METAL_SMALLM=1` |

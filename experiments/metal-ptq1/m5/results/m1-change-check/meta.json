@@ -1,0 +1,77 @@
+{
+  "created": 1790279623.019835,
+  "env_a": {
+    "GGML_METAL_PTQ1_MULTICOL": "1",
+    "GGML_METAL_PTQ1_MULTICOL_MAX": "8",
+    "GGML_METAL_PTQ1_GLU": "1",
+    "GGML_METAL_PTQ1_STAGE": "1",
+    "GGML_GDN_ROWS_PLAIN": "1",
+    "GGML_METAL_SMALLM_MM": "1"
+  },
+  "env_b": {
+    "GGML_METAL_PTQ1_MULTICOL": "1",
+    "GGML_METAL_PTQ1_MULTICOL_MAX": "8",
+    "GGML_METAL_PTQ1_GLU": "1",
+    "GGML_METAL_PTQ1_STAGE": "1",
+    "GGML_GDN_ROWS_PLAIN": "1",
+    "GGML_METAL_SMALLM_MM": "1"
+  },
+  "args": {
+    "output": "m5/m1-check-ptq1",
+    "bin": "build-dev/bin",
+    "src": "llama.cpp",
+    "model": "../workspace/work/models/Ternary-Bonsai-2-27B-PTQ1_0.gguf",
+    "mtp_model": "../workspace/work/mtp/Ternary-Bonsai-2-27B-PTQ1_0-mtp.gguf",
+    "env_a": "{\"GGML_METAL_PTQ1_MULTICOL\":\"1\",\"GGML_METAL_PTQ1_MULTICOL_MAX\":\"8\",\"GGML_METAL_PTQ1_GLU\":\"1\",\"GGML_METAL_PTQ1_STAGE\":\"1\",\"GGML_GDN_ROWS_PLAIN\":\"1\",\"GGML_METAL_SMALLM_MM\":\"1\"}",
+    "env_b": "{\"GGML_METAL_PTQ1_MULTICOL\":\"1\",\"GGML_METAL_PTQ1_MULTICOL_MAX\":\"8\",\"GGML_METAL_PTQ1_GLU\":\"1\",\"GGML_METAL_PTQ1_STAGE\":\"1\",\"GGML_GDN_ROWS_PLAIN\":\"1\",\"GGML_METAL_SMALLM_MM\":\"1\"}",
+    "bench": "['tg128', 'pp2', 'pp4', 'pp8']",
+    "server": "['s0c2', 's1c1']",
+    "cycles": "3",
+    "attempts": "3",
+    "cooldown": "8.0",
+    "tokens": "128",
+    "spread": "1.2",
+    "bin_a": "build-pre-m1/bin",
+    "src_a": "snap-pre-m1"
+  },
+  "binaries": {
+    "libggml-base.0.21.0.dylib": "da8ef6e8b6c741df5c24a7a1ea7390bce0516f7e16bd3e5fda594bffe2399ccb",
+    "libggml-blas.0.21.0.dylib": "33f0760f95897c301a3f201f32ce1c9867ba94912f2e278a028ae75d6ee7b6bd",
+    "libggml-cpu.0.21.0.dylib": "8d303258c9e5363823f2883c45c203eb6da221836d9c0b427a0ffc8bfafcd475",
+    "libggml-metal.0.21.0.dylib": "1f821db8e5e43fb4f69ad50a9b2732579978ece2ad8a518bdf0ad433a02a8d7d",
+    "libggml.0.21.0.dylib": "cdaf9544e6f670c7a9c9d82c122daa8dbd5c351a0f7f7f77b5fe19ba23eb9c11",
+    "libllama-bench-impl.dylib": "37bb8a310ae6758832915162dcd0cce0298c4cc5555779120cda86b1e63eb181",
+    "libllama-common.0.2.0.dylib": "7a18b15e7b7aaf8ba1c0f1215d9b4305aec0fe2f1abb2fa6592f5021ee30b6d8",
+    "libllama-perplexity-impl.dylib": "045442567ff636e2f4f6df43357d59d650497619a85c6ae66087961075221b0d",
+    "libllama-server-impl.dylib": "ed2361e7098ce316b97b7a88722dc7e7c306425b2abb0e43dfe3e1bc57d53a70",
+    "libllama.0.2.0.dylib": "612914a1828dd8ff9141df76b9b30364cd2d7f1f3c88b655ffd2f6d8742ad9d6",
+    "libmtmd.0.2.0.dylib": "028afb91713597510bd5881346d6fbd33520de580c349ad9100e7c5a82273669",
+    "llama-bench": "57ea2f6ee5903cf1aab12ddbda7167f5f098e89b10c957d6ca1601d3f42049b3",
+    "llama-server": "0479e020ade303ee4310f8a62eff8c602e17652d807388e339ca3adfca623628"
+  },
+  "revision": "45a1d9c620dd1c44cf1c422714671eb6138e07f4",
+  "src": "llama.cpp",
+  "diff_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+  "thermal": "Note: No thermal warning level has been recorded\nNote: No performance warning level has been recorded\nNote: No CPU power status has been recorded\n",
+  "power": "Now drawing from 'AC Power'\n -InternalBattery-0 (id=23855203)\t80%; AC attached; not charging present: true\n",
+  "comparison_a": {
+    "bin": "build-pre-m1/bin",
+    "src": "snap-pre-m1",
+    "binaries": {
+      "libggml-base.0.21.0.dylib": "5d0ffc0f286ea4dd2772c2cc67fd8da8a773ded478f463dbaa9f1b5d8d36a1b5",
+      "libggml-blas.0.21.0.dylib": "942ebfd9e338371dcb0833a5b61e17d071105ff33dc3a7d45f40adb9e97c38f5",
+      "libggml-cpu.0.21.0.dylib": "9fabc2519fec806064ea84062eb9fcabf98e8d4666c20f4bd9af6fab50e3ed7f",
+      "libggml-metal.0.21.0.dylib": "c5e62cae84c09dfabbb54a34098be0c73f5276f9b7f20ebb2e23777e5b22dd90",
+      "libggml.0.21.0.dylib": "84983bfe891b8a877c2f97af1a22597931c1c8fe7c278416ed31880aeb9bc888",
+      "libllama-bench-impl.dylib": "b293d68e38b73ec21213c9d88f6093c49ed723b06656d850c74ec7a1201ee45e",
+      "libllama-common.0.2.0.dylib": "421fbbf724ca10d9cf083a329938148a6b3d48705588bff747edae61aa3d1f22",
+      "libllama-server-impl.dylib": "538b6aee2bd638d118697bbe06a865ea43dea0ad8354bc2babc1812157ab6b89",
+      "libllama.0.2.0.dylib": "f5cecc31d0fd81f8aab6e20da40212f8f47c860444db10f5dc908cdaa6724d3b",
+      "libmtmd.0.2.0.dylib": "9358494068a0f69038a60c366186b6f6ef45d3d457d7734830c7dd06cf1457c6",
+      "llama-bench": "06ab57d7e601b691ee2c1f25f8b5e449eb226e4df43796b8ac0965c54a880342",
+      "llama-server": "bcfe8f8e1e719786bb8305748528bb1e1a72632d98b27946a65d3c29e97c9133"
+    },
+    "revision": "754d1fb091d02fabe83023aa083cde86e77d8b38",
+    "diff_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+  }
+}
