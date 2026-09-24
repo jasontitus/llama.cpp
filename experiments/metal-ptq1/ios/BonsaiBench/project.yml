@@ -68,6 +68,19 @@ targets:
           if [ ! -f "$FWH" ]; then
             echo "error: build-apple/llama.xcframework is missing: run ./build-xcframework.sh ios-device ios-sim in the repository root"; exit 1
           fi
+          # the framework must be built from this checkout's library source (build-xcframework.sh records it)
+          SRC="$ROOT/build-apple/llama.xcframework.source"
+          if [ "${BB_ALLOW_STALE_FRAMEWORK:-0}" != 1 ]; then
+            FWREV=$(sed -n 's/^revision=//p' "$SRC" 2>/dev/null)
+            FWDIRTY=$(sed -n 's/^dirty_files=//p' "$SRC" 2>/dev/null)
+            if [ -z "$FWREV" ]; then
+              echo "error: llama.xcframework has no source record (built by an older build-xcframework.sh): rebuild it with ./build-xcframework.sh ios-device ios-sim"; exit 1
+            fi
+            if [ "$FWDIRTY" != 0 ] || ! git -C "$ROOT" diff --quiet "$FWREV" HEAD -- ggml src include || \
+               [ -n "$(git -C "$ROOT" status --porcelain -- ggml src include)" ]; then
+              echo "error: llama.xcframework was built from different library source than this checkout (built at $FWREV): rebuild it with ./build-xcframework.sh ios-device ios-sim (or set BB_ALLOW_STALE_FRAMEWORK=1)"; exit 1
+            fi
+          fi
           FWD="$(dirname "$FWH")"
           for h in llama.h ggml.h ggml-alloc.h ggml-backend.h ggml-cpu.h ggml-metal.h gguf.h; do
             SRCH="$ROOT/include/$h"; [ -f "$SRCH" ] || SRCH="$ROOT/ggml/include/$h"
@@ -110,6 +123,7 @@ targets:
       configs:
         Release:
           GCC_PREPROCESSOR_DEFINITIONS: ["NDEBUG=1"]
+          GCC_OPTIMIZATION_LEVEL: "3"          # llama.cpp's common code at CMake's -O3, not Xcode's -Os
 schemes:
   BonsaiBench:
     build:

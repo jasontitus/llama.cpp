@@ -92,6 +92,9 @@ bool generate(common_params & params, llama_model * model, llama_context * ctx_t
             return false;
         }
         llama_synchronize(ctx_tgt);
+        if (ctx_dft) {
+            llama_synchronize(ctx_dft);
+        }
     }
     const double t1 = now_s();
 
@@ -132,28 +135,37 @@ bool generate(common_params & params, llama_model * model, llama_context * ctx_t
                 n_draft_max = std::min(n_draft_max, n_predict - n_generated - 1);
                 n_draft_max = std::max(n_draft_max, 0);
 
-                common_speculative_get_draft_params(spec, seq_id) = {
-                    /* .drafting = */ true,
-                    /* .n_max    = */ n_draft_max,
-                    /* .n_past   = */ n_past,
-                    /* .id_last  = */ id_last,
-                    /* .prompt   = */ &prompt_tgt,
-                    /* .result   = */ &draft,
-                };
-                const double td = now_s();
-                common_speculative_draft(spec);
-                out.t_draft += now_s() - td;
-                // with n_min 0 and p_min 0 the MTP head always proposes a token; none means its context
-                // failed (e.g. a Metal error on the draft context), and the run would silently turn plain
-                if (n_draft_max > 0 && draft.empty()) {
-                    err = "the MTP draft context produced no draft (see the library messages)";
-                    return false;
+                // no budget, no draft: the MTP drafter ignores n_max 0, and llama-server skips drafting there
+                if (n_draft_max > 0) {
+                    common_speculative_get_draft_params(spec, seq_id) = {
+                        /* .drafting = */ true,
+                        /* .n_max    = */ n_draft_max,
+                        /* .n_past   = */ n_past,
+                        /* .id_last  = */ id_last,
+                        /* .prompt   = */ &prompt_tgt,
+                        /* .result   = */ &draft,
+                    };
+                    const double td = now_s();
+                    common_speculative_draft(spec);
+                    out.t_draft += now_s() - td;
+                    // with n_min 0 and p_min 0 the MTP head always proposes a token; none means its context
+                    // failed (e.g. a Metal error on the draft context), and the run would silently turn plain
+                    if (draft.empty()) {
+                        err = "the MTP draft context produced no draft (see the library messages)";
+                        return false;
+                    }
+                    if ((int) draft.size() > n_draft_max) {
+                        draft.resize(n_draft_max);
+                    }
                 }
 
                 if (seq_rm_dft == COMMON_CONTEXT_SEQ_RM_TYPE_FULL) {
                     ckpt.load_dft(ctx_dft, seq_id, LLAMA_STATE_SEQ_FLAGS_PARTIAL_ONLY);
                 }
-                llama_memory_seq_rm(llama_get_memory(ctx_dft), seq_id, ckpt.pos_max + 1, -1);
+                if (!llama_memory_seq_rm(llama_get_memory(ctx_dft), seq_id, ckpt.pos_max + 1, -1)) {
+                    err = "draft context rollback failed";
+                    return false;
+                }
 
                 if (!draft.empty()) {
                     use_ckpt_tgt = seq_rm_tgt == COMMON_CONTEXT_SEQ_RM_TYPE_FULL ||
@@ -186,6 +198,7 @@ bool generate(common_params & params, llama_model * model, llama_context * ctx_t
         }
         out.steps++;
 
+        llama_synchronize(ctx_tgt);   // the verify's GPU time belongs to verification, not to process()
         const double tp = now_s();
         if (spec && !common_speculative_process(spec, batch_tgt)) {
             err = "failed to process the batch for speculative decoding";
@@ -211,12 +224,16 @@ bool generate(common_params & params, llama_model * model, llama_context * ctx_t
         if (use_ckpt_tgt && ids.size() - 1 < n_draft) {
             draft = std::move(ids);
             ckpt.load_tgt(ctx_tgt, seq_id, LLAMA_STATE_SEQ_FLAGS_PARTIAL_ONLY);
-            llama_memory_seq_rm(llama_get_memory(ctx_tgt), seq_id, ckpt.pos_max + 1, -1);
+            bool ok = llama_memory_seq_rm(llama_get_memory(ctx_tgt), seq_id, ckpt.pos_max + 1, -1);
             if (ctx_dft) {
                 if (use_ckpt_dft) {
                     ckpt.load_dft(ctx_dft, seq_id, LLAMA_STATE_SEQ_FLAGS_PARTIAL_ONLY);
                 }
-                llama_memory_seq_rm(llama_get_memory(ctx_dft), seq_id, ckpt.pos_max + 1, -1);
+                ok = ok && llama_memory_seq_rm(llama_get_memory(ctx_dft), seq_id, ckpt.pos_max + 1, -1);
+            }
+            if (!ok) {
+                err = "checkpoint rollback failed";
+                return false;
             }
             prompt_tgt.resize(ckpt.n_tokens);
             smpl = std::move(smpl_save);
@@ -243,12 +260,17 @@ bool generate(common_params & params, llama_model * model, llama_context * ctx_t
         }
 
         draft.clear();
-        llama_memory_seq_rm(llama_get_memory(ctx_tgt), seq_id, n_past, -1);
-        if (ctx_dft) {
-            llama_memory_seq_rm(llama_get_memory(ctx_dft), seq_id, n_past, -1);
+        // drop the rejected draft positions (llama-server aborts when this fails)
+        if (!llama_memory_seq_rm(llama_get_memory(ctx_tgt), seq_id, n_past, -1) ||
+            (ctx_dft && !llama_memory_seq_rm(llama_get_memory(ctx_dft), seq_id, n_past, -1))) {
+            err = "rollback of rejected draft tokens failed";
+            return false;
         }
     }
     llama_synchronize(ctx_tgt);
+    if (ctx_dft) {
+        llama_synchronize(ctx_dft);
+    }
     const double t2 = now_s();
 
     // A failed Metal command buffer only marks the backend; the next decode reports it.
@@ -274,9 +296,28 @@ extern "C" void bb_common_log_to_file(const char * path) {
     common_log_set_file(common_log_main(), path);
 }
 
-extern "C" int32_t bb_generate(struct llama_model * model, const char * prompt, int32_t n_predict, int32_t n_draft,
-                               int32_t n_warmup, int32_t n_ctx, int32_t n_threads, int32_t * out_tokens,
+static int32_t bb_generate_impl(struct llama_model * model, bool mtp_loaded, const char * prompt, int32_t n_predict,
+                                int32_t n_draft, int32_t n_warmup, int32_t n_ctx, int32_t n_threads,
+                                int32_t * out_tokens, int32_t capacity, bb_gen_result * result);
+
+extern "C" int32_t bb_generate(struct llama_model * model, int32_t mtp_loaded, const char * prompt, int32_t n_predict,
+                               int32_t n_draft, int32_t n_warmup, int32_t n_ctx, int32_t n_threads, int32_t * out_tokens,
                                int32_t capacity, bb_gen_result * result) {
+    // nothing may unwind into Swift
+    try {
+        return bb_generate_impl(model, mtp_loaded != 0, prompt, n_predict, n_draft, n_warmup, n_ctx, n_threads,
+                                out_tokens, capacity, result);
+    } catch (const std::exception & e) {
+        std::snprintf(result->error, sizeof(result->error), "exception: %s", e.what());
+    } catch (...) {
+        std::snprintf(result->error, sizeof(result->error), "unknown exception");
+    }
+    return -1;
+}
+
+static int32_t bb_generate_impl(struct llama_model * model, bool mtp_loaded, const char * prompt, int32_t n_predict,
+                                int32_t n_draft, int32_t n_warmup, int32_t n_ctx, int32_t n_threads,
+                                int32_t * out_tokens, int32_t capacity, bb_gen_result * result) {
     std::memset(result, 0, sizeof(*result));
     struct log_flush {
         ~log_flush() { common_log_flush(common_log_main()); }
@@ -309,8 +350,9 @@ extern "C" int32_t bb_generate(struct llama_model * model, const char * prompt, 
     params.n_outputs_max         = limits.total;
     params.n_outputs_max_per_seq = limits.per_seq;
 
-    if (n_draft > 0 && llama_model_n_layer_nextn(model) <= 0) {
-        return fail("this model has no MTP layers loaded (use an MTP GGUF)");
+    // the hparam says the file has MTP layers; only load_mtp loads their tensors (drafting without aborts)
+    if (n_draft > 0 && (!mtp_loaded || llama_model_n_layer_nextn(model) <= 0)) {
+        return fail("this model was not loaded with its MTP layers (use an MTP GGUF)");
     }
 
     // declared before the contexts, so it is destroyed after them (a context keeps a pointer to its pool)
@@ -344,9 +386,17 @@ extern "C" int32_t bb_generate(struct llama_model * model, const char * prompt, 
     const common_context_seq_rm_type seq_rm_tgt = common_context_can_seq_rm(ctx_tgt);
     const common_context_seq_rm_type seq_rm_dft = ctx_dft ? common_context_can_seq_rm(ctx_dft) : COMMON_CONTEXT_SEQ_RM_TYPE_NO;
 
+    if (n_draft > 0 && (seq_rm_tgt == COMMON_CONTEXT_SEQ_RM_TYPE_NO || seq_rm_dft == COMMON_CONTEXT_SEQ_RM_TYPE_NO)) {
+        // llama-server turns speculation off here; a measurement must not silently do that
+        return fail("a context cannot roll back rejected drafts (see the library messages)");
+    }
+
     const std::vector<llama_token> inp = common_tokenize(ctx_tgt, prompt, true, true);
-    if (inp.size() < 2 || (int) inp.size() + n_predict + n_draft + 2 > n_ctx) {
+    if (inp.size() < 2 || (int) inp.size() + std::max(n_predict, n_warmup) + n_draft + 2 > n_ctx) {
         return fail("prompt too short or context too small");
+    }
+    if ((int) inp.size() - 1 > params.n_batch) {
+        return fail("the prompt is longer than one batch (" + std::to_string(params.n_batch) + " tokens)");
     }
 
     std::string err;

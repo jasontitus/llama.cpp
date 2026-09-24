@@ -263,7 +263,7 @@
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 			shellPath = /bin/sh;
-			shellScript = "ROOT=\"$SRCROOT/../../../..\"\nFWH=\"$ROOT/build-apple/llama.xcframework/ios-arm64/llama.framework/Headers/llama.h\"\nif [ ! -f \"$FWH\" ]; then\n  echo \"error: build-apple/llama.xcframework is missing: run ./build-xcframework.sh ios-device ios-sim in the repository root\"; exit 1\nfi\nFWD=\"$(dirname \"$FWH\")\"\nfor h in llama.h ggml.h ggml-alloc.h ggml-backend.h ggml-cpu.h ggml-metal.h gguf.h; do\n  SRCH=\"$ROOT/include/$h\"; [ -f \"$SRCH\" ] || SRCH=\"$ROOT/ggml/include/$h\"\n  if ! cmp -s \"$SRCH\" \"$FWD/$h\"; then\n    echo \"error: llama.xcframework was built from a different $h than this checkout: rebuild it with ./build-xcframework.sh ios-device ios-sim\"; exit 1\n  fi\ndone\n";
+			shellScript = "ROOT=\"$SRCROOT/../../../..\"\nFWH=\"$ROOT/build-apple/llama.xcframework/ios-arm64/llama.framework/Headers/llama.h\"\nif [ ! -f \"$FWH\" ]; then\n  echo \"error: build-apple/llama.xcframework is missing: run ./build-xcframework.sh ios-device ios-sim in the repository root\"; exit 1\nfi\n# the framework must be built from this checkout's library source (build-xcframework.sh records it)\nSRC=\"$ROOT/build-apple/llama.xcframework.source\"\nif [ \"${BB_ALLOW_STALE_FRAMEWORK:-0}\" != 1 ]; then\n  FWREV=$(sed -n 's/^revision=//p' \"$SRC\" 2>/dev/null)\n  FWDIRTY=$(sed -n 's/^dirty_files=//p' \"$SRC\" 2>/dev/null)\n  if [ -z \"$FWREV\" ]; then\n    echo \"error: llama.xcframework has no source record (built by an older build-xcframework.sh): rebuild it with ./build-xcframework.sh ios-device ios-sim\"; exit 1\n  fi\n  if [ \"$FWDIRTY\" != 0 ] || ! git -C \"$ROOT\" diff --quiet \"$FWREV\" HEAD -- ggml src include || \\\n     [ -n \"$(git -C \"$ROOT\" status --porcelain -- ggml src include)\" ]; then\n    echo \"error: llama.xcframework was built from different library source than this checkout (built at $FWREV): rebuild it with ./build-xcframework.sh ios-device ios-sim (or set BB_ALLOW_STALE_FRAMEWORK=1)\"; exit 1\n  fi\nfi\nFWD=\"$(dirname \"$FWH\")\"\nfor h in llama.h ggml.h ggml-alloc.h ggml-backend.h ggml-cpu.h ggml-metal.h gguf.h; do\n  SRCH=\"$ROOT/include/$h\"; [ -f \"$SRCH\" ] || SRCH=\"$ROOT/ggml/include/$h\"\n  if ! cmp -s \"$SRCH\" \"$FWD/$h\"; then\n    echo \"error: llama.xcframework was built from a different $h than this checkout: rebuild it with ./build-xcframework.sh ios-device ios-sim\"; exit 1\n  fi\ndone\n";
 		};
 /* End PBXShellScriptBuildPhase section */
 
@@ -312,6 +312,7 @@
 					"$(inherited)",
 					"\"../../../../build-apple\"",
 				);
+				GCC_OPTIMIZATION_LEVEL = 3;
 				GCC_PREPROCESSOR_DEFINITIONS = (
 					"NDEBUG=1",
 				);

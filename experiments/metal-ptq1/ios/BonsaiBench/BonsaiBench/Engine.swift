@@ -230,7 +230,7 @@ final class Engine {
         let threads = Int32(max(1, min(8, ProcessInfo.processInfo.activeProcessorCount - 2)))
         var tokens = [Int32](repeating: 0, count: n + draft + 1)
         var r = bb_gen_result()
-        let count = bb_generate(model, prompt, Int32(n), Int32(draft), Int32(warmup), 1024, threads, &tokens,
+        let count = bb_generate(model, hasMTP ? 1 : 0, prompt, Int32(n), Int32(draft), Int32(warmup), 1024, threads, &tokens,
                                 Int32(tokens.count), &r)
         guard count >= 0 else {
             let msg = withUnsafeBytes(of: r.error) { String(decoding: $0.prefix { $0 != 0 }, as: UTF8.self) }

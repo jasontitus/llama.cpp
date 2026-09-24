@@ -19,7 +19,7 @@ typedef struct bb_gen_result {
     int32_t  n_accepted;        // of which accepted
     int32_t  n_steps;           // target decodes in the generation loop
     double   draft_seconds;     // generation loop split: MTP drafting,
-    double   verify_seconds;    // target decode and sampling (waits for the GPU),
+    double   verify_seconds;    // target decode, its GPU time and sampling,
     double   process_seconds;   // and feeding the verified batch to the MTP context
     uint64_t footprint_bytes;   // process footprint while the contexts are alive
     uint64_t available_bytes;   // memory iOS still allows the app then (0 off device)
@@ -35,9 +35,9 @@ void bb_common_log_to_file(const char * path);
 // load_mtp) or, for n_draft == 0, plain decoding through the same loop. A warmup generation of n_warmup
 // tokens runs first on the same contexts. Writes the generated tokens to out_tokens (capacity) and
 // returns their number, or -1 with result->error set.
-int32_t bb_generate(struct llama_model * model, const char * prompt, int32_t n_predict, int32_t n_draft,
-                    int32_t n_warmup, int32_t n_ctx, int32_t n_threads, int32_t * out_tokens, int32_t capacity,
-                    bb_gen_result * result);
+int32_t bb_generate(struct llama_model * model, int32_t mtp_loaded, const char * prompt, int32_t n_predict,
+                    int32_t n_draft, int32_t n_warmup, int32_t n_ctx, int32_t n_threads, int32_t * out_tokens,
+                    int32_t capacity, bb_gen_result * result);
 
 #ifdef __cplusplus
 }

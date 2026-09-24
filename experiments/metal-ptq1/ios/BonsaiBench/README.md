@@ -135,6 +135,11 @@ One-time setup:
    Connect by USB the first time and trust the Mac.
 3. **Build the framework** from the repository root: `./build-xcframework.sh ios-device ios-sim`. This
    writes `build-apple/llama.xcframework`.
+   - The script also records which revision the framework was built from.
+   - The app build refuses a framework built from different library source (`ggml/`, `src/`, `include/`)
+     than the checkout, because the app compiles llama.cpp's common code against the checkout's headers.
+   - So rebuild the framework after pulling library changes. `BB_ALLOW_STALE_FRAMEWORK=1` overrides this
+     for experiments.
 4. **Create `Config/Local.xcconfig`** (gitignored) with your team:
 
    ```

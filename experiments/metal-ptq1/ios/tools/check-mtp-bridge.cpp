@@ -3,11 +3,14 @@
 // and the MTP acceptance and speed (compare with llama-speculative-simple / llama-server, same settings:
 // --spec-type draft-mtp --spec-draft-n-max 1 --spec-draft-n-min 0 --spec-draft-p-min 0 --temp 0).
 //
-// build (from the repository root, with a Metal build in build/: cmake --build build --target llama llama-common):
+// build (from the repository root, with a Metal build in build/: cmake --build build --target llama), compiling
+// the same common files and build-info stub as the app (project.yml), not CMake's llama-common:
 //   M=experiments/metal-ptq1/ios/BonsaiBench/BonsaiBench/MTP
-//   clang++ -std=c++17 -O2 -DNDEBUG -I$M -Iinclude -Iggml/include -Icommon -Isrc -Ivendor \
-//     experiments/metal-ptq1/ios/tools/check-mtp-bridge.cpp $M/BonsaiMTP.cpp \
-//     -Lbuild/bin -lllama-common -lllama -lggml -lggml-base -Wl,-rpath,build/bin -o check-mtp-bridge
+//   C="common/common.cpp common/log.cpp common/fit.cpp common/reasoning-budget.cpp common/trie.cpp common/unicode.cpp
+//      common/ngram-cache.cpp common/ngram-map.cpp common/ngram-mod.cpp common/sampling.cpp common/speculative.cpp"
+//   clang++ -std=c++17 -O3 -DNDEBUG -I$M -Iinclude -Iggml/include -Icommon -Isrc -Ivendor \
+//     experiments/metal-ptq1/ios/tools/check-mtp-bridge.cpp $M/BonsaiMTP.cpp $M/build-info.cpp $C \
+//     -Lbuild/bin -lllama -lggml -lggml-base -Wl,-rpath,build/bin -o check-mtp-bridge
 // run:   ./check-mtp-bridge Ternary-Bonsai-2-27B-PTQ1_0-mtp.gguf [reps]   (ONLY="stack + MTP" runs one config)
 // Run configurations in separate processes (ONLY=...) for speed comparisons: back-to-back GPU work drifts.
 #include "BonsaiMTP.h"
@@ -45,7 +48,7 @@ int main(int argc, char ** argv) {
             set_flags(c.stack);
             std::vector<int32_t> out(128 + 4);
             bb_gen_result res;
-            int n = bb_generate(model, PROMPT, 128, c.draft, getenv("WARM") ? atoi(getenv("WARM")) : 16, 1024, 8, out.data(), (int) out.size(), &res);
+            int n = bb_generate(model, 1, PROMPT, getenv("N_PREDICT") ? atoi(getenv("N_PREDICT")) : 128, c.draft, getenv("WARM") ? atoi(getenv("WARM")) : 16, 1024, 8, out.data(), (int) out.size(), &res);
             if (n < 0) { printf("%-16s ERROR %s\n", c.name, res.error); continue; }
             out.resize(n);
             printf("rep %d %-16s gen %3d tok in %.3f s = %6.2f tok/s  prompt %d tok %.3f s  steps %d  drafted %d accepted %d (%.1f%%)  foot %.2f GB\n",
@@ -65,6 +68,9 @@ int main(int argc, char ** argv) {
                 }
             } if (r == 0 && c.draft == 0 && !c.stack) { printf("bridge first 20:"); for (int i = 0; i < 20 && i < (int) out.size(); i++) printf(" %d", out[i]); printf("\n"); }
         }
+    }
+    if (toks.find("upstream plain") == toks.end()) {
+        return 0;   // the token comparison needs the reference configuration in the same process
     }
     auto & ref = toks["upstream plain"];
     for (auto & [k, v] : toks) {
