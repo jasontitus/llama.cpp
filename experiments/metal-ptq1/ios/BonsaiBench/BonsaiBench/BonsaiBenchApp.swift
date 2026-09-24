@@ -31,6 +31,8 @@ final class BenchState: ObservableObject {
     @Published var result: RunResult?
     @Published var resultURL: URL?
     @Published var device = DeviceInfo.capture()
+    @Published var thermal = thermalStateName()      // live, so it is visible before starting a study
+    private var thermalObserver: NSObjectProtocol?
     private var study: Study?
     private var lastLoadHadMTP: Bool?
 
@@ -104,6 +106,10 @@ final class BenchState: ObservableObject {
             status = "The app was stopped while loading \(m), most likely out of memory: it does not fit on this phone."
         } else if let unfinished = Self.unfinishedStudy(in: documents) {
             status = "The last study did not finish (\(unfinished)); its quartets up to then are saved in that file."
+        }
+        thermalObserver = NotificationCenter.default.addObserver(forName: ProcessInfo.thermalStateDidChangeNotification,
+                                                                 object: nil, queue: .main) { [weak self] _ in
+            MainActor.assumeIsolated { self?.thermal = thermalStateName() }
         }
         autorun()
     }

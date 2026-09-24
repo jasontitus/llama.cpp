@@ -16,6 +16,10 @@ struct ContentView: View {
                     LabeledContent("GPU", value: "\(state.device.gpuName) (Apple\(state.device.highestAppleFamily))")
                     LabeledContent("Memory", value: gb(state.device.physicalMemoryBytes))
                     LabeledContent("App can still use", value: state.device.appAvailableMemoryBytes > 0 ? gb(state.device.appAvailableMemoryBytes) : "n/a")
+                    LabeledContent("Thermal state") {
+                        Text(state.thermal)
+                            .foregroundStyle(state.thermal == "nominal" ? Color.green : state.thermal == "fair" ? Color.orange : Color.red)
+                    }
                 }
 
                 Section {
