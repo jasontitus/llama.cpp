@@ -127,7 +127,7 @@ final class BenchState: ObservableObject {
         }
         load(documents.appendingPathComponent(model)) { [weak self] engine in
             guard let self, let engine else { return }
-            let arms = Presets.all(for: engine.weightType)
+            let arms = Presets.all(for: engine.weightType, mtp: engine.hasMTP)
             let a = arms.first { $0.name == (o["a"] as? String ?? "upstream") }
             let b = arms.first { $0.name == (o["b"] as? String ?? Presets.recommended(for: engine.weightType).name) }
             guard let a, let b else {
@@ -224,6 +224,10 @@ final class BenchState: ObservableObject {
                     self.engine = e
                     self.armA = Presets.upstream
                     self.armB = Presets.recommended(for: e.weightType)
+                    if e.hasMTP, let b = Presets.all(for: e.weightType, mtp: true).first(where: { $0.draft > 0 && $0.name != "upstream + MTP" }) {
+                        self.armB = b      // an MTP model is loaded to measure MTP: upstream plain vs our flags + MTP
+                    }
+                    if self.suiteStep == nil { self.cells = defaultSelectedCells(mtp: e.hasMTP) }
                     self.status = "Loaded \(e.description) (\(e.weightType)); footprint \(gb(physicalFootprint())), available \(gb(UInt64(max(0, availableMemory()))))"
                     then?(e)
                 }
@@ -339,7 +343,7 @@ final class BenchState: ObservableObject {
         let url = documents.appendingPathComponent(spec.model)
         guard FileManager.default.fileExists(atPath: url.path) else { return skip("\(spec.model) is not in the app") }
         let go = { (engine: Engine) in
-            let arms = Presets.all(for: engine.weightType)
+            let arms = Presets.all(for: engine.weightType, mtp: engine.hasMTP)
             guard let a = arms.first(where: { $0.name == spec.a }), let b = arms.first(where: { $0.name == spec.b }) else {
                 return skip("no arm \"\(spec.a)\" or \"\(spec.b)\" for \(engine.weightType)")
             }

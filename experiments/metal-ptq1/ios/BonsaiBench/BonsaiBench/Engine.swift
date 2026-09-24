@@ -65,7 +65,7 @@ struct Probe: Codable {
 }
 
 enum EngineError: Error, LocalizedError {
-    case loadFailed(String), contextFailed, decodeFailed(Int32), tokenizeFailed
+    case loadFailed(String), contextFailed, decodeFailed(Int32), tokenizeFailed, generationFailed(String)
 
     var errorDescription: String? {
         switch self {
@@ -73,6 +73,7 @@ enum EngineError: Error, LocalizedError {
         case .contextFailed:     return "could not create a context (out of memory?)"
         case .decodeFailed(let c): return "llama_decode failed (\(c))"
         case .tokenizeFailed:    return "tokenization failed"
+        case .generationFailed(let m): return m
         }
     }
 }
@@ -85,6 +86,7 @@ final class Engine {
     let description: String
     let sizeBytes: UInt64
     let nParams: UInt64
+    let hasMTP: Bool                      // loaded with its multi-token-prediction layers (an MTP GGUF)
 
     init(path: String) throws {
         LibraryLog.shared.install()
@@ -95,6 +97,8 @@ final class Engine {
         #else
         mp.n_gpu_layers = 99
         #endif
+        // A grafted MTP GGUF ("...-mtp.gguf") carries the MTP head; load it so gen cells can draft with it.
+        mp.load_mtp = (path as NSString).lastPathComponent.lowercased().contains("-mtp")
         guard let m = llama_model_load_from_file(path, mp) else { throw EngineError.loadFailed(path) }
         model = m
         vocab = llama_model_get_vocab(m)
@@ -104,6 +108,7 @@ final class Engine {
         description = String(cString: buf)
         sizeBytes = llama_model_size(m)
         nParams = llama_model_n_params(m)
+        hasMTP = mp.load_mtp && llama_model_n_layer_nextn(m) > 0
     }
 
     deinit {
@@ -172,6 +177,38 @@ final class Engine {
         let n = llama_vocab_n_tokens(vocab)
         var rng = SystemRandomNumberGenerator()
         return (0..<k).map { _ in llama_token(Int32.random(in: 100..<min(n, 30000), using: &rng)) }
+    }
+
+    struct Speculative {
+        var promptTokens: Int
+        var promptSeconds: Double
+        var generated: [llama_token]
+        var generateSeconds: Double
+        var drafted: Int
+        var accepted: Int
+        var steps: Int
+        var probe: Probe
+        /// Generated tokens per second of the generation loop (what llama-server reports as predicted/s).
+        var tokensPerSecond: Double { generateSeconds > 0 ? Double(generated.count) / generateSeconds : 0 }
+    }
+
+    /// "genN": greedy generation of up to n tokens after a chat prompt through llama.cpp's common
+    /// speculative-decoding loop (MTP/BonsaiMTP.cpp), as llama-server runs it: with `draft` MTP draft tokens
+    /// per step, or plain decoding (draft 0) through the same loop, so both arms are timed identically.
+    func speculativeGenerate(prompt: String, n: Int, draft: Int, warmup: Int = 16) throws -> Speculative {
+        let threads = Int32(max(1, min(8, ProcessInfo.processInfo.activeProcessorCount - 2)))
+        var tokens = [Int32](repeating: 0, count: n + draft + 1)
+        var r = bb_gen_result()
+        let count = bb_generate(model, prompt, Int32(n), Int32(draft), Int32(warmup), 1024, threads, &tokens,
+                                Int32(tokens.count), &r)
+        guard count >= 0 else {
+            let msg = withUnsafeBytes(of: r.error) { String(decoding: $0.prefix { $0 != 0 }, as: UTF8.self) }
+            throw EngineError.generationFailed(msg)
+        }
+        return Speculative(promptTokens: Int(r.n_prompt), promptSeconds: r.prompt_seconds,
+                           generated: Array(tokens.prefix(Int(count))), generateSeconds: r.generate_seconds,
+                           drafted: Int(r.n_drafted), accepted: Int(r.n_accepted), steps: Int(r.n_steps),
+                           probe: Probe(footprintBytes: r.footprint_bytes, availableBytes: r.available_bytes))
     }
 
     struct Generation {

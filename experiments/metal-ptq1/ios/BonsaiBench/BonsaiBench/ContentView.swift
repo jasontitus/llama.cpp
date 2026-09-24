@@ -141,10 +141,10 @@ struct ContentView: View {
                 if let engine = state.engine {
                     Section("Arms for \(modelTitle(state.selected?.lastPathComponent ?? ""))") {
                         Picker("A", selection: $state.armA) {
-                            ForEach(Presets.all(for: engine.weightType)) { Text($0.name).tag($0) }
+                            ForEach(Presets.all(for: engine.weightType, mtp: engine.hasMTP)) { Text($0.name).tag($0) }
                         }
                         Picker("B", selection: $state.armB) {
-                            ForEach(Presets.all(for: engine.weightType)) { Text($0.name).tag($0) }
+                            ForEach(Presets.all(for: engine.weightType, mtp: engine.hasMTP)) { Text($0.name).tag($0) }
                         }
                     }
                     .disabled(state.running)
@@ -299,7 +299,12 @@ struct DownloadRow: View {
     }
 }
 
-/// "Bonsai 2 ternary (PTQ1_0)" for a catalog file, else the file name without its extension.
+/// "Bonsai 2 ternary (PTQ1_0)" for a catalog file ("... + MTP head" for its grafted MTP GGUF), else the
+/// file name without its extension.
 func modelTitle(_ file: String) -> String {
-    Catalog.models.first { $0.file == file }?.title ?? (file as NSString).deletingPathExtension
+    if let m = Catalog.models.first(where: { $0.file == file }) { return m.title }
+    if file.hasSuffix("-mtp.gguf"), let m = Catalog.models.first(where: { $0.file == file.replacingOccurrences(of: "-mtp.gguf", with: ".gguf") }) {
+        return m.title + " + MTP head"
+    }
+    return (file as NSString).deletingPathExtension
 }

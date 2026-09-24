@@ -4,6 +4,7 @@ import Foundation
 struct Arm: Codable, Hashable, Identifiable {
     var name: String
     var flags: [String: String]
+    var draft = 0                     // MTP draft tokens per step in gen cells (0 = plain decoding)
     var id: String { name }
 }
 
@@ -45,8 +46,17 @@ enum Presets {
         return a
     }
 
-    static func all(for weightType: String) -> [Arm] {
+    /// With an MTP model, "+ MTP" arms draft one token per step in gen cells (the Mac studies' setting).
+    static func all(for weightType: String, mtp: Bool = false) -> [Arm] {
         var arms = [upstream, bitExact, recommended(for: weightType), invariant(for: weightType)]
+        if mtp {
+            for base in [upstream, recommended(for: weightType)] {
+                var a = base
+                a.name += " + MTP"
+                a.draft = 1
+                arms.append(a)
+            }
+        }
         if weightType == "PTQ1_0" { arms.append(tensor(for: weightType)) }
         if weightType == "Q1_0" {
             // PrismML's own bit-plane option (off by default in their code). Not one of our changes: compare
@@ -84,7 +94,9 @@ enum Presets {
 /// - "tgN": N single-token decodes from an empty context with random tokens, no sampling (llama-bench tgN,
 ///   the Mac studies' tg128);
 /// - "chatN": greedy generation of N tokens after a chat prompt, with the tokens compared between arms;
-/// - "ppK": k-token batches (llama-bench ppK).
+/// - "ppK": k-token batches (llama-bench ppK);
+/// - "genN": greedy generation of N tokens after the chat prompt through llama.cpp's speculative-decoding
+///   loop, plain or with MTP drafts per arm (llama-server's generation speed; the tokens are compared).
 struct Cell: Codable, Hashable, Identifiable {
     var name: String
     var id: String { name }
@@ -92,7 +104,12 @@ struct Cell: Codable, Hashable, Identifiable {
     var count: Int { Int(name.drop { $0.isLetter }) ?? 0 }
 }
 
-let defaultCells: [Cell] = ["tg128", "chat128", "pp2", "pp4", "pp8", "pp512"].map { Cell(name: $0) }
+let defaultCells: [Cell] = ["tg128", "chat128", "gen128", "pp2", "pp4", "pp8", "pp512"].map { Cell(name: $0) }
+
+/// Cells switched on for a new study: gen128 only with an MTP model (it is what MTP arms are measured on).
+func defaultSelectedCells(mtp: Bool) -> Set<String> {
+    mtp ? ["gen128"] : ["tg128", "chat128", "pp2", "pp4", "pp8", "pp512"]
+}
 
 struct Observation: Codable {
     var arm: String
@@ -108,6 +125,9 @@ struct Observation: Codable {
     var interrupted: Bool             // the app left the foreground during the observation
     var error: String?                // the observation failed (e.g. a Metal command buffer error)
     var callSeconds: [Double]?        // ppK: each timed decode call, to tell a stall from a uniform slowdown
+    var drafted: Int?                 // genN with MTP: draft tokens verified
+    var accepted: Int?                // of which accepted
+    var generateSteps: Int?           // genN: target decodes
     var warmupCallSeconds: [Double]?  // ppK: the warmup calls (a failure often happens there)
     var libraryMessages: [String]     // library warnings/errors during the observation
     var footprintBytes: UInt64        // while the observation's context was alive
@@ -296,7 +316,8 @@ final class Study {
         thermal.reset()
         var obs = Observation(arm: arm.name, position: position, tokensPerSecond: 0, thermalBefore: thermalStateName(),
                               thermalAfter: "", thermalMax: "", thermalWaitSeconds: g.waited, gateReached: g.reached,
-                              interrupted: false, error: nil, callSeconds: nil, warmupCallSeconds: nil,
+                              interrupted: false, error: nil, callSeconds: nil, drafted: nil, accepted: nil,
+                              generateSteps: nil, warmupCallSeconds: nil,
                               libraryMessages: [], footprintBytes: 0, availableBytes: 0, startedAt: Date())
         _ = LibraryLog.shared.drain()
         let calls = Engine.CallTimes()
@@ -308,6 +329,15 @@ final class Study {
                 obs.tokensPerSecond = r.tokensPerSecond
                 obs.promptTokensPerSecond = r.promptSeconds > 0 ? Double(r.promptTokens) / r.promptSeconds : nil
                 obs.generatedTokens = r.generated
+                probe = r.probe
+            case "gen":
+                let r = try engine.speculativeGenerate(prompt: benchPrompt, n: cell.count, draft: arm.draft)
+                obs.tokensPerSecond = r.tokensPerSecond
+                obs.promptTokensPerSecond = r.promptSeconds > 0 ? Double(r.promptTokens - 1) / r.promptSeconds : nil
+                obs.generatedTokens = r.generated
+                obs.drafted = arm.draft > 0 ? r.drafted : nil
+                obs.accepted = arm.draft > 0 ? r.accepted : nil
+                obs.generateSteps = r.steps
                 probe = r.probe
             case "tg":
                 let r = try engine.generationRate(n: cell.count)
@@ -380,7 +410,7 @@ final class Study {
         let ratio = valid ? (b.reduce(0, +) / 2) / (a.reduce(0, +) / 2) : .nan
         // Tokens are compared only between runs that all produced them (a failed run is not a mismatch).
         var identical: Bool? = nil
-        if cell.kind == "chat", complete, obs.allSatisfy({ $0.error == nil && $0.generatedTokens != nil }) {
+        if ["chat", "gen"].contains(cell.kind), complete, obs.allSatisfy({ $0.error == nil && $0.generatedTokens != nil }) {
             identical = obs.allSatisfy { $0.generatedTokens == obs[0].generatedTokens }
         }
         let reason: String? =

@@ -21,7 +21,7 @@ struct StudySpec: Hashable {
             let cell = Cell(name: name)
             let run: Double
             switch cell.kind {
-            case "tg", "chat": run = Double(cell.count + 16) / genRate + 4
+            case "tg", "chat", "gen": run = Double(cell.count + 16) / genRate + 4
             default: run = cell.count >= 256 ? 25 : 6
             }
             return sum + Double(cycles * 4) * (cooldown + run)
@@ -32,6 +32,7 @@ struct StudySpec: Hashable {
 enum Suites {
     static let ptq1 = "Ternary-Bonsai-2-27B-PTQ1_0.gguf"
     static let q1 = "Bonsai-27B-Q1_0.gguf"
+    static let ptq1mtp = "Ternary-Bonsai-2-27B-PTQ1_0-mtp.gguf"
 
     /// The iPhone studies still missing from the results table, most valuable first. Every comparison is
     /// upstream vs our flags, except the popcount one, which measures what our flags add on top of
@@ -39,6 +40,10 @@ enum Suites {
     static let phone: [StudySpec] = [
         StudySpec(title: "Bonsai 2 PTQ1_0: generation", model: ptq1, a: "upstream", b: "M5 stack (PTQ1)",
                   cells: ["tg128", "chat128"], cycles: 3, cooldown: 60),
+        StudySpec(title: "Bonsai 2 PTQ1_0 + MTP: upstream plain vs our flags + MTP (the headline)", model: ptq1mtp,
+                  a: "upstream", b: "M5 stack (PTQ1) + MTP", cells: ["gen128"], cycles: 3, cooldown: 60),
+        StudySpec(title: "Bonsai 2 PTQ1_0: MTP vs MTP (upstream + MTP vs our flags + MTP)", model: ptq1mtp,
+                  a: "upstream + MTP", b: "M5 stack (PTQ1) + MTP", cells: ["gen128"], cycles: 3, cooldown: 60),
         StudySpec(title: "Bonsai 2 PTQ1_0: small batches", model: ptq1, a: "upstream", b: "M5 stack (PTQ1)",
                   cells: ["pp2", "pp4", "pp8"], cycles: 3, cooldown: 40),
         StudySpec(title: "Bonsai 1 binary Q1_0: generation and small batches", model: q1, a: "upstream",

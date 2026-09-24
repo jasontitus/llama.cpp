@@ -20,12 +20,12 @@ flags" below; the bit-identical row uses `GGML_GDN_ROWS_PLAIN=1` only. The bit-i
 
 | Result | Apple M5 Max | Apple M1 Ultra | iPhone 17 Pro Max |
 |---|---|---|---|
-| PTQ1: upstream plain -> flags + MTP (server, 1 request) | **1.34x** (41.4 -> 55.5) | 1.28x (27.1 -> 34.7) | n/a (no MTP in app) |
-| PQ2: upstream plain -> flags + MTP (server, 1 request) | **1.22x** (42.9 -> 52.5) | 0.90x (30.0 -> 27.1) | n/a (no MTP in app) |
+| PTQ1: upstream plain -> flags + MTP (server, 1 request) | **1.34x** (41.4 -> 55.5) | 1.28x (27.1 -> 34.7) | _pending_ (app gen128) |
+| PQ2: upstream plain -> flags + MTP (server, 1 request) | **1.22x** (42.9 -> 52.5) | 0.90x (30.0 -> 27.1) | n/a (PQ2 MTP file not on the phone) |
 | PTQ1 plain decoding (server, 1 request) | 1.10x (41.3 -> 45.7) | 1.09x (27.0 -> 29.6) | n/a |
 | PTQ1 plain decoding, bit-identical subset (server, 1 request) | 1.07x (41.2 -> 44.3) | 1.08x (26.9 -> 29.0) | n/a |
 | PTQ1 tg128 | 1.08x (43.4 -> 47.0) | 1.09x (29.7 -> 32.3) | _pending_ |
-| PTQ1 MTP -> MTP (server, 1 request) | 3.34x (16.6 -> 55.4) | 2.61x (13.3 -> 34.6) | n/a |
+| PTQ1 MTP -> MTP (server, 1 request) | 3.34x (16.6 -> 55.4) | 2.61x (13.3 -> 34.6) | _pending_ (app gen128) |
 | PTQ1 2 requests (server) | **3.43x** (17.9 -> 62.2) | 2.73x (15.3 -> 41.7) | n/a |
 | PTQ1 pp2 / pp4 / pp8 | **3.85x / 2.12x / 2.29x** (20.6 -> 79.3, 37.0 -> 78.4, 40.5 -> 92.8) | 2.97x / 1.51x / 1.46x (16.3 -> 48.4, 26.1 -> 39.5, 30.0 -> 43.7) | preliminary, 2 quartets each: **4.19x / 2.44x / 2.35x** (2.9 -> 11.9, 4.8 -> 11.7, 5.0 -> 11.7) |
 | PQ2 tg128 | 1.11x (45.5 -> 50.4) | 1.12x (32.1 -> 36.0) | _pending_ |

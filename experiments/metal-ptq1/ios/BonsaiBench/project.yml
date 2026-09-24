@@ -16,6 +16,30 @@ targets:
       Release: Config/Signing.xcconfig
     sources:
       - BonsaiBench
+      # llama.cpp's common speculative-decoding code (MTP), compiled into the app; it links against the
+      # framework's llama API (BonsaiBench/MTP/BonsaiMTP.cpp drives it)
+      - path: ../../../../common/common.cpp
+        group: llama-common
+      - path: ../../../../common/log.cpp
+        group: llama-common
+      - path: ../../../../common/fit.cpp
+        group: llama-common
+      - path: ../../../../common/reasoning-budget.cpp
+        group: llama-common
+      - path: ../../../../common/trie.cpp
+        group: llama-common
+      - path: ../../../../common/unicode.cpp
+        group: llama-common
+      - path: ../../../../common/ngram-cache.cpp
+        group: llama-common
+      - path: ../../../../common/ngram-map.cpp
+        group: llama-common
+      - path: ../../../../common/ngram-mod.cpp
+        group: llama-common
+      - path: ../../../../common/sampling.cpp
+        group: llama-common
+      - path: ../../../../common/speculative.cpp
+        group: llama-common
     dependencies:
       - framework: ../../../../build-apple/llama.xcframework
         embed: true
@@ -33,6 +57,20 @@ targets:
         UILaunchScreen: {}
         UIApplicationSupportsIndirectInputEvents: true
         UISupportedInterfaceOrientations: [UIInterfaceOrientationPortrait]
+    preBuildScripts:
+      # The app compiles llama.cpp's common code (MTP) against include/llama.h and links the prebuilt
+      # framework: they must come from the same llama.h, or struct layouts differ at runtime.
+      - name: Check framework matches the source
+        basedOnDependencyAnalysis: false
+        script: |
+          ROOT="$SRCROOT/../../../.."
+          FWH="$ROOT/build-apple/llama.xcframework/ios-arm64/llama.framework/Headers/llama.h"
+          if [ ! -f "$FWH" ]; then
+            echo "error: build-apple/llama.xcframework is missing: run ./build-xcframework.sh ios-device ios-sim in the repository root"; exit 1
+          fi
+          if ! cmp -s "$ROOT/include/llama.h" "$FWH"; then
+            echo "error: llama.xcframework was built from a different include/llama.h than this checkout: rebuild it with ./build-xcframework.sh ios-device ios-sim"; exit 1
+          fi
     postBuildScripts:
       # Record what was built in BuildStamp.plist inside the app; every result JSON carries it (BuildInfo):
       # the app's source revision and uncommitted app files, the source the framework was built from (written
@@ -54,9 +92,20 @@ targets:
             -c "Add :BBFrameworkSHA256 string $FW" "$OUT"
     settings:
       base:
+        SWIFT_OBJC_BRIDGING_HEADER: BonsaiBench/BonsaiBench-Bridging-Header.h
+        CLANG_CXX_LANGUAGE_STANDARD: c++17
+        HEADER_SEARCH_PATHS:
+          - $(SRCROOT)/../../../../include
+          - $(SRCROOT)/../../../../ggml/include
+          - $(SRCROOT)/../../../../common
+          - $(SRCROOT)/../../../../src
+          - $(SRCROOT)/../../../../vendor
         ENABLE_USER_SCRIPT_SANDBOXING: NO
         MARKETING_VERSION: "1.0"
         CURRENT_PROJECT_VERSION: "1"
+      configs:
+        Release:
+          GCC_PREPROCESSOR_DEFINITIONS: ["NDEBUG=1"]
 schemes:
   BonsaiBench:
     build:

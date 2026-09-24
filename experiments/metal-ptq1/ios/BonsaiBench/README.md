@@ -10,6 +10,7 @@ Research tool; not an App Store app.
 |---|---|---|
 | **tg128** | 128 single-token decodes from an empty context, random tokens, no sampling | llama-bench tg128 (the Mac studies' tg128) |
 | **chat128** | greedy generation of 128 tokens after a chat prompt, including sampling; the generated tokens are compared between arms | llama-server generation speed; bit-exactness |
+| **gen128** | greedy generation of 128 tokens after the chat prompt through llama.cpp's speculative-decoding loop, plain or with MTP per arm (see "MTP") | llama-server generation speed (predicted tokens/s); the headline and MTP rows |
 | **pp2 / pp4 / pp8** | k-token batches: the step shapes of MTP verification and concurrent requests | llama-bench ppK |
 | **pp512** | a 512-token prompt batch | llama-bench pp512 |
 
@@ -70,9 +71,37 @@ Arms:
   stack, for context; it is their flag, not one of our changes.
 - **"only X":** each flag of the stack on its own, to find which one causes a difference.
 
-MTP is not included. The framework exposes the MTP context type, but speculative decoding (the draft and
-verify loop) lives in llama.cpp's common library, which the iOS framework does not build, and the grafted
-MTP GGUFs are not in the download list.
+### MTP (multi-token prediction)
+
+The app runs MTP with llama.cpp's own speculative-decoding code:
+
+- `common/speculative.cpp` and the files it needs are compiled into the app and linked against the
+  framework.
+- `BonsaiBench/MTP/BonsaiMTP.cpp` drives it with `examples/speculative-simple`'s loop, at the Mac server
+  studies' settings: greedy, 1 draft token, no minimum draft size or probability, and the persistent CPU
+  threadpool.
+- A gen cell runs both arms through this same loop, so they are timed identically:
+  - an arm named "... + MTP" drafts one token per step;
+  - other arms decode plainly.
+- The result file records drafted and accepted tokens and the target decodes per run.
+
+**The model.** MTP needs a GGUF grafted with an MTP head, `Ternary-Bonsai-2-27B-PTQ1_0-mtp.gguf` (7.0 GB;
+the base model plus a 1.07 GB head, made with the
+[sudoingX graft recipe](https://github.com/sudoingX/bonsai2-small-gpu/tree/eb52d9d7363cda2d910146f4e37f4b8c64c30c46/graft)).
+
+- It is not published, so it is not in the download list. Copy it in over USB (see below).
+- A file whose name contains `-mtp` is loaded with its MTP layers, and it gets the "upstream + MTP" and
+  "<stack> + MTP" arms.
+- Weights are memory-mapped: the app's footprint was 0.8 GB with this file on the M5.
+
+**Checked on an M5 Max** (`../tools/check-mtp-bridge.cpp`, the same model, each configuration in a fresh
+process):
+
+- The bridge accepts 85.5% of drafts (59/69). `llama-speculative-simple` accepts 85.7% (60/70) and
+  llama-server 86.8% (59/68).
+- Our flags + MTP run at 63-65 tok/s, like the example's 64.2-64.9. Upstream plain runs at about 45.
+- All four configurations (plain and MTP, upstream and flags) generate the same 128 tokens as
+  llama-server.
 
 ### Differences from the Mac studies
 
@@ -176,7 +205,7 @@ xcrun devicectl device copy from --device "$DEVICE" --domain-type appDataContain
 ```
 
 **The phone suite.** "Run the suite" runs the studies still missing from the results table, in order of
-value. It:
+value, including the MTP headline (upstream plain vs our flags + MTP) and MTP vs MTP on the MTP model. It:
 
 - loads each model and sets each study's arms and protocol;
 - saves one result file per study, and afterwards restores your manual settings;

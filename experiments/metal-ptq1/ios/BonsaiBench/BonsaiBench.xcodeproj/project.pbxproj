@@ -7,15 +7,28 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
+		09E08BC8CE655F167F13CE0E /* ngram-map.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 187C1F5864F122E5EC01098D /* ngram-map.cpp */; };
+		129861B093A7D4C7549481C4 /* ngram-cache.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 1AA5E0BD10FACA8881D94E00 /* ngram-cache.cpp */; };
 		28E370FDEA8EEA4EFCC3229D /* llama.xcframework in Embed Frameworks */ = {isa = PBXBuildFile; fileRef = C6D58FA8A8908E0C17D5857C /* llama.xcframework */; settings = {ATTRIBUTES = (CodeSignOnCopy, RemoveHeadersOnCopy, ); }; };
 		29820508D09BFC2918878273 /* Downloads.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0B98262F7A8E003534A325F9 /* Downloads.swift */; };
+		2BBC9858A70F8D4C2290E905 /* build-info.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 49841A2BED5A498B7E6094B5 /* build-info.cpp */; };
 		446465BBA976741BA8FE4C5B /* llama.xcframework in Frameworks */ = {isa = PBXBuildFile; fileRef = C6D58FA8A8908E0C17D5857C /* llama.xcframework */; };
 		4529F7A2FBDC33143A4EDB98 /* ContentView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 526CE7B87EA48DCF0C8A8CA7 /* ContentView.swift */; };
 		45B9A324E7DC5F666074B6FA /* DeviceInfo.swift in Sources */ = {isa = PBXBuildFile; fileRef = B7D2A595F3381EF1776992A6 /* DeviceInfo.swift */; };
+		502A6F8E1851F32D96F6AB2C /* BonsaiMTP.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 11DFAE58307EE5F1F07D2300 /* BonsaiMTP.cpp */; };
+		51E767750DECA903B4D991B2 /* speculative.cpp in Sources */ = {isa = PBXBuildFile; fileRef = D3A16A1CEA97577602356BC1 /* speculative.cpp */; };
 		5437452C52E55A4EBED0BE79 /* Bench.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7131E03FDDC3743959F19494 /* Bench.swift */; };
 		5836F629AA44E2E22CB8B345 /* Engine.swift in Sources */ = {isa = PBXBuildFile; fileRef = 84662EE001062C38068950F6 /* Engine.swift */; };
 		5AFCDAF568C869B512253B9C /* Suite.swift in Sources */ = {isa = PBXBuildFile; fileRef = D07035F5287518D4179FFFE1 /* Suite.swift */; };
+		5F8196D6E3069F4594B412AA /* common.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 00A4328CD1757CCADC22A83D /* common.cpp */; };
+		731FD9982E0A5A11B305C596 /* sampling.cpp in Sources */ = {isa = PBXBuildFile; fileRef = B63E7A1024697764C564E234 /* sampling.cpp */; };
+		795DF526F23F263B726EA1A4 /* trie.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 8FB24EA6615C93F7D85EEBFE /* trie.cpp */; };
+		86857336E153FB657BCBAA4B /* log.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 1E8C79DA56B34E975AC442EE /* log.cpp */; };
+		91E058E10AEA7522A96D47F9 /* ngram-mod.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 462BACAD89C184DF3A4F6650 /* ngram-mod.cpp */; };
 		A19113653643E61358BAF794 /* BonsaiBenchApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8E9177C2A28F303E12F6EA4F /* BonsaiBenchApp.swift */; };
+		B10F63A2C66F6B80DB2E388E /* unicode.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 0B7B4A6D4FCC7D736157E943 /* unicode.cpp */; };
+		D23226F2106AD2A2C2318E3E /* fit.cpp in Sources */ = {isa = PBXBuildFile; fileRef = F18ABDDFD74218ECE2EB9AE2 /* fit.cpp */; };
+		F2136502010231CCF1211FE7 /* reasoning-budget.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 26B44A16246766167807E4BA /* reasoning-budget.cpp */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXCopyFilesBuildPhase section */
@@ -33,18 +46,33 @@
 /* End PBXCopyFilesBuildPhase section */
 
 /* Begin PBXFileReference section */
+		00A4328CD1757CCADC22A83D /* common.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; name = common.cpp; path = ../../../../common/common.cpp; sourceTree = "<group>"; };
 		06A9F68CEEBE56761A0EC121 /* Signing.xcconfig */ = {isa = PBXFileReference; lastKnownFileType = text.xcconfig; path = Signing.xcconfig; sourceTree = "<group>"; };
+		0B7B4A6D4FCC7D736157E943 /* unicode.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; name = unicode.cpp; path = ../../../../common/unicode.cpp; sourceTree = "<group>"; };
 		0B98262F7A8E003534A325F9 /* Downloads.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Downloads.swift; sourceTree = "<group>"; };
+		11DFAE58307EE5F1F07D2300 /* BonsaiMTP.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = BonsaiMTP.cpp; sourceTree = "<group>"; };
+		187C1F5864F122E5EC01098D /* ngram-map.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; name = "ngram-map.cpp"; path = "../../../../common/ngram-map.cpp"; sourceTree = "<group>"; };
+		1AA5E0BD10FACA8881D94E00 /* ngram-cache.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; name = "ngram-cache.cpp"; path = "../../../../common/ngram-cache.cpp"; sourceTree = "<group>"; };
+		1E8C79DA56B34E975AC442EE /* log.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; name = log.cpp; path = ../../../../common/log.cpp; sourceTree = "<group>"; };
+		26B44A16246766167807E4BA /* reasoning-budget.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; name = "reasoning-budget.cpp"; path = "../../../../common/reasoning-budget.cpp"; sourceTree = "<group>"; };
+		270F78A8A8F6DEB718FFBF68 /* BonsaiBench-Bridging-Header.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = "BonsaiBench-Bridging-Header.h"; sourceTree = "<group>"; };
+		34FCCB252A3958E7A2EA50A7 /* BonsaiMTP.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = BonsaiMTP.h; sourceTree = "<group>"; };
 		3C9ECD5BE1C03AC04BE906E6 /* BonsaiBench.app */ = {isa = PBXFileReference; includeInIndex = 0; lastKnownFileType = wrapper.application; path = BonsaiBench.app; sourceTree = BUILT_PRODUCTS_DIR; };
+		462BACAD89C184DF3A4F6650 /* ngram-mod.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; name = "ngram-mod.cpp"; path = "../../../../common/ngram-mod.cpp"; sourceTree = "<group>"; };
+		49841A2BED5A498B7E6094B5 /* build-info.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = "build-info.cpp"; sourceTree = "<group>"; };
 		526CE7B87EA48DCF0C8A8CA7 /* ContentView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ContentView.swift; sourceTree = "<group>"; };
 		7131E03FDDC3743959F19494 /* Bench.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Bench.swift; sourceTree = "<group>"; };
 		84662EE001062C38068950F6 /* Engine.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Engine.swift; sourceTree = "<group>"; };
 		8E9177C2A28F303E12F6EA4F /* BonsaiBenchApp.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BonsaiBenchApp.swift; sourceTree = "<group>"; };
+		8FB24EA6615C93F7D85EEBFE /* trie.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; name = trie.cpp; path = ../../../../common/trie.cpp; sourceTree = "<group>"; };
 		9B83716EB2D0D3EAACC4D4EE /* BonsaiBench.entitlements */ = {isa = PBXFileReference; lastKnownFileType = text.plist.entitlements; path = BonsaiBench.entitlements; sourceTree = "<group>"; };
+		B63E7A1024697764C564E234 /* sampling.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; name = sampling.cpp; path = ../../../../common/sampling.cpp; sourceTree = "<group>"; };
 		B7D2A595F3381EF1776992A6 /* DeviceInfo.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DeviceInfo.swift; sourceTree = "<group>"; };
 		C6D58FA8A8908E0C17D5857C /* llama.xcframework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.xcframework; name = llama.xcframework; path = "../../../../build-apple/llama.xcframework"; sourceTree = "<group>"; };
 		D07035F5287518D4179FFFE1 /* Suite.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Suite.swift; sourceTree = "<group>"; };
+		D3A16A1CEA97577602356BC1 /* speculative.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; name = speculative.cpp; path = ../../../../common/speculative.cpp; sourceTree = "<group>"; };
 		EC892D783CB72DE085265E82 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist; path = Info.plist; sourceTree = "<group>"; };
+		F18ABDDFD74218ECE2EB9AE2 /* fit.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; name = fit.cpp; path = ../../../../common/fit.cpp; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -72,9 +100,28 @@
 			children = (
 				E83796DD281C500366088447 /* BonsaiBench */,
 				F2481C006BE014AEF5DD9E66 /* Config */,
+				4C9438406815468B9DE9E82F /* llama-common */,
 				B1FE1B0291AEC24A74E3AAF1 /* Frameworks */,
 				2A1C5A6D9BD008F9350E781F /* Products */,
 			);
+			sourceTree = "<group>";
+		};
+		4C9438406815468B9DE9E82F /* llama-common */ = {
+			isa = PBXGroup;
+			children = (
+				00A4328CD1757CCADC22A83D /* common.cpp */,
+				F18ABDDFD74218ECE2EB9AE2 /* fit.cpp */,
+				1E8C79DA56B34E975AC442EE /* log.cpp */,
+				1AA5E0BD10FACA8881D94E00 /* ngram-cache.cpp */,
+				187C1F5864F122E5EC01098D /* ngram-map.cpp */,
+				462BACAD89C184DF3A4F6650 /* ngram-mod.cpp */,
+				26B44A16246766167807E4BA /* reasoning-budget.cpp */,
+				B63E7A1024697764C564E234 /* sampling.cpp */,
+				D3A16A1CEA97577602356BC1 /* speculative.cpp */,
+				8FB24EA6615C93F7D85EEBFE /* trie.cpp */,
+				0B7B4A6D4FCC7D736157E943 /* unicode.cpp */,
+			);
+			name = "llama-common";
 			sourceTree = "<group>";
 		};
 		B1FE1B0291AEC24A74E3AAF1 /* Frameworks */ = {
@@ -85,10 +132,21 @@
 			name = Frameworks;
 			sourceTree = "<group>";
 		};
+		D19D5902EBE6175A69A44430 /* MTP */ = {
+			isa = PBXGroup;
+			children = (
+				11DFAE58307EE5F1F07D2300 /* BonsaiMTP.cpp */,
+				34FCCB252A3958E7A2EA50A7 /* BonsaiMTP.h */,
+				49841A2BED5A498B7E6094B5 /* build-info.cpp */,
+			);
+			path = MTP;
+			sourceTree = "<group>";
+		};
 		E83796DD281C500366088447 /* BonsaiBench */ = {
 			isa = PBXGroup;
 			children = (
 				7131E03FDDC3743959F19494 /* Bench.swift */,
+				270F78A8A8F6DEB718FFBF68 /* BonsaiBench-Bridging-Header.h */,
 				9B83716EB2D0D3EAACC4D4EE /* BonsaiBench.entitlements */,
 				8E9177C2A28F303E12F6EA4F /* BonsaiBenchApp.swift */,
 				526CE7B87EA48DCF0C8A8CA7 /* ContentView.swift */,
@@ -97,6 +155,7 @@
 				84662EE001062C38068950F6 /* Engine.swift */,
 				EC892D783CB72DE085265E82 /* Info.plist */,
 				D07035F5287518D4179FFFE1 /* Suite.swift */,
+				D19D5902EBE6175A69A44430 /* MTP */,
 			);
 			path = BonsaiBench;
 			sourceTree = "<group>";
@@ -116,6 +175,7 @@
 			isa = PBXNativeTarget;
 			buildConfigurationList = 11A17E211F211E4ED907E336 /* Build configuration list for PBXNativeTarget "BonsaiBench" */;
 			buildPhases = (
+				AC0F7E2DB6299C27BBD9CACC /* Check framework matches the source */,
 				A63FD9C9320B69B0E13B1783 /* Sources */,
 				5A46FCDCA5B271B712ED22DF /* Frameworks */,
 				115135A9330B929A2581213F /* Embed Frameworks */,
@@ -186,6 +246,25 @@
 			shellPath = /bin/sh;
 			shellScript = "ROOT=\"$SRCROOT/../../../..\"\nOUT=\"$TARGET_BUILD_DIR/$UNLOCALIZED_RESOURCES_FOLDER_PATH/BuildStamp.plist\"\nREV=$(git -C \"$ROOT\" rev-parse HEAD 2>/dev/null || echo unknown)\nAPPDIRTY=$(git -C \"$ROOT\" status --porcelain -- experiments/metal-ptq1/ios 2>/dev/null | wc -l | tr -d ' ')\nSRC=\"$ROOT/build-apple/llama.xcframework.source\"\nFWREV=$(sed -n 's/^revision=//p' \"$SRC\" 2>/dev/null); FWREV=${FWREV:-unknown}\nFWDIRTY=$(sed -n 's/^dirty_files=//p' \"$SRC\" 2>/dev/null); FWDIRTY=${FWDIRTY:-unknown}\nFW=$(shasum -a 256 \"$ROOT/build-apple/llama.xcframework/ios-arm64/llama.framework/llama\" | cut -d' ' -f1)\nrm -f \"$OUT\"\n/usr/libexec/PlistBuddy -c \"Add :BBSourceRevision string $REV\" -c \"Add :BBAppDirtyFiles string $APPDIRTY\" \\\n  -c \"Add :BBFrameworkRevision string $FWREV\" -c \"Add :BBFrameworkDirtyFiles string $FWDIRTY\" \\\n  -c \"Add :BBFrameworkSHA256 string $FW\" \"$OUT\"\n";
 		};
+		AC0F7E2DB6299C27BBD9CACC /* Check framework matches the source */ = {
+			isa = PBXShellScriptBuildPhase;
+			alwaysOutOfDate = 1;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			inputFileListPaths = (
+			);
+			inputPaths = (
+			);
+			name = "Check framework matches the source";
+			outputFileListPaths = (
+			);
+			outputPaths = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+			shellPath = /bin/sh;
+			shellScript = "ROOT=\"$SRCROOT/../../../..\"\nFWH=\"$ROOT/build-apple/llama.xcframework/ios-arm64/llama.framework/Headers/llama.h\"\nif [ ! -f \"$FWH\" ]; then\n  echo \"error: build-apple/llama.xcframework is missing: run ./build-xcframework.sh ios-device ios-sim in the repository root\"; exit 1\nfi\nif ! cmp -s \"$ROOT/include/llama.h\" \"$FWH\"; then\n  echo \"error: llama.xcframework was built from a different include/llama.h than this checkout: rebuild it with ./build-xcframework.sh ios-device ios-sim\"; exit 1\nfi\n";
+		};
 /* End PBXShellScriptBuildPhase section */
 
 /* Begin PBXSourcesBuildPhase section */
@@ -195,11 +274,24 @@
 			files = (
 				5437452C52E55A4EBED0BE79 /* Bench.swift in Sources */,
 				A19113653643E61358BAF794 /* BonsaiBenchApp.swift in Sources */,
+				502A6F8E1851F32D96F6AB2C /* BonsaiMTP.cpp in Sources */,
 				4529F7A2FBDC33143A4EDB98 /* ContentView.swift in Sources */,
 				45B9A324E7DC5F666074B6FA /* DeviceInfo.swift in Sources */,
 				29820508D09BFC2918878273 /* Downloads.swift in Sources */,
 				5836F629AA44E2E22CB8B345 /* Engine.swift in Sources */,
 				5AFCDAF568C869B512253B9C /* Suite.swift in Sources */,
+				2BBC9858A70F8D4C2290E905 /* build-info.cpp in Sources */,
+				5F8196D6E3069F4594B412AA /* common.cpp in Sources */,
+				D23226F2106AD2A2C2318E3E /* fit.cpp in Sources */,
+				86857336E153FB657BCBAA4B /* log.cpp in Sources */,
+				129861B093A7D4C7549481C4 /* ngram-cache.cpp in Sources */,
+				09E08BC8CE655F167F13CE0E /* ngram-map.cpp in Sources */,
+				91E058E10AEA7522A96D47F9 /* ngram-mod.cpp in Sources */,
+				F2136502010231CCF1211FE7 /* reasoning-budget.cpp in Sources */,
+				731FD9982E0A5A11B305C596 /* sampling.cpp in Sources */,
+				51E767750DECA903B4D991B2 /* speculative.cpp in Sources */,
+				795DF526F23F263B726EA1A4 /* trie.cpp in Sources */,
+				B10F63A2C66F6B80DB2E388E /* unicode.cpp in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -211,6 +303,7 @@
 			baseConfigurationReference = 06A9F68CEEBE56761A0EC121 /* Signing.xcconfig */;
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
+				CLANG_CXX_LANGUAGE_STANDARD = "c++17";
 				CODE_SIGN_ENTITLEMENTS = BonsaiBench/BonsaiBench.entitlements;
 				CODE_SIGN_IDENTITY = "iPhone Developer";
 				CURRENT_PROJECT_VERSION = 1;
@@ -219,6 +312,16 @@
 					"$(inherited)",
 					"\"../../../../build-apple\"",
 				);
+				GCC_PREPROCESSOR_DEFINITIONS = (
+					"NDEBUG=1",
+				);
+				HEADER_SEARCH_PATHS = (
+					"$(SRCROOT)/../../../../include",
+					"$(SRCROOT)/../../../../ggml/include",
+					"$(SRCROOT)/../../../../common",
+					"$(SRCROOT)/../../../../src",
+					"$(SRCROOT)/../../../../vendor",
+				);
 				INFOPLIST_FILE = BonsaiBench/Info.plist;
 				LD_RUNPATH_SEARCH_PATHS = (
 					"$(inherited)",
@@ -226,6 +329,7 @@
 				);
 				MARKETING_VERSION = 1.0;
 				SDKROOT = iphoneos;
+				SWIFT_OBJC_BRIDGING_HEADER = "BonsaiBench/BonsaiBench-Bridging-Header.h";
 				TARGETED_DEVICE_FAMILY = "1,2";
 			};
 			name = Release;
@@ -358,6 +462,7 @@
 			baseConfigurationReference = 06A9F68CEEBE56761A0EC121 /* Signing.xcconfig */;
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
+				CLANG_CXX_LANGUAGE_STANDARD = "c++17";
 				CODE_SIGN_ENTITLEMENTS = BonsaiBench/BonsaiBench.entitlements;
 				CODE_SIGN_IDENTITY = "iPhone Developer";
 				CURRENT_PROJECT_VERSION = 1;
@@ -366,6 +471,13 @@
 					"$(inherited)",
 					"\"../../../../build-apple\"",
 				);
+				HEADER_SEARCH_PATHS = (
+					"$(SRCROOT)/../../../../include",
+					"$(SRCROOT)/../../../../ggml/include",
+					"$(SRCROOT)/../../../../common",
+					"$(SRCROOT)/../../../../src",
+					"$(SRCROOT)/../../../../vendor",
+				);
 				INFOPLIST_FILE = BonsaiBench/Info.plist;
 				LD_RUNPATH_SEARCH_PATHS = (
 					"$(inherited)",
@@ -373,6 +485,7 @@
 				);
 				MARKETING_VERSION = 1.0;
 				SDKROOT = iphoneos;
+				SWIFT_OBJC_BRIDGING_HEADER = "BonsaiBench/BonsaiBench-Bridging-Header.h";
 				TARGETED_DEVICE_FAMILY = "1,2";
 			};
 			name = Debug;
