@@ -845,7 +845,7 @@ ggml_metal_pipeline_with_params ggml_metal_library_get_pipeline_mul_mm(ggml_meta
     const int16_t r3   = (int16_t) (ne13 / op->src[0]->ne[3]);
 
     // research: whole-block PTQ1_0 decode for the tensor-unit prefill (GGML_METAL_PTQ1_MM_B128=1)
-    static const bool ptq1_b128_env = getenv("GGML_METAL_PTQ1_MM_B128") && atoi(getenv("GGML_METAL_PTQ1_MM_B128")) == 1;
+    const bool ptq1_b128_env = GGML_METAL_ENV_INT("GGML_METAL_PTQ1_MM_B128", 0) == 1;
     const bool ptq1_b128 = ptq1_b128_env && has_tensor && tsrc0 == GGML_TYPE_PTQ1_0 && tsrc1 == GGML_TYPE_F32 &&
                            op->src[0]->ne[0] % 128 == 0;
 
@@ -891,17 +891,28 @@ ggml_metal_pipeline_with_params ggml_metal_library_get_pipeline_mul_mm(ggml_meta
     return res;
 }
 
+#include <atomic>
+
+static std::atomic<int> g_research_generation{0};
+
+int ggml_metal_research_generation(void) {
+    return g_research_generation.load(std::memory_order_acquire);
+}
+
+void ggml_metal_research_reload(void) {
+    g_research_generation.fetch_add(1, std::memory_order_acq_rel);
+}
+
 // research: GGML_METAL_BATCH_INVARIANT=1 also routes single columns through the multi-column template, so
 // a token's matvec arithmetic does not depend on how many tokens share the batch (1..4)
 bool ggml_metal_batch_invariant(void) {
-    static const bool enabled = getenv("GGML_METAL_BATCH_INVARIANT") && atoi(getenv("GGML_METAL_BATCH_INVARIANT")) == 1;
+    const bool enabled = GGML_METAL_ENV_INT("GGML_METAL_BATCH_INVARIANT", 0) == 1;
     return enabled;
 }
 
 bool ggml_metal_ptq1_multicol_enabled(const ggml_tensor * op) {
     // batch-invariant mode implies the multi-column path: it is what makes 1..8 columns share arithmetic
-    static const bool enabled = (getenv("GGML_METAL_PTQ1_MULTICOL") && atoi(getenv("GGML_METAL_PTQ1_MULTICOL")) == 1) ||
-                                ggml_metal_batch_invariant();
+    const bool enabled = GGML_METAL_ENV_INT("GGML_METAL_PTQ1_MULTICOL", 0) == 1 || ggml_metal_batch_invariant();
     const int64_t n_min = ggml_metal_batch_invariant() ? 1 : 2;
     return enabled && op->src[0]->type == GGML_TYPE_PTQ1_0 && op->src[1]->type == GGML_TYPE_F32 &&
            op->src[0]->ne[0] % ggml_blck_size(GGML_TYPE_PTQ1_0) == 0 && op->src[1]->nb[0] == sizeof(float) &&
@@ -911,14 +922,14 @@ bool ggml_metal_ptq1_multicol_enabled(const ggml_tensor * op) {
 // widest batch the multi-column kernel takes, as column tiles of at most four;
 // wider batches keep the baseline route (mul_mm above eight)
 int ggml_metal_ptq1_multicol_max(void) {
-    static const int max_cols = getenv("GGML_METAL_PTQ1_MULTICOL_MAX") ? atoi(getenv("GGML_METAL_PTQ1_MULTICOL_MAX")) : 4;
+    const int max_cols = GGML_METAL_ENV_INT("GGML_METAL_PTQ1_MULTICOL_MAX", 4);
     return max_cols >= 4 && max_cols <= 8 ? max_cols : 4;
 }
 
 // single-column products with few output rows (the 48-row ssm_alpha/ssm_beta projections) get one
 // row per simdgroup instead of the type's default; research flag GGML_METAL_SMALLM=1
 static bool ggml_metal_smallm(const ggml_tensor * op) {
-    static const bool enabled = getenv("GGML_METAL_SMALLM") && atoi(getenv("GGML_METAL_SMALLM")) == 1;
+    const bool enabled = GGML_METAL_ENV_INT("GGML_METAL_SMALLM", 0) == 1;
     return enabled && op->src[1]->ne[1] == 1 && op->src[0]->ne[1] <= 256;
 }
 
@@ -1000,8 +1011,8 @@ ggml_metal_pipeline_with_params ggml_metal_library_get_pipeline_mul_mv(ggml_meta
                 nsg = N_SG_PTQ1_0;
                 nr0 = N_R0_PTQ1_0;
                 if (ggml_metal_ptq1_multicol_enabled(op)) {
-                    static const int rows = getenv("GGML_METAL_PTQ1_NR0") ? atoi(getenv("GGML_METAL_PTQ1_NR0")) : 4;
-                    static const int groups = getenv("GGML_METAL_PTQ1_NSG") ? atoi(getenv("GGML_METAL_PTQ1_NSG")) : 1;
+                    const int rows = GGML_METAL_ENV_INT("GGML_METAL_PTQ1_NR0", 4);
+                    const int groups = GGML_METAL_ENV_INT("GGML_METAL_PTQ1_NSG", 1);
                     nr0 = rows == 2 || rows == 8 ? rows : 4;
                     nsg = groups == 2 || groups == 4 ? groups : 1;
                     // at most four columns per tile, split evenly: 5,6 -> 3+3; 7,8 -> 4+4
@@ -1165,9 +1176,9 @@ ggml_metal_pipeline_with_params ggml_metal_library_get_pipeline_mul_mv(ggml_meta
 // double the accumulators). GGML_METAL_PQ2_NR0 / GGML_METAL_PQ2_GLU_NR0 / GGML_METAL_PQ2_NSG override
 // among the instantiated variants.
 ggml_metal_pipeline_with_params ggml_metal_library_get_pipeline_mul_mv_pq2(ggml_metal_library_t lib, int ne11, bool glu) {
-    static const int rows_mc  = getenv("GGML_METAL_PQ2_NR0")     ? atoi(getenv("GGML_METAL_PQ2_NR0"))     : 0;
-    static const int rows_glu = getenv("GGML_METAL_PQ2_GLU_NR0") ? atoi(getenv("GGML_METAL_PQ2_GLU_NR0")) : 2;
-    static const int groups   = getenv("GGML_METAL_PQ2_NSG")     ? atoi(getenv("GGML_METAL_PQ2_NSG"))     : 1;
+    const int rows_mc = GGML_METAL_ENV_INT("GGML_METAL_PQ2_NR0", 0);
+    const int rows_glu = GGML_METAL_ENV_INT("GGML_METAL_PQ2_GLU_NR0", 2);
+    const int groups = GGML_METAL_ENV_INT("GGML_METAL_PQ2_NSG", 1);
 
     const int nr1 = (ne11 + (ne11 + 3)/4 - 1) / ((ne11 + 3)/4);
     int nr0;
@@ -1213,7 +1224,7 @@ ggml_metal_pipeline_with_params ggml_metal_library_get_pipeline_mul_mv_pq2(ggml_
 // fused Q1_0 gate/up + SWIGLU: tiles of at most four columns; rows GGML_METAL_Q1_GLU_NR0 (default 4,
 // half the single-vector kernel's 8 since the accumulators double), groups as the single-vector kernel
 ggml_metal_pipeline_with_params ggml_metal_library_get_pipeline_mul_mv_q1_glu(ggml_metal_library_t lib, int ne11) {
-    static const int rows = getenv("GGML_METAL_Q1_GLU_NR0") ? atoi(getenv("GGML_METAL_Q1_GLU_NR0")) : 4;
+    const int rows = GGML_METAL_ENV_INT("GGML_METAL_Q1_GLU_NR0", 4);
 
     const int nr1 = (ne11 + (ne11 + 3)/4 - 1) / ((ne11 + 3)/4);
     int nr0 = rows == 2 || rows == 8 ? rows : 4;
@@ -1294,8 +1305,8 @@ ggml_metal_pipeline_with_params ggml_metal_library_get_pipeline_ptq1_stage(ggml_
 // preferred two rows for 2-3 column tiles (n=3 up to 29% faster) and four for 4-column tiles;
 // GGML_METAL_PTQ1_NR0 / GGML_METAL_PTQ1_NSG still override.
 ggml_metal_pipeline_with_params ggml_metal_library_get_pipeline_mul_mv_ptq1_mcs(ggml_metal_library_t lib, const ggml_tensor * op) {
-    static const int rows   = getenv("GGML_METAL_PTQ1_NR0") ? atoi(getenv("GGML_METAL_PTQ1_NR0")) : 0;
-    static const int groups = getenv("GGML_METAL_PTQ1_NSG") ? atoi(getenv("GGML_METAL_PTQ1_NSG")) : 1;
+    const int rows = GGML_METAL_ENV_INT("GGML_METAL_PTQ1_NR0", 0);
+    const int groups = GGML_METAL_ENV_INT("GGML_METAL_PTQ1_NSG", 1);
 
     const int ne11 = op->src[1]->ne[1];
 
@@ -1332,8 +1343,8 @@ ggml_metal_pipeline_with_params ggml_metal_library_get_pipeline_mul_mv_ptq1_mcs(
 }
 
 ggml_metal_pipeline_with_params ggml_metal_library_get_pipeline_mul_mv_ptq1_glu(ggml_metal_library_t lib, const ggml_tensor * op, bool staged) {
-    static const int rows   = getenv("GGML_METAL_PTQ1_GLU_NR0") ? atoi(getenv("GGML_METAL_PTQ1_GLU_NR0")) : 2;
-    static const int groups = getenv("GGML_METAL_PTQ1_GLU_NSG") ? atoi(getenv("GGML_METAL_PTQ1_GLU_NSG")) : 1;
+    const int rows = GGML_METAL_ENV_INT("GGML_METAL_PTQ1_GLU_NR0", 2);
+    const int groups = GGML_METAL_ENV_INT("GGML_METAL_PTQ1_GLU_NSG", 1);
 
     const int ne11 = op->src[1]->ne[1];
 
