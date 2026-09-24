@@ -167,7 +167,7 @@ BonsaiBench, and send or save the `bonsaibench-*.json` files (e.g. to iCloud Dri
 
 ## Findings so far (iPhone 17 Pro Max, A19 Pro, iOS 27)
 
-Two partial studies of Bonsai 1 binary (Q1_0), one accepted quartet per cell, so early signals. Raw JSON in
+Three partial studies of Bonsai 1 binary (Q1_0), one quartet per cell, so early signals. Raw JSON in
 [`../results`](../results).
 
 | Cell | Upstream | Q1_0 stack | Stack + popcount |
@@ -176,7 +176,7 @@ Two partial studies of Bonsai 1 binary (Q1_0), one accepted quartet per cell, so
 | pp4 | 17.5 | 18.8 (1.07x) | 26.1 (**1.49x**) |
 | pp8 | 18.2 | 18.8 (1.03x) | not reached |
 | chat128 (greedy decode) | ~9.6 | | ~10.5 (quartets rejected, see below) |
-| pp512 | 78.9 | 54.0, then a Metal command buffer failed | not run |
+| pp512 | 78.9 | 81.7 / 82.3 (a first run: 54.0, then a command buffer failed) | 82.3 / 80.2 (0.99x vs the stack) |
 
 - **The Q1_0 kernels are compute-bound on the phone GPU.** Throughput barely grows from 2 to 8 tokens
   per call, while on the M5 Max it grows strongly. This is why PrismML's popcount path (int8 bit-plane
@@ -193,10 +193,11 @@ Two partial studies of Bonsai 1 binary (Q1_0), one accepted quartet per cell, so
   - Use a longer cooldown (30-60 s) for the generation cells on a phone.
 - **Memory is not a limit for Q1_0.** The footprint stayed at 0.42 GB: weights are memory-mapped from
   flash and not counted, and iOS allowed 6.0 GB more.
-- **pp512 with the Q1_0 stack regressed and then failed on the phone.** On the M5 Max the same flags give
-  1.035x.
-  - A per-op profile on the M5 shows that only two stack changes touch a 512-token batch:
-    - the in-place delta-net state (neutral: the delta-net op costs the same in both modes);
-    - `SMALLM_MM`, which routes the 48-row gate projections to the mat-vec kernel.
-  - To settle which one, run the per-flag arms with the Metal error text and per-call times this version
-    records. Until then, leave pp512 out of phone studies with the Q1_0 stack.
+- **pp512 is not slower with the Q1_0 stack.**
+  - The first study's pp512 (54.0 tok/s, then a failed command buffer) did not reproduce: a later study ran
+    the stack at 81.7 and 82.3 tok/s, with no error.
+  - The M5 profile agrees. Only two stack changes touch a 512-token batch: the in-place delta-net state
+    (neutral) and `SMALLM_MM` (faster).
+  - The failed run was probably a transient, for example iOS using the GPU for its own work while
+    charging. Failures now record Metal's error text and each call's time.
+  - Popcount does not act at 512 columns (0.99x), as on the M5 (it covers up to 16 columns).
