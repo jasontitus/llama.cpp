@@ -52,7 +52,7 @@ struct ContentView: View {
 
                 Section {
                     ForEach(state.models, id: \.self) { url in
-                        let need = estimatedNeedBytes(modelFileBytes: state.size(url))
+                        let need = estimatedNeedBytes(modelFileBytes: state.size(url), mtp: url.lastPathComponent.lowercased().contains("-mtp"))
                         let avail = state.device.appAvailableMemoryBytes
                         let isSelected = state.selected?.lastPathComponent == url.lastPathComponent
                         Button {
@@ -62,7 +62,7 @@ struct ContentView: View {
                                 VStack(alignment: .leading, spacing: 2) {
                                     Text(modelTitle(url.lastPathComponent)).foregroundStyle(.primary)
                                     Text(url.lastPathComponent).font(.caption2.monospaced()).foregroundStyle(.secondary)
-                                    Text("\(gb(state.size(url))) file, ~\(gb(need)) needed" + (avail > 0 ? (need < avail ? " · likely fits" : " · likely too large") : ""))
+                                    Text("\(gb(state.size(url))) file, read from flash · ~\(gb(need)) app memory" + (avail > 0 ? (need < avail ? " · likely fits" : " · likely too large") : ""))
                                         .font(.caption).foregroundStyle(avail > 0 && need >= avail ? .red : .secondary)
                                 }
                                 Spacer()
@@ -192,10 +192,16 @@ struct ContentView: View {
                                 } else {
                                     Text("\(s.cell)  no accepted quartet").font(.body.monospaced())
                                 }
-                                Text(String(format: "range %.3f–%.3f · %d accepted, %d rejected%@%@", s.speedupMin ?? 0, s.speedupMax ?? 0,
+                                Text(String(format: "range %.3f–%.3f · %d accepted, %d rejected%@%@%@", s.speedupMin ?? 0, s.speedupMax ?? 0,
                                             s.acceptedQuartets, s.rejectedQuartets, s.complete ? "" : " · incomplete",
-                                            s.tokenMismatchQuartets > 0 ? " · tokens differ" : ""))
+                                            s.tokenMismatchQuartets > 0 ? " · tokens differ" : "",
+                                            s.mtpTokenDifferenceQuartets > 0 ? " · plain and MTP tokens differ (expected without invariant mode)" : ""))
                                     .font(.caption).foregroundStyle(s.complete ? Color.secondary : Color.orange)
+                                if s.aAcceptance != nil || s.bAcceptance != nil {
+                                    Text("MTP draft acceptance: " + [("A", s.aAcceptance), ("B", s.bAcceptance)]
+                                        .compactMap { n, v in v.map { String(format: "%@ %.1f%%", n, $0 * 100) } }.joined(separator: ", "))
+                                        .font(.caption).foregroundStyle(.secondary)
+                                }
                             }
                         }
                         LabeledContent("Peak footprint", value: gb(r.peakFootprintBytes))
@@ -260,7 +266,7 @@ struct DownloadRow: View {
             HStack(alignment: .firstTextBaseline) {
                 VStack(alignment: .leading, spacing: 2) {
                     Text(model.title)
-                    Text("\(gb(model.bytes)) · ~\(gb(need)) needed\(fit)")
+                    Text("\(gb(model.bytes)) file · ~\(gb(need)) app memory\(fit)")
                         .font(.caption).foregroundStyle(available > 0 && need >= available ? .red : .secondary)
                 }
                 Spacer()

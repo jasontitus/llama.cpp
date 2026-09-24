@@ -2,6 +2,7 @@
 
 #include "common.h"
 #include "llama.h"
+#include "log.h"
 #include "sampling.h"
 #include "speculative.h"
 
@@ -142,6 +143,12 @@ bool generate(common_params & params, llama_model * model, llama_context * ctx_t
                 const double td = now_s();
                 common_speculative_draft(spec);
                 out.t_draft += now_s() - td;
+                // with n_min 0 and p_min 0 the MTP head always proposes a token; none means its context
+                // failed (e.g. a Metal error on the draft context), and the run would silently turn plain
+                if (n_draft_max > 0 && draft.empty()) {
+                    err = "the MTP draft context produced no draft (see the library messages)";
+                    return false;
+                }
 
                 if (seq_rm_dft == COMMON_CONTEXT_SEQ_RM_TYPE_FULL) {
                     ckpt.load_dft(ctx_dft, seq_id, LLAMA_STATE_SEQ_FLAGS_PARTIAL_ONLY);
@@ -261,10 +268,19 @@ bool generate(common_params & params, llama_model * model, llama_context * ctx_t
 
 } // namespace
 
+extern "C" void bb_common_log_to_file(const char * path) {
+    common_log_set_prefix(common_log_main(), true);
+    common_log_set_timestamps(common_log_main(), false);
+    common_log_set_file(common_log_main(), path);
+}
+
 extern "C" int32_t bb_generate(struct llama_model * model, const char * prompt, int32_t n_predict, int32_t n_draft,
                                int32_t n_warmup, int32_t n_ctx, int32_t n_threads, int32_t * out_tokens,
                                int32_t capacity, bb_gen_result * result) {
     std::memset(result, 0, sizeof(*result));
+    struct log_flush {
+        ~log_flush() { common_log_flush(common_log_main()); }
+    } flush_on_return;
     auto fail = [&](const std::string & msg) {
         std::snprintf(result->error, sizeof(result->error), "%s", msg.c_str());
         return (int32_t) -1;
@@ -307,7 +323,8 @@ extern "C" int32_t bb_generate(struct llama_model * model, const char * prompt, 
     llama_context_ptr ctx_tgt_owner(ctx_tgt);
 
     // the persistent CPU threadpool that llama-server and the examples attach through common_init, so the
-    // graphs' CPU splits run as they do in the Mac server studies
+    // graphs' CPU splits run as they do in the Mac server studies (its threads poll between graphs, as
+    // there; gen cells of both arms pay that the same way)
     threadpools.init(ctx_tgt, params);
 
     common_speculative_init_result_ptr spec_init;

@@ -58,8 +58,8 @@ targets:
         UIApplicationSupportsIndirectInputEvents: true
         UISupportedInterfaceOrientations: [UIInterfaceOrientationPortrait]
     preBuildScripts:
-      # The app compiles llama.cpp's common code (MTP) against include/llama.h and links the prebuilt
-      # framework: they must come from the same llama.h, or struct layouts differ at runtime.
+      # The app compiles llama.cpp's common code (MTP) against include/ and ggml/include/ and links the
+      # prebuilt framework: the public headers must match, or struct layouts differ at runtime.
       - name: Check framework matches the source
         basedOnDependencyAnalysis: false
         script: |
@@ -68,9 +68,13 @@ targets:
           if [ ! -f "$FWH" ]; then
             echo "error: build-apple/llama.xcframework is missing: run ./build-xcframework.sh ios-device ios-sim in the repository root"; exit 1
           fi
-          if ! cmp -s "$ROOT/include/llama.h" "$FWH"; then
-            echo "error: llama.xcframework was built from a different include/llama.h than this checkout: rebuild it with ./build-xcframework.sh ios-device ios-sim"; exit 1
-          fi
+          FWD="$(dirname "$FWH")"
+          for h in llama.h ggml.h ggml-alloc.h ggml-backend.h ggml-cpu.h ggml-metal.h gguf.h; do
+            SRCH="$ROOT/include/$h"; [ -f "$SRCH" ] || SRCH="$ROOT/ggml/include/$h"
+            if ! cmp -s "$SRCH" "$FWD/$h"; then
+              echo "error: llama.xcframework was built from a different $h than this checkout: rebuild it with ./build-xcframework.sh ios-device ios-sim"; exit 1
+            fi
+          done
     postBuildScripts:
       # Record what was built in BuildStamp.plist inside the app; every result JSON carries it (BuildInfo):
       # the app's source revision and uncommitted app files, the source the framework was built from (written
@@ -81,7 +85,7 @@ targets:
           ROOT="$SRCROOT/../../../.."
           OUT="$TARGET_BUILD_DIR/$UNLOCALIZED_RESOURCES_FOLDER_PATH/BuildStamp.plist"
           REV=$(git -C "$ROOT" rev-parse HEAD 2>/dev/null || echo unknown)
-          APPDIRTY=$(git -C "$ROOT" status --porcelain -- experiments/metal-ptq1/ios 2>/dev/null | wc -l | tr -d ' ')
+          APPDIRTY=$(git -C "$ROOT" status --porcelain -- experiments/metal-ptq1/ios common 2>/dev/null | wc -l | tr -d ' ')
           SRC="$ROOT/build-apple/llama.xcframework.source"
           FWREV=$(sed -n 's/^revision=//p' "$SRC" 2>/dev/null); FWREV=${FWREV:-unknown}
           FWDIRTY=$(sed -n 's/^dirty_files=//p' "$SRC" 2>/dev/null); FWDIRTY=${FWDIRTY:-unknown}

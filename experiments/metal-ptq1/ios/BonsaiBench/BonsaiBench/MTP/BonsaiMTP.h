@@ -26,6 +26,10 @@ typedef struct bb_gen_result {
     char     error[256];        // set when the call returns -1
 } bb_gen_result;
 
+// llama.cpp's common code (the speculative-decoding loop) logs through its own logger, not llama_log_set:
+// mirror it to a file (with W/E level prefixes) that the app reads after each run. Call once, first.
+void bb_common_log_to_file(const char * path);
+
 // Greedy generation of up to n_predict tokens after `prompt` on fresh contexts of `model`: with MTP
 // self-speculation (n_draft draft tokens per step, the target model must have been loaded with
 // load_mtp) or, for n_draft == 0, plain decoding through the same loop. A warmup generation of n_warmup

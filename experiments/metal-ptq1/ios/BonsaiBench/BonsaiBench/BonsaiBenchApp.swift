@@ -32,6 +32,7 @@ final class BenchState: ObservableObject {
     @Published var resultURL: URL?
     @Published var device = DeviceInfo.capture()
     private var study: Study?
+    private var lastLoadHadMTP: Bool?
 
     // Suite: the studies run in order; `suiteStep` is the one running (nil when no suite runs). Its state is
     // persisted (SuiteRecord) so that a suite the app died in can be resumed with what it had done.
@@ -46,6 +47,7 @@ final class BenchState: ObservableObject {
     private var manualSettings: (cells: Set<String>, cycles: Int, cooldown: Double, nominal: Bool, gate: Double, ubatch: Int)?
 
     private struct SuiteRecord: Codable {
+        var titles: [String]?                          // the suite this record belongs to (studies by index)
         var included: [Int]
         var step: Int?                                 // the study running; set while it runs
         var deathCounted = false                       // this launch already counted the app dying in `step`
@@ -55,7 +57,7 @@ final class BenchState: ObservableObject {
     }
 
     private func saveSuite(step: Int?, deathCounted: Bool = false) {
-        let r = SuiteRecord(included: Array(suiteIncluded), step: step, deathCounted: deathCounted, kills: suiteKills,
+        let r = SuiteRecord(titles: suite.map(\.title), included: Array(suiteIncluded), step: step, deathCounted: deathCounted, kills: suiteKills,
                             outcome: suiteOutcome, notes: suiteNotes)
         UserDefaults.standard.set(try? JSONEncoder().encode(r), forKey: "suite")
     }
@@ -73,7 +75,8 @@ final class BenchState: ObservableObject {
         }
         // A suite the app died in: count the death once, decide what to skip, and offer to resume.
         if let data = UserDefaults.standard.data(forKey: "suite"),
-           let rec = try? JSONDecoder().decode(SuiteRecord.self, from: data), let step = rec.step {
+           let rec = try? JSONDecoder().decode(SuiteRecord.self, from: data), let step = rec.step,
+           rec.titles == suite.map(\.title) {   // a record from a different suite (older app) is not resumed
             suiteIncluded = Set(rec.included)
             suiteKills = rec.kills
             suiteOutcome = rec.outcome
@@ -129,7 +132,8 @@ final class BenchState: ObservableObject {
             guard let self, let engine else { return }
             let arms = Presets.all(for: engine.weightType, mtp: engine.hasMTP)
             let a = arms.first { $0.name == (o["a"] as? String ?? "upstream") }
-            let b = arms.first { $0.name == (o["b"] as? String ?? Presets.recommended(for: engine.weightType).name) }
+            let defaultB = engine.hasMTP ? Presets.recommended(for: engine.weightType).name + " + MTP" : Presets.recommended(for: engine.weightType).name
+            let b = arms.first { $0.name == (o["b"] as? String ?? defaultB) }
             guard let a, let b else {
                 self.status = "Autorun: unknown arm; presets are " + arms.map(\.name).joined(separator: ", ")
                 return
@@ -227,7 +231,9 @@ final class BenchState: ObservableObject {
                     if e.hasMTP, let b = Presets.all(for: e.weightType, mtp: true).first(where: { $0.draft > 0 && $0.name != "upstream + MTP" }) {
                         self.armB = b      // an MTP model is loaded to measure MTP: upstream plain vs our flags + MTP
                     }
-                    if self.suiteStep == nil { self.cells = defaultSelectedCells(mtp: e.hasMTP) }
+                    // switch the default cells only when moving between MTP and plain models
+                    if self.suiteStep == nil && self.lastLoadHadMTP != e.hasMTP { self.cells = defaultSelectedCells(mtp: e.hasMTP) }
+                    self.lastLoadHadMTP = e.hasMTP
                     self.status = "Loaded \(e.description) (\(e.weightType)); footprint \(gb(physicalFootprint())), available \(gb(UInt64(max(0, availableMemory()))))"
                     then?(e)
                 }
@@ -249,15 +255,20 @@ final class BenchState: ObservableObject {
         guard let engine else { status = "Load a model first."; return false }
         guard !running else { return false }
         guard !Downloader.shared.busy else { status = "Wait for downloads and hash checks to finish."; return false }
+        // the default cells in their usual order, then any others (autorun) by name
+        let known = Set(defaultCells.map(\.name))
+        let chosen = defaultCells.filter { cells.contains($0.name) } +
+            cells.subtracting(known).sorted().map { Cell(name: $0) }.filter { ["tg", "chat", "gen", "pp"].contains($0.kind) && $0.count > 0 }
+        if (armA.draft > 0 || armB.draft > 0) && chosen.contains(where: { $0.kind != "gen" }) {
+            status = "An MTP arm only measures gen cells: switch off the other cells, or pick arms without MTP."
+            return false
+        }
+        guard !chosen.isEmpty else { status = "Choose at least one cell."; return false }
         running = true
         log = []
         result = nil
         resultURL = nil
         UIApplication.shared.isIdleTimerDisabled = true
-        // the default cells in their usual order, then any others (autorun) by name
-        let known = Set(defaultCells.map(\.name))
-        let chosen = defaultCells.filter { cells.contains($0.name) } +
-            cells.subtracting(known).sorted().map { Cell(name: $0) }.filter { ["tg", "chat", "pp"].contains($0.kind) && $0.count > 0 }
         let stamp = ISO8601DateFormatter().string(from: Date()).replacingOccurrences(of: ":", with: "-")
         let url = documents.appendingPathComponent("bonsaibench-\(stamp).json")
         var saveError: String?

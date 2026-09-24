@@ -10,13 +10,16 @@ Research tool; not an App Store app.
 |---|---|---|
 | **tg128** | 128 single-token decodes from an empty context, random tokens, no sampling | llama-bench tg128 (the Mac studies' tg128) |
 | **chat128** | greedy generation of 128 tokens after a chat prompt, including sampling; the generated tokens are compared between arms | llama-server generation speed; bit-exactness |
-| **gen128** | greedy generation of 128 tokens after the chat prompt through llama.cpp's speculative-decoding loop, plain or with MTP per arm (see "MTP") | llama-server generation speed (predicted tokens/s); the headline and MTP rows |
+| **gen128** | greedy generation of 128 tokens after the chat prompt through llama.cpp's speculative-decoding loop, plain or with MTP per arm (see "MTP"); generation only, the prompt pass excluded | the M5's generation-only rate (45.4 -> 61.4, 1.35x), not the server rows, which include the prompt |
 | **pp2 / pp4 / pp8** | k-token batches: the step shapes of MTP verification and concurrent requests | llama-bench ppK |
 | **pp512** | a 512-token prompt batch | llama-bench pp512 |
 
 Every observation creates a fresh llama context, so the research flags (environment variables, re-read
-when a context is created) take effect per arm. The context keeps one output row (`n_outputs_max = 1`,
-which spares ~0.5 GB of logits buffer) and n_ctx 1024.
+when a context is created) take effect per arm. The context uses n_ctx 1024.
+
+- tg, chat and pp cells keep one output row (`n_outputs_max = 1`), which spares ~0.5 GB of logits buffer.
+- gen cells use llama.cpp's own settings instead: two outputs for MTP verification, plus the MTP draft
+  context.
 
 For each cell, per cycle:
 
@@ -81,27 +84,39 @@ The app runs MTP with llama.cpp's own speculative-decoding code:
   studies' settings: greedy, 1 draft token, no minimum draft size or probability, and the persistent CPU
   threadpool.
 - A gen cell runs both arms through this same loop, so they are timed identically:
-  - an arm named "... + MTP" drafts one token per step;
+  - an arm named "... + MTP" drafts one token per step (MTP arms run only gen cells);
   - other arms decode plainly.
-- The result file records drafted and accepted tokens and the target decodes per run.
+- An MTP run fails instead of silently decoding plainly if the draft context stops producing drafts.
+- The result file records, per run:
+  - drafted and accepted tokens and the target decodes;
+  - the split of the loop into drafting, verification and MTP processing.
+
+  The summary also shows each arm's draft acceptance.
+- **Tokens are compared within each arm and between the arms.**
+  - Plain and MTP output can legitimately differ: two-token verification is not batch-invariant.
+  - The "+ invariant + MTP" arm makes the comparison bit-for-bit.
+  - A difference within an arm is always flagged.
 
 **The model.** MTP needs a GGUF grafted with an MTP head, `Ternary-Bonsai-2-27B-PTQ1_0-mtp.gguf` (7.0 GB;
 the base model plus a 1.07 GB head, made with the
 [sudoingX graft recipe](https://github.com/sudoingX/bonsai2-small-gpu/tree/eb52d9d7363cda2d910146f4e37f4b8c64c30c46/graft)).
 
 - It is not published, so it is not in the download list. Copy it in over USB (see below).
-- A file whose name contains `-mtp` is loaded with its MTP layers, and it gets the "upstream + MTP" and
-  "<stack> + MTP" arms.
-- Weights are memory-mapped: the app's footprint was 0.8 GB with this file on the M5.
+- A file whose name contains `-mtp` is loaded with its MTP layers, and it gets the "upstream + MTP",
+  "<stack> + MTP" and "<stack> + invariant + MTP" arms.
+- Weights are memory-mapped. The check tool's footprint on the M5 was 0.8 GB with this file; the phone's
+  footprint is recorded with every run.
 
 **Checked on an M5 Max** (`../tools/check-mtp-bridge.cpp`, the same model, each configuration in a fresh
 process):
 
-- The bridge accepts 85.5% of drafts (59/69). `llama-speculative-simple` accepts 85.7% (60/70) and
-  llama-server 86.8% (59/68).
-- Our flags + MTP run at 63-65 tok/s, like the example's 64.2-64.9. Upstream plain runs at about 45.
-- All four configurations (plain and MTP, upstream and flags) generate the same 128 tokens as
-  llama-server.
+- **Acceptance:** the bridge accepts 85.5% of drafts (59/69). `llama-speculative-simple` accepts 85.7%
+  (60/70), and llama-server 86.8% (59/68).
+- **Speed:** our flags + MTP run at 63-65 tok/s, like the example's 64.2-64.9, with each configuration in a
+  fresh process. Upstream plain runs at about 45 in the check tool.
+- **Tokens:** all four configurations (plain and MTP, upstream and flags) generate exactly the 128 tokens
+  llama-server generates for the same prompt, both with and without MTP. The tool's `TOKENS_OUT` writes
+  them out for this comparison.
 
 ### Differences from the Mac studies
 
@@ -192,7 +207,7 @@ xcrun devicectl device process launch --device "$DEVICE" --terminate-existing --
 
 - `--console` shows the library log.
 - Arms are preset names as shown in the app.
-- Cells may be any `tgN`, `chatN` or `ppK`.
+- Cells may be any `tgN`, `chatN`, `genN` or `ppK`. An arm with MTP runs only gen cells.
 - `cycles`, `cooldown`, `waitForNominal` and `ubatch` (512, 256 or 128) are optional.
 - `{"suite":true}` runs the phone suite (below), resuming a suite the app died in, and `"from": N`
   starts it at study N.

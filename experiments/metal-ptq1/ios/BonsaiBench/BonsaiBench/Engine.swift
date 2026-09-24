@@ -33,6 +33,13 @@ final class LibraryLog {
     private var keeping = false          // the current message is a warning or error (for CONT pieces)
 
     func install() {
+        lock.lock()
+        if !commonLogInstalled {
+            commonLogInstalled = true
+            try? FileManager.default.removeItem(at: Self.commonLogURL)
+            bb_common_log_to_file(Self.commonLogURL.path)
+        }
+        lock.unlock()
         llama_log_set({ level, text, _ in
             guard let text else { return }
             fputs(text, stderr)
@@ -45,6 +52,25 @@ final class LibraryLog {
         if level != GGML_LOG_LEVEL_CONT { keeping = level == GGML_LOG_LEVEL_WARN || level == GGML_LOG_LEVEL_ERROR }
         guard keeping else { return }
         if level == GGML_LOG_LEVEL_CONT, let last = lines.popLast() { lines.append(last + text) } else { lines.append(text) }
+        if lines.count > 200 { lines.removeFirst(lines.count - 200) }
+    }
+
+    /// Where llama.cpp's common code (MTP) logs; its warnings and errors are read into the same lines.
+    static let commonLogURL = FileManager.default.temporaryDirectory.appendingPathComponent("llama-common.log")
+    private var commonLogOffset: UInt64 = 0
+    private var commonLogInstalled = false
+
+    /// Append common's warnings and errors written since the last call (its log prefixes lines "W "/"E ").
+    func readCommonLog() {
+        lock.lock(); defer { lock.unlock() }
+        guard let h = try? FileHandle(forReadingFrom: Self.commonLogURL) else { return }
+        defer { try? h.close() }
+        try? h.seek(toOffset: commonLogOffset)
+        guard let data = try? h.readToEnd() else { return }
+        commonLogOffset += UInt64(data.count)
+        for line in String(decoding: data, as: UTF8.self).split(separator: "\n") where line.hasPrefix("W ") || line.hasPrefix("E ") {
+            lines.append("common: " + line)
+        }
         if lines.count > 200 { lines.removeFirst(lines.count - 200) }
     }
 
@@ -187,6 +213,9 @@ final class Engine {
         var drafted: Int
         var accepted: Int
         var steps: Int
+        var draftSeconds: Double
+        var verifySeconds: Double
+        var processSeconds: Double
         var probe: Probe
         /// Generated tokens per second of the generation loop (what llama-server reports as predicted/s).
         var tokensPerSecond: Double { generateSeconds > 0 ? Double(generated.count) / generateSeconds : 0 }
@@ -196,6 +225,8 @@ final class Engine {
     /// speculative-decoding loop (MTP/BonsaiMTP.cpp), as llama-server runs it: with `draft` MTP draft tokens
     /// per step, or plain decoding (draft 0) through the same loop, so both arms are timed identically.
     func speculativeGenerate(prompt: String, n: Int, draft: Int, warmup: Int = 16) throws -> Speculative {
+        // MTP tensors are loaded only for "-mtp" files; drafting without them would abort in llama.cpp
+        if draft > 0 && !hasMTP { throw EngineError.generationFailed("this model was not loaded with MTP layers (use an -mtp GGUF)") }
         let threads = Int32(max(1, min(8, ProcessInfo.processInfo.activeProcessorCount - 2)))
         var tokens = [Int32](repeating: 0, count: n + draft + 1)
         var r = bb_gen_result()
@@ -208,6 +239,7 @@ final class Engine {
         return Speculative(promptTokens: Int(r.n_prompt), promptSeconds: r.prompt_seconds,
                            generated: Array(tokens.prefix(Int(count))), generateSeconds: r.generate_seconds,
                            drafted: Int(r.n_drafted), accepted: Int(r.n_accepted), steps: Int(r.n_steps),
+                           draftSeconds: r.draft_seconds, verifySeconds: r.verify_seconds, processSeconds: r.process_seconds,
                            probe: Probe(footprintBytes: r.footprint_bytes, availableBytes: r.available_bytes))
     }
 

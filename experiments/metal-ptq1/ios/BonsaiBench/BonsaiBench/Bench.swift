@@ -50,7 +50,8 @@ enum Presets {
     static func all(for weightType: String, mtp: Bool = false) -> [Arm] {
         var arms = [upstream, bitExact, recommended(for: weightType), invariant(for: weightType)]
         if mtp {
-            for base in [upstream, recommended(for: weightType)] {
+            // "+ invariant + MTP": batch-invariant verification, so MTP output can be compared bit for bit
+            for base in [upstream, recommended(for: weightType), invariant(for: weightType)] {
                 var a = base
                 a.name += " + MTP"
                 a.draft = 1
@@ -125,6 +126,9 @@ struct Observation: Codable {
     var interrupted: Bool             // the app left the foreground during the observation
     var error: String?                // the observation failed (e.g. a Metal command buffer error)
     var callSeconds: [Double]?        // ppK: each timed decode call, to tell a stall from a uniform slowdown
+    var draftSeconds: Double?         // genN: generation loop split into MTP drafting,
+    var verifySeconds: Double?        // target decode and sampling,
+    var processSeconds: Double?       // and feeding the batch to the MTP context
     var drafted: Int?                 // genN with MTP: draft tokens verified
     var accepted: Int?                // of which accepted
     var generateSteps: Int?           // genN: target decodes
@@ -142,7 +146,9 @@ struct Quartet: Codable {
     var observations: [Observation]
     var spread: Double
     var ratio: Double                 // mean(B) / mean(A)
-    var tokensIdentical: Bool?
+    var tokensIdentical: Bool?        // all four runs generated the same tokens
+    var tokensIdenticalWithinArms: Bool? // A with A and B with B (a difference here is nondeterminism)
+    var tokensIdenticalBetweenArms: Bool? // A with B (MTP verification can legitimately differ: see README)
     var accepted: Bool
     var rejectReason: String?
 }
@@ -156,7 +162,10 @@ struct CellSummary: Codable {
     var speedupMax: Double?
     var acceptedQuartets: Int
     var rejectedQuartets: Int
-    var tokenMismatchQuartets: Int
+    var tokenMismatchQuartets: Int    // runs of the same arm, or (without MTP) of the two arms, generated different tokens
+    var mtpTokenDifferenceQuartets: Int // the arms differ where MTP makes that expected (see README)
+    var aAcceptance: Double?          // MTP draft acceptance of each arm, accepted quartets
+    var bAcceptance: Double?
     var complete: Bool                // an accepted quartet for every cycle
 }
 
@@ -316,13 +325,16 @@ final class Study {
         thermal.reset()
         var obs = Observation(arm: arm.name, position: position, tokensPerSecond: 0, thermalBefore: thermalStateName(),
                               thermalAfter: "", thermalMax: "", thermalWaitSeconds: g.waited, gateReached: g.reached,
-                              interrupted: false, error: nil, callSeconds: nil, drafted: nil, accepted: nil,
+                              interrupted: false, error: nil, callSeconds: nil, draftSeconds: nil, verifySeconds: nil,
+                              processSeconds: nil, drafted: nil, accepted: nil,
                               generateSteps: nil, warmupCallSeconds: nil,
                               libraryMessages: [], footprintBytes: 0, availableBytes: 0, startedAt: Date())
         _ = LibraryLog.shared.drain()
         let calls = Engine.CallTimes()
         do {
             let probe: Probe
+            // MTP arms draft only in gen cells; anywhere else they would measure plain decoding under an MTP name
+            if arm.draft > 0 && cell.kind != "gen" { throw EngineError.generationFailed("an MTP arm only runs in gen cells") }
             switch cell.kind {
             case "chat":
                 let r = try engine.generate(prompt: benchPrompt, n: cell.count)
@@ -338,6 +350,9 @@ final class Study {
                 obs.drafted = arm.draft > 0 ? r.drafted : nil
                 obs.accepted = arm.draft > 0 ? r.accepted : nil
                 obs.generateSteps = r.steps
+                obs.draftSeconds = r.draftSeconds
+                obs.verifySeconds = r.verifySeconds
+                obs.processSeconds = r.processSeconds
                 probe = r.probe
             case "tg":
                 let r = try engine.generationRate(n: cell.count)
@@ -359,6 +374,7 @@ final class Study {
             obs.callSeconds = calls.timed
             obs.warmupCallSeconds = calls.warmup
         }
+        if cell.kind == "gen" { LibraryLog.shared.readCommonLog() }
         obs.libraryMessages = LibraryLog.shared.drain()
         obs.interrupted = AppActivity.shared.state.changes != changes
         thermal.note()
@@ -410,8 +426,12 @@ final class Study {
         let ratio = valid ? (b.reduce(0, +) / 2) / (a.reduce(0, +) / 2) : .nan
         // Tokens are compared only between runs that all produced them (a failed run is not a mismatch).
         var identical: Bool? = nil
+        var withinArms: Bool? = nil
+        var betweenArms: Bool? = nil
         if ["chat", "gen"].contains(cell.kind), complete, obs.allSatisfy({ $0.error == nil && $0.generatedTokens != nil }) {
             identical = obs.allSatisfy { $0.generatedTokens == obs[0].generatedTokens }
+            withinArms = obs[0].generatedTokens == obs[3].generatedTokens && obs[1].generatedTokens == obs[2].generatedTokens
+            betweenArms = obs[0].generatedTokens == obs[1].generatedTokens
         }
         let reason: String? =
             obs.contains(where: \.interrupted) ? "app left the foreground" :
@@ -420,7 +440,8 @@ final class Study {
             !valid ? "no valid rate" :
             spread > result.spreadGate ? String(format: "spread %.3f over the gate", spread) : nil)
         return Quartet(cell: cell.name, cycle: cycle, attempt: attempt, observations: obs, spread: spread, ratio: ratio,
-                       tokensIdentical: identical, accepted: reason == nil, rejectReason: reason)
+                       tokensIdentical: identical, tokensIdenticalWithinArms: withinArms, tokensIdenticalBetweenArms: betweenArms,
+                       accepted: reason == nil, rejectReason: reason)
     }
 
     func run() {
@@ -444,7 +465,8 @@ final class Study {
                         accepted = q.accepted
                         log(String(format: "%@ cycle %d: B/A %.3f spread %.3f%@%@", cell.name, cycle + 1, q.ratio, q.spread,
                                    q.rejectReason.map { "  REJECTED: " + $0 } ?? "",
-                                   q.tokensIdentical == false ? "  TOKENS DIFFER" : ""))
+                                   q.tokensIdenticalWithinArms == false ? "  TOKENS DIFFER WITHIN AN ARM" :
+                                   q.tokensIdenticalBetweenArms == false ? (mtpTokensMayDiffer ? "  tokens differ between arms (MTP, expected)" : "  TOKENS DIFFER") : ""))
                         save(result)
                     }
                     if !accepted { log("\(cell.name) cycle \(cycle + 1): no acceptable quartet in \(attempts) attempts") }
@@ -459,6 +481,19 @@ final class Study {
         }
     }
 
+    /// Token equality between a plain and an MTP arm is not guaranteed: two-token verification is not
+    /// batch-invariant unless both arms use GGML_METAL_BATCH_INVARIANT.
+    private var mtpTokensMayDiffer: Bool {
+        let inv = { (a: Arm) in a.flags["GGML_METAL_BATCH_INVARIANT"] == "1" }
+        return (result.armA.draft > 0 || result.armB.draft > 0) && !(inv(result.armA) && inv(result.armB))
+    }
+
+    private func acceptance(_ qs: [Quartet], positions: [Int]) -> Double? {
+        let obs = qs.flatMap(\.observations).filter { positions.contains($0.position) }
+        let drafted = obs.compactMap(\.drafted).reduce(0, +)
+        return drafted > 0 ? Double(obs.compactMap(\.accepted).reduce(0, +)) / Double(drafted) : nil
+    }
+
     func summarize() {
         result.summaries = cells.map { cell in
             let qs = result.quartets.filter { $0.cell == cell.name }
@@ -471,7 +506,11 @@ final class Study {
             return CellSummary(cell: cell.name, aMean: mean(aVals), bMean: mean(bVals), speedupGeomean: geo,
                                speedupMin: ratios.min(), speedupMax: ratios.max(), acceptedQuartets: acc.count,
                                rejectedQuartets: qs.count - acc.count,
-                               tokenMismatchQuartets: qs.filter { $0.tokensIdentical == false }.count,
+                               tokenMismatchQuartets: qs.filter { $0.tokensIdenticalWithinArms == false ||
+                                   ($0.tokensIdenticalBetweenArms == false && !mtpTokensMayDiffer) }.count,
+                               mtpTokenDifferenceQuartets: mtpTokensMayDiffer ? qs.filter { $0.tokensIdenticalWithinArms == true &&
+                                   $0.tokensIdenticalBetweenArms == false }.count : 0,
+                               aAcceptance: acceptance(acc, positions: [0, 3]), bAcceptance: acceptance(acc, positions: [1, 2]),
                                complete: Set(acc.map(\.cycle)).count == result.cycles)
         }
     }

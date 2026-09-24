@@ -17,10 +17,18 @@ struct StudySpec: Hashable {
     /// 17 Pro Max. Thermal waits and retried quartets come on top.
     var estimatedSeconds: Double {
         let genRate = model.contains("PTQ1_0") ? 6.0 : model.contains("Q1_0") ? 12.0 : 8.0
+        // upstream + MTP verifies two tokens a step on upstream's slow multi-column path (phone PTQ1 pp2:
+        // 2.9 tok/s), about 0.7 s a step, ~70 steps; our flags + MTP about 8 tok/s
+        let genRun = { (arm: String) -> Double in
+            arm == "upstream + MTP" ? 60 : arm.hasSuffix("+ MTP") ? 20 : 0
+        }
         return cells.reduce(0.0) { sum, name in
             let cell = Cell(name: name)
             let run: Double
             switch cell.kind {
+            case "gen" where genRun(a) + genRun(b) > 0:
+                let plain = Double(cell.count + 16) / genRate + 4
+                run = ((genRun(a) > 0 ? genRun(a) : plain) + (genRun(b) > 0 ? genRun(b) : plain)) / 2
             case "tg", "chat", "gen": run = Double(cell.count + 16) / genRate + 4
             default: run = cell.count >= 256 ? 25 : 6
             }
@@ -43,7 +51,7 @@ enum Suites {
         StudySpec(title: "Bonsai 2 PTQ1_0 + MTP: upstream plain vs our flags + MTP (the headline)", model: ptq1mtp,
                   a: "upstream", b: "M5 stack (PTQ1) + MTP", cells: ["gen128"], cycles: 3, cooldown: 60),
         StudySpec(title: "Bonsai 2 PTQ1_0: MTP vs MTP (upstream + MTP vs our flags + MTP)", model: ptq1mtp,
-                  a: "upstream + MTP", b: "M5 stack (PTQ1) + MTP", cells: ["gen128"], cycles: 3, cooldown: 60),
+                  a: "upstream + MTP", b: "M5 stack (PTQ1) + MTP", cells: ["gen128"], cycles: 3, cooldown: 90),
         StudySpec(title: "Bonsai 2 PTQ1_0: small batches", model: ptq1, a: "upstream", b: "M5 stack (PTQ1)",
                   cells: ["pp2", "pp4", "pp8"], cycles: 3, cooldown: 40),
         StudySpec(title: "Bonsai 1 binary Q1_0: generation and small batches", model: q1, a: "upstream",

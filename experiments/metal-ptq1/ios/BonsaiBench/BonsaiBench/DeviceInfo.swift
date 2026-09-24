@@ -76,10 +76,10 @@ func physicalFootprint() -> UInt64 {
     return kr == KERN_SUCCESS ? info.phys_footprint : 0
 }
 
-/// Rough whole-process estimate for running a Bonsai 27B GGUF in this app: weights + Metal compute buffer
-/// (one output row, 512-token ubatch) + recurrent state + KV cache at n_ctx 1024 + the app and its Metal
-/// pipelines. Shown before loading so an attempt that will not fit can be skipped; the real footprint is
-/// recorded with every observation.
-func estimatedNeedBytes(modelFileBytes: UInt64) -> UInt64 {
-    return modelFileBytes + 250_000_000 + 160_000_000 + 70_000_000 + 150_000_000
+/// Rough app memory for running a Bonsai 27B GGUF: the weights are memory-mapped from flash and do not
+/// count (a 5.9 GB model ran at a 0.43 GB footprint on an iPhone 17 Pro Max), so this is the Metal compute
+/// buffer + recurrent state + KV cache at n_ctx 1024 + the app and its pipelines, plus the MTP draft context
+/// for an -mtp file. Shown before loading; the real footprint is recorded with every observation.
+func estimatedNeedBytes(modelFileBytes: UInt64, mtp: Bool = false) -> UInt64 {
+    return 250_000_000 + 160_000_000 + 70_000_000 + 150_000_000 + (mtp ? 200_000_000 : 0)
 }

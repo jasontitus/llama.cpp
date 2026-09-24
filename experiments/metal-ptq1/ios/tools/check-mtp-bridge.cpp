@@ -52,7 +52,18 @@ int main(int argc, char ** argv) {
                    r, c.name, res.n_generated, res.generate_seconds, res.n_generated / res.generate_seconds, res.n_prompt,
                    res.prompt_seconds, res.n_steps, res.n_drafted, res.n_accepted,
                    res.n_drafted ? 100.0 * res.n_accepted / res.n_drafted : 0.0, res.footprint_bytes / 1e9); printf("      split: draft %.3f s, verify %.3f s, process %.3f s\n", res.draft_seconds, res.verify_seconds, res.process_seconds);
-            if (r == 0) toks[c.name] = out; if (r == 0 && c.draft == 0 && !c.stack) { printf("bridge first 20:"); for (int i = 0; i < 20 && i < (int) out.size(); i++) printf(" %d", out[i]); printf("\n"); }
+            if (r == 0) toks[c.name] = out;
+            // TOKENS_OUT=dir writes each configuration's tokens as JSON, e.g. to compare with llama-server's
+            if (r == 0 && getenv("TOKENS_OUT")) {
+                std::string path = std::string(getenv("TOKENS_OUT")) + "/" + c.name + ".json";
+                for (auto & ch : path) if (ch == ' ' || ch == '+') ch = '_';
+                if (FILE * f = fopen(path.c_str(), "w")) {
+                    fputc('[', f);
+                    for (size_t i = 0; i < out.size(); i++) fprintf(f, i ? ",%d" : "%d", out[i]);
+                    fputs("]\n", f);
+                    fclose(f);
+                }
+            } if (r == 0 && c.draft == 0 && !c.stack) { printf("bridge first 20:"); for (int i = 0; i < 20 && i < (int) out.size(); i++) printf(" %d", out[i]); printf("\n"); }
         }
     }
     auto & ref = toks["upstream plain"];
