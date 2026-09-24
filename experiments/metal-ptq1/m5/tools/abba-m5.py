@@ -36,7 +36,13 @@ p.add_argument('--attempts', type=int, default=3)
 p.add_argument('--cooldown', type=float, default=8.0)
 p.add_argument('--tokens', type=int, default=128)
 p.add_argument('--spread', type=float, default=1.20)
+p.add_argument('--bin-a', type=Path, help='optional separate arm-A build for source-revision comparisons')
+p.add_argument('--src-a', type=Path, help='source tree for --bin-a; both options are required together')
 a = p.parse_args()
+if (a.bin_a is None) != (a.src_a is None):
+    p.error('--bin-a and --src-a must be provided together')
+if a.bin_a is not None and a.output.exists() and any(a.output.iterdir()):
+    p.error('separate-binary comparisons require a fresh output directory')
 a.output.mkdir(parents=True, exist_ok=True)
 (a.output / 'rejected').mkdir(exist_ok=True)
 
@@ -53,9 +59,14 @@ def digest(path):
 meta = dict(created=time.time(), env_a=json.loads(a.env_a), env_b=json.loads(a.env_b), args={k: str(v) for k, v in vars(a).items()},
             binaries={f.name: digest(f) for f in sorted(a.bin.iterdir()) if not f.is_symlink() and f.suffix == '.dylib' or f.name in ('llama-bench', 'llama-server')},
             revision=subprocess.check_output(['git', '-C', a.src, 'rev-parse', 'HEAD'], text=True).strip(), src=str(a.src),
-            diff_sha256=hashlib.sha256(subprocess.check_output(['git', '-C', a.src, 'diff'])).hexdigest(),
+            diff_sha256=hashlib.sha256(subprocess.check_output(['git', '-C', a.src, 'diff', 'HEAD'])).hexdigest(),
             thermal=subprocess.run(['pmset', '-g', 'therm'], capture_output=True, text=True).stdout,
             power=subprocess.run(['pmset', '-g', 'batt'], capture_output=True, text=True).stdout)
+if a.bin_a is not None:
+    meta['comparison_a'] = dict(bin=str(a.bin_a), src=str(a.src_a),
+        binaries={f.name: digest(f) for f in sorted(a.bin_a.iterdir()) if not f.is_symlink() and (f.suffix == '.dylib' or f.name in ('llama-bench', 'llama-server'))},
+        revision=subprocess.check_output(['git', '-C', a.src_a, 'rev-parse', 'HEAD'], text=True).strip(),
+        diff_sha256=hashlib.sha256(subprocess.check_output(['git', '-C', a.src_a, 'diff', 'HEAD'])).hexdigest())
 (a.output / 'meta.json').write_text(json.dumps(meta, indent=2))
 log = open(a.output / 'progress.log', 'a')
 
@@ -66,7 +77,7 @@ def say(msg):
 
 def bench_obs(case, arm):
     kind, n = case[:2], int(case[2:])
-    cmd = [str(a.bin / 'llama-bench'), '-m', str(a.model), '-ngl', '99', '-fa', 'on', '-t', '16', '-r', '3', '-o', 'json',
+    cmd = [str((a.bin_a if arm == 'A' and a.bin_a is not None else a.bin) / 'llama-bench'), '-m', str(a.model), '-ngl', '99', '-fa', 'on', '-t', '16', '-r', '3', '-o', 'json',
            '-p', str(n) if kind == 'pp' else '0', '-n', str(n) if kind == 'tg' else '0']
     out = subprocess.run(cmd, env=ARMS[arm], capture_output=True, text=True, check=True).stdout
     rows = json.loads(out)
@@ -79,7 +90,7 @@ def server_obs(cell, arm, cycle):
     spec, c = int(cell[1]), int(cell[3:])
     with socket.socket() as s:
         s.bind(('127.0.0.1', 0)); port = s.getsockname()[1]
-    cmd = [str(a.bin / 'llama-server'), '-m', str(a.mtp_model if spec else a.model), '-c', str(4096 * c), '-b', '512', '-ub', '512',
+    cmd = [str((a.bin_a if arm == 'A' and a.bin_a is not None else a.bin) / 'llama-server'), '-m', str(a.mtp_model if spec else a.model), '-c', str(4096 * c), '-b', '512', '-ub', '512',
            '-ngl', '99', '--device', 'MTL0', '-fa', 'on', '-np', str(c), '-t', '16', '--jinja', '--host', '127.0.0.1',
            '--port', str(port), '--no-context-shift', '--cache-ram', '0']
     cmd += ['--spec-type', 'draft-mtp', '--spec-draft-n-max', '1', '--spec-draft-n-min', '0', '--spec-draft-p-min', '0'] if spec else ['--spec-type', 'none']

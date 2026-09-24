@@ -1,0 +1,70 @@
+[
+  {
+    "key": "b2-ptq1",
+    "repo": "prism-ml/Ternary-Bonsai-2-27B-gguf",
+    "revision": "6ed5e12bf84b7a63069882c91dd9e9218647d17b",
+    "file": "Ternary-Bonsai-2-27B-PTQ1_0.gguf",
+    "sha256": "53107f530aa52eb00912263ab1ee29bd199261c87cd7b4ad4ca1318c1fe33ee3",
+    "size": 5946648928,
+    "architecture": "qwen35",
+    "tensor_types": {
+      "PTQ1_0": 402,
+      "F32": 353,
+      "BF16": 96
+    },
+    "nextn": 0,
+    "merged_mtp": {
+      "file": "Ternary-Bonsai-2-27B-PTQ1_0-mtp.gguf",
+      "sha256": "83a396ee218c36e5ed88205eccb940a71549d9a72a3d020cc2713f94a78f70f0",
+      "size": 7012820512
+    }
+  },
+  {
+    "key": "b2-pq2",
+    "repo": "prism-ml/Ternary-Bonsai-2-27B-gguf",
+    "revision": "6ed5e12bf84b7a63069882c91dd9e9218647d17b",
+    "file": "Ternary-Bonsai-2-27B-PQ2_0.gguf",
+    "sha256": "3907dc1658db1f78a9826bf8d5bcb8dc65db0d466388937af57f2294fae62ec1",
+    "size": 7206168928,
+    "architecture": "qwen35",
+    "tensor_types": {
+      "PQ2_0": 402,
+      "F32": 353,
+      "BF16": 96
+    },
+    "nextn": 0,
+    "merged_mtp": {
+      "file": "Ternary-Bonsai-2-27B-PQ2_0-mtp.gguf",
+      "sha256": "753d4620b99f77d9d9515a8900c026f431c656c1070bdd41f026f35e8b8d53b3",
+      "size": 8272340512
+    }
+  },
+  {
+    "key": "b1-ternary",
+    "repo": "prism-ml/Ternary-Bonsai-27B-gguf",
+    "revision": "86e89f34c93201c3dfd5e5880fedb0022fc7e34d",
+    "file": "Ternary-Bonsai-27B-PQ2_0.gguf",
+    "sha256": "e4781999f1997ef97ce0c58d05750835acc999d18d83ee6489ba7ac7b14cb5f6",
+    "size": 7165121600,
+    "architecture": "qwen35",
+    "tensor_types": {
+      "PQ2_0": 498,
+      "F32": 353
+    },
+    "nextn": 0
+  },
+  {
+    "key": "b1-binary",
+    "repo": "prism-ml/Bonsai-27B-gguf",
+    "revision": "f10afb355f104535e3e3e98cf7ab7795c72bd292",
+    "file": "Bonsai-27B-Q1_0.gguf",
+    "sha256": "17ef842e47450caeb8eaa3ebfbbab5d2f2278b62b79be107985fb69a2f819aa0",
+    "size": 3803452480,
+    "architecture": "qwen35",
+    "tensor_types": {
+      "Q1_0": 498,
+      "F32": 353
+    },
+    "nextn": 0
+  }
+]
