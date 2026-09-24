@@ -479,7 +479,16 @@ ggml_tensor * llama_model_qwen35::graph::build_layer_attn_linear(
     // GPU device in the model is Metal.
     static const bool gdn_state_rows_env = getenv("GGML_GDN_STATE_GATHER") == nullptr;
 
-    const bool gdn_state_rows = gdn_state_rows_env && gdn_state_rows_dev_ok && cparams.n_rs_seq > 0;
+    // research flag: also use rows mode for plain decode (no snapshots, K=1), removing the per-layer
+    // state gather and copy-back. Only when no extra cells are relocated (n_rs == n_seqs): the
+    // relocation in build_rs_cache_view runs before the GDN read and, after a cell reorder, can
+    // overwrite a row another sequence reads (the gathered path reads first). Graph reuse compares
+    // the s_copy_extra size, so a batch with extra cells rebuilds and takes the gathered path.
+    static const bool gdn_rows_plain = getenv("GGML_GDN_ROWS_PLAIN") && atoi(getenv("GGML_GDN_ROWS_PLAIN")) == 1;
+
+    const bool gdn_rows_plain_ok = gdn_rows_plain && mctx_cur->get_n_rs() == (uint32_t) n_seqs;
+
+    const bool gdn_state_rows = gdn_state_rows_env && gdn_state_rows_dev_ok && (cparams.n_rs_seq > 0 || gdn_rows_plain_ok);
 
     ggml_tensor * state;
     if (gdn_state_rows) {

@@ -7,6 +7,8 @@ extern "C" {
 #endif
 
 bool ggml_metal_ptq1_multicol_enabled(const struct ggml_tensor * op);
+int  ggml_metal_ptq1_multicol_max(void);
+bool ggml_metal_batch_invariant(void);
 
 struct ggml_metal_buffer_id {
     void * metal; // id<MTLBuffer>
@@ -141,6 +143,13 @@ struct ggml_metal_pipeline_with_params ggml_metal_library_get_pipeline_solve_tri
 struct ggml_metal_pipeline_with_params ggml_metal_library_get_pipeline_mul_mv_ext        (ggml_metal_library_t lib, const struct ggml_tensor * op, int nsg, int nxpsg, int r1ptg);
 struct ggml_metal_pipeline_with_params ggml_metal_library_get_pipeline_mul_mm            (ggml_metal_library_t lib, const struct ggml_tensor * op);
 struct ggml_metal_pipeline_with_params ggml_metal_library_get_pipeline_mul_mv            (ggml_metal_library_t lib, const struct ggml_tensor * op);
+struct ggml_metal_pipeline_with_params ggml_metal_library_get_pipeline_mul_mv_ptq1_glu   (ggml_metal_library_t lib, const struct ggml_tensor * op, bool staged);
+struct ggml_metal_pipeline_with_params ggml_metal_library_get_pipeline_mul_mv_ptq1_mcs   (ggml_metal_library_t lib, const struct ggml_tensor * op);
+struct ggml_metal_pipeline_with_params ggml_metal_library_get_pipeline_ptq1_stage        (ggml_metal_library_t lib);
+struct ggml_metal_pipeline_with_params ggml_metal_library_get_pipeline_ptq1_hilo         (ggml_metal_library_t lib);
+struct ggml_metal_pipeline_with_params ggml_metal_library_get_pipeline_mul_mv_pq2        (ggml_metal_library_t lib, int ne11, bool glu);
+struct ggml_metal_pipeline_with_params ggml_metal_library_get_pipeline_mul_mv_q1_glu     (ggml_metal_library_t lib, int ne11);
+struct ggml_metal_pipeline_with_params ggml_metal_library_get_pipeline_mul_mv_ptq1_tmv   (ggml_metal_library_t lib);
 struct ggml_metal_pipeline_with_params ggml_metal_library_get_pipeline_mul_mm_id_map0    (ggml_metal_library_t lib, int ne02, int ne20);
 struct ggml_metal_pipeline_with_params ggml_metal_library_get_pipeline_mul_mm_id         (ggml_metal_library_t lib, const struct ggml_tensor * op);
 struct ggml_metal_pipeline_with_params ggml_metal_library_get_pipeline_mul_mv_id         (ggml_metal_library_t lib, const struct ggml_tensor * op);

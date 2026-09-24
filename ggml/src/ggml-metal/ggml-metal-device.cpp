@@ -844,7 +844,16 @@ ggml_metal_pipeline_with_params ggml_metal_library_get_pipeline_mul_mm(ggml_meta
     const int16_t r2   = (int16_t) (ne12 / op->src[0]->ne[2]);
     const int16_t r3   = (int16_t) (ne13 / op->src[0]->ne[3]);
 
-    snprintf(base, 256, "kernel_mul_mm_%s_%s", ggml_type_name(tsrc0), ggml_type_name(tsrc1));
+    // research: whole-block PTQ1_0 decode for the tensor-unit prefill (GGML_METAL_PTQ1_MM_B128=1)
+    static const bool ptq1_b128_env = getenv("GGML_METAL_PTQ1_MM_B128") && atoi(getenv("GGML_METAL_PTQ1_MM_B128")) == 1;
+    const bool ptq1_b128 = ptq1_b128_env && has_tensor && tsrc0 == GGML_TYPE_PTQ1_0 && tsrc1 == GGML_TYPE_F32 &&
+                           op->src[0]->ne[0] % 128 == 0;
+
+    if (ptq1_b128) {
+        snprintf(base, 256, "kernel_mul_mm_ptq1_0_f32_b128");
+    } else {
+        snprintf(base, 256, "kernel_mul_mm_%s_%s", ggml_type_name(tsrc0), ggml_type_name(tsrc1));
+    }
     snprintf(name, 256, "%s_bci=%d_bco=%d_ne12=%d_ne13=%d_r2=%d_r3=%d",
              base, bc_inp, bc_out, ne12, ne13, r2, r3);
 
@@ -868,7 +877,7 @@ ggml_metal_pipeline_with_params ggml_metal_library_get_pipeline_mul_mm(ggml_meta
         res.nr0 = NRA;
         res.nr1 = NRB;
 
-        const size_t smem_a = NRA * N_MM_NK_TOTAL * sizeof(ggml_fp16_t);
+        const size_t smem_a = NRA * (ptq1_b128 ? 128 : N_MM_NK_TOTAL) * sizeof(ggml_fp16_t);
         res.smem = smem_a;
     } else {
         res.nr0 = 64;
@@ -882,11 +891,35 @@ ggml_metal_pipeline_with_params ggml_metal_library_get_pipeline_mul_mm(ggml_meta
     return res;
 }
 
+// research: GGML_METAL_BATCH_INVARIANT=1 also routes single columns through the multi-column template, so
+// a token's matvec arithmetic does not depend on how many tokens share the batch (1..4)
+bool ggml_metal_batch_invariant(void) {
+    static const bool enabled = getenv("GGML_METAL_BATCH_INVARIANT") && atoi(getenv("GGML_METAL_BATCH_INVARIANT")) == 1;
+    return enabled;
+}
+
 bool ggml_metal_ptq1_multicol_enabled(const ggml_tensor * op) {
-    static const bool enabled = getenv("GGML_METAL_PTQ1_MULTICOL") && atoi(getenv("GGML_METAL_PTQ1_MULTICOL")) == 1;
+    // batch-invariant mode implies the multi-column path: it is what makes 1..8 columns share arithmetic
+    static const bool enabled = (getenv("GGML_METAL_PTQ1_MULTICOL") && atoi(getenv("GGML_METAL_PTQ1_MULTICOL")) == 1) ||
+                                ggml_metal_batch_invariant();
+    const int64_t n_min = ggml_metal_batch_invariant() ? 1 : 2;
     return enabled && op->src[0]->type == GGML_TYPE_PTQ1_0 && op->src[1]->type == GGML_TYPE_F32 &&
            op->src[0]->ne[0] % ggml_blck_size(GGML_TYPE_PTQ1_0) == 0 && op->src[1]->nb[0] == sizeof(float) &&
-           op->src[1]->ne[1] >= 2 && op->src[1]->ne[1] <= 4;
+           op->src[1]->ne[1] >= n_min && op->src[1]->ne[1] <= ggml_metal_ptq1_multicol_max();
+}
+
+// widest batch the multi-column kernel takes, as column tiles of at most four;
+// wider batches keep the baseline route (mul_mm above eight)
+int ggml_metal_ptq1_multicol_max(void) {
+    static const int max_cols = getenv("GGML_METAL_PTQ1_MULTICOL_MAX") ? atoi(getenv("GGML_METAL_PTQ1_MULTICOL_MAX")) : 4;
+    return max_cols >= 4 && max_cols <= 8 ? max_cols : 4;
+}
+
+// single-column products with few output rows (the 48-row ssm_alpha/ssm_beta projections) get one
+// row per simdgroup instead of the type's default; research flag GGML_METAL_SMALLM=1
+static bool ggml_metal_smallm(const ggml_tensor * op) {
+    static const bool enabled = getenv("GGML_METAL_SMALLM") && atoi(getenv("GGML_METAL_SMALLM")) == 1;
+    return enabled && op->src[1]->ne[1] == 1 && op->src[0]->ne[1] <= 256;
 }
 
 ggml_metal_pipeline_with_params ggml_metal_library_get_pipeline_mul_mv(ggml_metal_library_t lib, const ggml_tensor * op) {
@@ -943,6 +976,10 @@ ggml_metal_pipeline_with_params ggml_metal_library_get_pipeline_mul_mv(ggml_meta
                     nr1 = 2;
                 }
                 suffix = nr1 == 2 ? "_nr1_2" : nr1 == 3 ? "_nr1_3" : nr1 == 4 ? "_nr1_4" : "";
+                if (nr1 == 1 && ggml_metal_smallm(op)) {
+                    nr0 = 1;
+                    suffix = "_small";
+                }
             } break;
         case GGML_TYPE_Q2_0:
             {
@@ -953,6 +990,10 @@ ggml_metal_pipeline_with_params ggml_metal_library_get_pipeline_mul_mv(ggml_meta
             {
                 nsg = N_SG_PQ2_0;
                 nr0 = N_R0_PQ2_0;
+                if (ggml_metal_smallm(op)) {
+                    nr0 = 1;
+                    suffix = "_small";
+                }
             } break;
         case GGML_TYPE_PTQ1_0:
             {
@@ -963,7 +1004,8 @@ ggml_metal_pipeline_with_params ggml_metal_library_get_pipeline_mul_mv(ggml_meta
                     static const int groups = getenv("GGML_METAL_PTQ1_NSG") ? atoi(getenv("GGML_METAL_PTQ1_NSG")) : 1;
                     nr0 = rows == 2 || rows == 8 ? rows : 4;
                     nsg = groups == 2 || groups == 4 ? groups : 1;
-                    nr1 = ne11;
+                    // at most four columns per tile, split evenly: 5,6 -> 3+3; 7,8 -> 4+4
+                    nr1 = (ne11 + (ne11 + 3)/4 - 1) / ((ne11 + 3)/4);
                     snprintf(ptq1_suffix, sizeof(ptq1_suffix), "_mc_r%d_c%d", nr0, nr1);
                     suffix = ptq1_suffix;
                 }
@@ -1113,6 +1155,217 @@ ggml_metal_pipeline_with_params ggml_metal_library_get_pipeline_mul_mv(ggml_meta
     res.nr1  = nr1;
     res.nsg  = nsg;
     res.smem = smem;
+
+    return res;
+}
+
+// fused PTQ1_0 gate/up + SWIGLU: op is the gate MUL_MAT; columns tile like the multi-column kernel
+// PQ2_0 multi-column / fused-GLU products. Tiles of at most four columns. M5 sweeps: one simdgroup,
+// two rows for 2-column tiles and four for wider ones; fused kernels use two rows (two weight streams
+// double the accumulators). GGML_METAL_PQ2_NR0 / GGML_METAL_PQ2_GLU_NR0 / GGML_METAL_PQ2_NSG override
+// among the instantiated variants.
+ggml_metal_pipeline_with_params ggml_metal_library_get_pipeline_mul_mv_pq2(ggml_metal_library_t lib, int ne11, bool glu) {
+    static const int rows_mc  = getenv("GGML_METAL_PQ2_NR0")     ? atoi(getenv("GGML_METAL_PQ2_NR0"))     : 0;
+    static const int rows_glu = getenv("GGML_METAL_PQ2_GLU_NR0") ? atoi(getenv("GGML_METAL_PQ2_GLU_NR0")) : 2;
+    static const int groups   = getenv("GGML_METAL_PQ2_NSG")     ? atoi(getenv("GGML_METAL_PQ2_NSG"))     : 1;
+
+    const int nr1 = (ne11 + (ne11 + 3)/4 - 1) / ((ne11 + 3)/4);
+    int nr0;
+    if (glu) {
+        nr0 = rows_glu == 4 && nr1 <= 2 ? 4 : 2;
+    } else if (rows_mc == 2 || rows_mc == 4) {
+        nr0 = rows_mc;
+    } else if (rows_mc == 8 && nr1 == 2) {
+        nr0 = 8;
+    } else {
+        nr0 = nr1 == 2 ? 2 : 4;
+    }
+    const int nsg = groups == 2 || groups == 4 ? groups : 1;
+
+    char base[256];
+    char name[256];
+
+    snprintf(base, 256, "kernel_mul_mv_pq2_0_f32_%s_r%d_c%d", glu ? "glu" : "mc", nr0, nr1);
+    snprintf(name, 256, "%s_nsg=%d", base, nsg);
+
+    ggml_metal_pipeline_with_params res = ggml_metal_library_get_pipeline(lib, name);
+    if (!res.pipeline) {
+        ggml_metal_cv_t cv = ggml_metal_cv_init();
+
+        ggml_metal_cv_set_int16(cv, nsg, FC_MUL_MV + 0);
+        ggml_metal_cv_set_int16(cv, 1,   FC_MUL_MV + 2);
+        ggml_metal_cv_set_int16(cv, 1,   FC_MUL_MV + 3);
+        ggml_metal_cv_set_int16(cv, 1,   FC_MUL_MV + 4);
+
+        res = ggml_metal_library_compile_pipeline(lib, base, name, cv);
+
+        ggml_metal_cv_free(cv);
+    }
+
+    res.nr0  = nr0;
+    res.nr1  = nr1;
+    res.nsg  = nsg;
+    res.smem = 0;
+
+    return res;
+}
+
+// fused Q1_0 gate/up + SWIGLU: tiles of at most four columns; rows GGML_METAL_Q1_GLU_NR0 (default 4,
+// half the single-vector kernel's 8 since the accumulators double), groups as the single-vector kernel
+ggml_metal_pipeline_with_params ggml_metal_library_get_pipeline_mul_mv_q1_glu(ggml_metal_library_t lib, int ne11) {
+    static const int rows = getenv("GGML_METAL_Q1_GLU_NR0") ? atoi(getenv("GGML_METAL_Q1_GLU_NR0")) : 4;
+
+    const int nr1 = (ne11 + (ne11 + 3)/4 - 1) / ((ne11 + 3)/4);
+    int nr0 = rows == 2 || rows == 8 ? rows : 4;
+    if (nr1 >= 3) {
+        nr0 = 2;
+    } else if (nr1 == 2 && nr0 == 8) {
+        nr0 = 4;
+    }
+    const int nsg = N_SG_Q1_0;
+
+    char base[256];
+    char name[256];
+
+    snprintf(base, 256, "kernel_mul_mv_q1_0_f32_glu_r%d_c%d", nr0, nr1);
+    snprintf(name, 256, "%s_nsg=%d", base, nsg);
+
+    ggml_metal_pipeline_with_params res = ggml_metal_library_get_pipeline(lib, name);
+    if (!res.pipeline) {
+        ggml_metal_cv_t cv = ggml_metal_cv_init();
+
+        ggml_metal_cv_set_int16(cv, nsg, FC_MUL_MV + 0);
+        ggml_metal_cv_set_int16(cv, 1,   FC_MUL_MV + 2);
+        ggml_metal_cv_set_int16(cv, 1,   FC_MUL_MV + 3);
+        ggml_metal_cv_set_int16(cv, 1,   FC_MUL_MV + 4);
+
+        res = ggml_metal_library_compile_pipeline(lib, base, name, cv);
+
+        ggml_metal_cv_free(cv);
+    }
+
+    res.nr0  = nr0;
+    res.nr1  = nr1;
+    res.nsg  = nsg;
+    res.smem = 0;
+
+    return res;
+}
+
+ggml_metal_pipeline_with_params ggml_metal_library_get_pipeline_ptq1_hilo(ggml_metal_library_t lib) {
+    const char * name = "kernel_ptq1_0_hilo";
+
+    ggml_metal_pipeline_with_params res = ggml_metal_library_get_pipeline(lib, name);
+    if (!res.pipeline) {
+        res = ggml_metal_library_compile_pipeline(lib, name, name, nullptr);
+    }
+
+    return res;
+}
+
+ggml_metal_pipeline_with_params ggml_metal_library_get_pipeline_mul_mv_ptq1_tmv(ggml_metal_library_t lib) {
+    const char * name = "kernel_mul_mv_ptq1_0_f32_tmv";
+
+    ggml_metal_pipeline_with_params res = ggml_metal_library_get_pipeline(lib, name);
+    if (!res.pipeline) {
+        res = ggml_metal_library_compile_pipeline(lib, name, name, nullptr);
+    }
+
+    res.nr0  = 16;
+    res.nr1  = 8;
+    res.nsg  = 4;
+    res.smem = 4*16*128*sizeof(uint16_t);
+
+    return res;
+}
+
+ggml_metal_pipeline_with_params ggml_metal_library_get_pipeline_ptq1_stage(ggml_metal_library_t lib) {
+    const char * name = "kernel_ptq1_0_stage";
+
+    ggml_metal_pipeline_with_params res = ggml_metal_library_get_pipeline(lib, name);
+    if (!res.pipeline) {
+        res = ggml_metal_library_compile_pipeline(lib, name, name, nullptr);
+    }
+
+    return res;
+}
+
+// multi-column PTQ1_0 product over pre-laid-out activations. Rows default by tile width: M5 sweeps
+// preferred two rows for 2-3 column tiles (n=3 up to 29% faster) and four for 4-column tiles;
+// GGML_METAL_PTQ1_NR0 / GGML_METAL_PTQ1_NSG still override.
+ggml_metal_pipeline_with_params ggml_metal_library_get_pipeline_mul_mv_ptq1_mcs(ggml_metal_library_t lib, const ggml_tensor * op) {
+    static const int rows   = getenv("GGML_METAL_PTQ1_NR0") ? atoi(getenv("GGML_METAL_PTQ1_NR0")) : 0;
+    static const int groups = getenv("GGML_METAL_PTQ1_NSG") ? atoi(getenv("GGML_METAL_PTQ1_NSG")) : 1;
+
+    const int ne11 = op->src[1]->ne[1];
+
+    const int nr1 = (ne11 + (ne11 + 3)/4 - 1) / ((ne11 + 3)/4);
+    const int nr0 = rows == 2 || rows == 4 ? rows : (nr1 <= 3 ? 2 : 4);
+    const int nsg = groups == 2 || groups == 4 ? groups : 1;
+
+    char base[256];
+    char name[256];
+
+    snprintf(base, 256, "kernel_mul_mv_ptq1_0_f32_mcs_r%d_c%d", nr0, nr1);
+    snprintf(name, 256, "%s_nsg=%d", base, nsg);
+
+    ggml_metal_pipeline_with_params res = ggml_metal_library_get_pipeline(lib, name);
+    if (!res.pipeline) {
+        ggml_metal_cv_t cv = ggml_metal_cv_init();
+
+        ggml_metal_cv_set_int16(cv, nsg, FC_MUL_MV + 0);
+        ggml_metal_cv_set_int16(cv, 1,   FC_MUL_MV + 2);
+        ggml_metal_cv_set_int16(cv, 1,   FC_MUL_MV + 3);
+        ggml_metal_cv_set_int16(cv, 1,   FC_MUL_MV + 4);
+
+        res = ggml_metal_library_compile_pipeline(lib, base, name, cv);
+
+        ggml_metal_cv_free(cv);
+    }
+
+    res.nr0  = nr0;
+    res.nr1  = nr1;
+    res.nsg  = nsg;
+    res.smem = 0;
+
+    return res;
+}
+
+ggml_metal_pipeline_with_params ggml_metal_library_get_pipeline_mul_mv_ptq1_glu(ggml_metal_library_t lib, const ggml_tensor * op, bool staged) {
+    static const int rows   = getenv("GGML_METAL_PTQ1_GLU_NR0") ? atoi(getenv("GGML_METAL_PTQ1_GLU_NR0")) : 2;
+    static const int groups = getenv("GGML_METAL_PTQ1_GLU_NSG") ? atoi(getenv("GGML_METAL_PTQ1_GLU_NSG")) : 1;
+
+    const int ne11 = op->src[1]->ne[1];
+
+    // two rows: gate and up double the accumulators, and four rows spill on M5 (2x slower at 2..4 columns)
+    const int nr0 = rows == 4 ? 4 : 2;
+    const int nsg = groups == 2 || groups == 4 ? groups : 1;
+    const int nr1 = (ne11 + (ne11 + 3)/4 - 1) / ((ne11 + 3)/4);
+
+    char base[256];
+    char name[256];
+
+    snprintf(base, 256, "kernel_mul_mv_ptq1_0_f32_%s_r%d_c%d", staged ? "glus" : "glu", nr0, nr1);
+    snprintf(name, 256, "%s_nsg=%d", base, nsg);
+
+    ggml_metal_pipeline_with_params res = ggml_metal_library_get_pipeline(lib, name);
+    if (!res.pipeline) {
+        ggml_metal_cv_t cv = ggml_metal_cv_init();
+
+        ggml_metal_cv_set_int16(cv, nsg, FC_MUL_MV + 0);
+        ggml_metal_cv_set_int16(cv, 1,   FC_MUL_MV + 2);
+        ggml_metal_cv_set_int16(cv, 1,   FC_MUL_MV + 3);
+        ggml_metal_cv_set_int16(cv, 1,   FC_MUL_MV + 4);
+
+        res = ggml_metal_library_compile_pipeline(lib, base, name, cv);
+
+        ggml_metal_cv_free(cv);
+    }
+
+    res.nr0  = nr0;
+    res.nr1  = nr1;
+    res.nsg  = nsg;
+    res.smem = 0;
 
     return res;
 }

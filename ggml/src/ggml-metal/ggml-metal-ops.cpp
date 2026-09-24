@@ -167,6 +167,10 @@ int ggml_metal_op_n_nodes(ggml_metal_op_t ctx) {
     return ctx->n_nodes();
 }
 
+int ggml_metal_op_gf_index(ggml_metal_op_t ctx, int idx) {
+    return ctx->gf_index(idx);
+}
+
 static bool ggml_metal_op_concurrency_reset(ggml_metal_op_t ctx) {
     if (!ctx->mem_ranges) {
         return true;
@@ -2666,8 +2670,420 @@ static bool ggml_metal_op_mul_mat_q1_0_pc_supported(const ggml_tensor * op) {
     return ne02 == 1 && ne03 == 1 && ne12 == 1 && ne13 == 1;
 }
 
+// bytes of pre-laid-out activations for a PTQ1_0 product: per column, block and lane, five float4
+static size_t ggml_metal_ptq1_stage_bytes(const ggml_tensor * op) {
+    return (size_t) op->src[1]->ne[1] * (op->src[0]->ne[0]/128) * 8 * 5 * 4 * sizeof(float);
+}
+
+// off in batch-invariant mode: single columns are not staged, so staged 2..4-column coefficients would
+// come from a different kernel than the single-column ones
+static bool ggml_metal_ptq1_stage_enabled(void) {
+    static const bool enabled = getenv("GGML_METAL_PTQ1_STAGE") && atoi(getenv("GGML_METAL_PTQ1_STAGE")) == 1;
+    return enabled && !ggml_metal_batch_invariant();
+}
+
+// the staged multi-column path: plain 2D products the multi-column kernel already takes, with
+// enough rows to amortize the extra pass and barrier (M5: 1024-row attn_k/v at n=2 was 15% slower)
+static bool ggml_metal_op_mul_mat_ptq1_staged(const ggml_tensor * op) {
+    return ggml_metal_ptq1_stage_enabled() && ggml_metal_ptq1_multicol_enabled(op) && op->src[1]->ne[1] >= 2 && op->src[0]->ne[1] >= 4096 &&
+           op->src[0]->ne[2] == 1 && op->src[0]->ne[3] == 1 && op->src[1]->ne[2] == 1 && op->src[1]->ne[3] == 1 &&
+           ggml_is_contiguous(op);
+}
+
+// write the activation pre-layout for src1 of op into stg, then order the consumer after it
+static void ggml_metal_op_ptq1_stage(ggml_metal_op_t ctx, const ggml_tensor * op, ggml_metal_buffer_id stg) {
+    ggml_metal_library_t lib = ctx->lib;
+    ggml_metal_encoder_t enc = ctx->enc;
+
+    const ggml_tensor * x = op->src[1];
+
+    ggml_metal_kargs_mul_mv args = {};
+    args.ne00 = (int32_t) op->src[0]->ne[0];
+    args.ne11 = (int32_t) x->ne[1];
+    args.nb11 = x->nb[1];
+
+    auto pipeline = ggml_metal_library_get_pipeline_ptq1_stage(lib);
+
+    ggml_metal_encoder_set_pipeline(enc, pipeline);
+    ggml_metal_encoder_set_bytes   (enc, &args, sizeof(args), 0);
+    ggml_metal_encoder_set_buffer  (enc, ggml_metal_get_buffer_id(x), 1);
+    ggml_metal_encoder_set_buffer  (enc, stg,                         2);
+
+    ggml_metal_encoder_dispatch_threadgroups(enc, (args.ne00/128 + 3)/4, args.ne11, 1, 32, 1, 1);
+
+    // the product reads what the stage pass just wrote
+    ggml_metal_op_concurrency_reset(ctx);
+}
+
+static int ggml_metal_op_mul_mat_ptq1_mcs(ggml_metal_op_t ctx, int idx) {
+    ggml_metal_library_t lib = ctx->lib;
+    ggml_metal_encoder_t enc = ctx->enc;
+
+    const ggml_tensor * op = ctx->node(idx);
+    const ggml_tensor * w  = op->src[0];
+    const ggml_tensor * x  = op->src[1];
+
+    ggml_metal_buffer_id bid_dst = ggml_metal_get_buffer_id(op);
+    ggml_metal_buffer_id bid_stg = bid_dst;
+    bid_stg.offs += ggml_nbytes(op);
+
+    // the scratch lies past the tracked dst range, so no in-flight op may still use that memory
+    ggml_metal_op_concurrency_reset(ctx);
+
+    ggml_metal_op_ptq1_stage(ctx, op, bid_stg);
+
+    auto pipeline = ggml_metal_library_get_pipeline_mul_mv_ptq1_mcs(lib, op);
+
+    ggml_metal_kargs_mul_mv args = {};
+    args.ne00 = (int32_t) w->ne[0];
+    args.ne01 = (int32_t) w->ne[1];
+    args.nb01 = w->nb[1];
+    args.ne11 = (int32_t) x->ne[1];
+    args.nb11 = x->nb[1];
+    args.ne0  = (int32_t) op->ne[0];
+    args.ne1  = (int32_t) op->ne[1];
+
+    ggml_metal_encoder_set_pipeline(enc, pipeline);
+    ggml_metal_encoder_set_bytes   (enc, &args, sizeof(args), 0);
+    ggml_metal_encoder_set_buffer  (enc, ggml_metal_get_buffer_id(w), 1);
+    ggml_metal_encoder_set_buffer  (enc, bid_stg,                     2);
+    ggml_metal_encoder_set_buffer  (enc, bid_dst,                     3);
+
+    const int nr0 = pipeline.nr0;
+    const int nr1 = pipeline.nr1;
+    const int nsg = pipeline.nsg;
+
+    ggml_metal_encoder_dispatch_threadgroups(enc, (args.ne01 + nr0*nsg - 1)/(nr0*nsg), (args.ne11 + nr1 - 1)/nr1, 1, 32, nsg, 1);
+
+    return 1;
+}
+
+size_t ggml_metal_op_mul_mat_extra_ptq1_stage(const ggml_tensor * op) {
+    return ggml_metal_op_mul_mat_ptq1_staged(op) ? ggml_metal_ptq1_stage_bytes(op) : 0;
+}
+
+// true when two tensors' byte ranges intersect. The allocator may place a node's output in memory
+// freed by an input of an earlier node (e.g. the GLU output over the FFN input, whose last reader was
+// the up projection); once those nodes run as one kernel, that reuse becomes a read/write race.
+static bool ggml_metal_tensors_overlap(const ggml_tensor * a, const ggml_tensor * b) {
+    const char * a0 = (const char *) a->data;
+    const char * b0 = (const char *) b->data;
+    return a0 < b0 + ggml_nbytes(b) && b0 < a0 + ggml_nbytes(a);
+}
+
+// M5/A19 tensor-unit path for 5..8 PTQ1_0 columns (research flag GGML_METAL_PTQ1_TENSOR=1). The
+// allocation predicate cannot see the device, so it reserves scratch whenever the flag and shape
+// allow; the encoder additionally requires the device's tensor support and otherwise falls through.
+// M5 ABBA: 0.78x at 5 columns, 0.83x at 6, 1.02x at 7, 1.04x at 8 (MTP C4 verify 1.09x): the tensor
+// kernel's cost is flat in the column count while the scalar 3+3 tiles are cheap, so default to 8
+static int ggml_metal_ptq1_tensor_min(void) {
+    static const int n = getenv("GGML_METAL_PTQ1_TENSOR_MIN") ? atoi(getenv("GGML_METAL_PTQ1_TENSOR_MIN")) : 8;
+    return n >= 2 && n <= 8 ? n : 8;
+}
+
+static bool ggml_metal_op_mul_mat_ptq1_tensor_shape(const ggml_tensor * op) {
+    static const bool enabled = getenv("GGML_METAL_PTQ1_TENSOR") && atoi(getenv("GGML_METAL_PTQ1_TENSOR")) == 1;
+    // off in batch-invariant mode: its arithmetic differs from the scalar multi-column template
+    if (!enabled || ggml_metal_batch_invariant() || op->op != GGML_OP_MUL_MAT) {
+        return false;
+    }
+    const ggml_tensor * w = op->src[0];
+    const ggml_tensor * x = op->src[1];
+    return w->type == GGML_TYPE_PTQ1_0 && x->type == GGML_TYPE_F32 && x->nb[0] == sizeof(float) &&
+           w->ne[0] % 128 == 0 && w->ne[2] == 1 && w->ne[3] == 1 && x->ne[2] == 1 && x->ne[3] == 1 &&
+           x->ne[1] >= ggml_metal_ptq1_tensor_min() && x->ne[1] <= 8 && ggml_is_contiguous(op);
+}
+
+// scratch past dst: 16 half tensor columns x K, 64-byte aligned
+static size_t ggml_metal_ptq1_tensor_offset(const ggml_tensor * op) {
+    return GGML_PAD(ggml_nbytes(op), 64);
+}
+
+size_t ggml_metal_op_mul_mat_extra_ptq1_tensor(const ggml_tensor * op) {
+    if (!ggml_metal_op_mul_mat_ptq1_tensor_shape(op)) {
+        return 0;
+    }
+    return ggml_metal_ptq1_tensor_offset(op) - ggml_nbytes(op) + 16*op->src[0]->ne[0]*sizeof(uint16_t);
+}
+
+static bool ggml_metal_op_mul_mat_ptq1_tensor(ggml_metal_op_t ctx, const ggml_tensor * op) {
+    return ggml_metal_op_mul_mat_ptq1_tensor_shape(op) && ggml_metal_device_get_props(ctx->dev)->has_tensor;
+}
+
+static int ggml_metal_op_mul_mat_ptq1_tmv(ggml_metal_op_t ctx, int idx) {
+    ggml_metal_library_t lib = ctx->lib;
+    ggml_metal_encoder_t enc = ctx->enc;
+
+    const ggml_tensor * op = ctx->node(idx);
+    const ggml_tensor * w  = op->src[0];
+    const ggml_tensor * x  = op->src[1];
+
+    ggml_metal_buffer_id bid_dst = ggml_metal_get_buffer_id(op);
+    ggml_metal_buffer_id bid_hl  = bid_dst;
+    bid_hl.offs += ggml_metal_ptq1_tensor_offset(op);
+
+    ggml_metal_kargs_mul_mv args = {};
+    args.ne00 = (int32_t) w->ne[0];
+    args.ne01 = (int32_t) w->ne[1];
+    args.nb01 = w->nb[1];
+    args.ne11 = (int32_t) x->ne[1];
+    args.nb11 = x->nb[1];
+    args.ne0  = (int32_t) op->ne[0];
+    args.ne1  = (int32_t) op->ne[1];
+
+    // the scratch lies past the tracked dst range
+    ggml_metal_op_concurrency_reset(ctx);
+
+    {
+        auto pipeline = ggml_metal_library_get_pipeline_ptq1_hilo(lib);
+
+        ggml_metal_encoder_set_pipeline(enc, pipeline);
+        ggml_metal_encoder_set_bytes   (enc, &args, sizeof(args), 0);
+        ggml_metal_encoder_set_buffer  (enc, ggml_metal_get_buffer_id(x), 1);
+        ggml_metal_encoder_set_buffer  (enc, bid_hl,                      2);
+
+        ggml_metal_encoder_dispatch_threadgroups(enc, (args.ne00 + 31)/32, 16, 1, 32, 1, 1);
+    }
+
+    ggml_metal_op_concurrency_reset(ctx);
+
+    auto pipeline = ggml_metal_library_get_pipeline_mul_mv_ptq1_tmv(lib);
+
+    ggml_metal_encoder_set_pipeline(enc, pipeline);
+    ggml_metal_encoder_set_bytes   (enc, &args, sizeof(args), 0);
+    ggml_metal_encoder_set_buffer  (enc, ggml_metal_get_buffer_id(w), 1);
+    ggml_metal_encoder_set_buffer  (enc, bid_hl,                      2);
+    ggml_metal_encoder_set_buffer  (enc, bid_dst,                     3);
+
+    ggml_metal_encoder_set_threadgroup_memory_size(enc, pipeline.smem, 0);
+
+    const int rows_per_tg = pipeline.nr0*pipeline.nsg;
+
+    ggml_metal_encoder_dispatch_threadgroups(enc, (args.ne01 + rows_per_tg - 1)/rows_per_tg, 1, 1, 32, pipeline.nsg, 1);
+
+    return 1;
+}
+
+// widest batch the PQ2_0 kernels take. Unlike PTQ1_0, PQ2_0's generic mul_mv_ext path is already
+// competitive from 3 columns up (2-bit decode is cheap). M5, Bonsai 2 PQ2 per-op profile: whole
+// decode graph -15% at n=2 but +6..10% at n=3 (GGML_METAL_PQ2_MC_MAX, 2..8)
+static int ggml_metal_pq2_mc_max(void) {
+    static const int n = getenv("GGML_METAL_PQ2_MC_MAX") ? atoi(getenv("GGML_METAL_PQ2_MC_MAX")) : 2;
+    return n >= 2 && n <= 8 ? n : 2;
+}
+
+// PTQ1_0 FFN gate/up/SWIGLU triple, either projection order (research flag GGML_METAL_PTQ1_GLU=1).
+// Returns the GLU node when the three can run as one fused kernel, else nullptr.
+static const ggml_tensor * ggml_metal_op_ptq1_glu_fusable(ggml_metal_op_t ctx, int idx) {
+    static const bool en_ptq1 = getenv("GGML_METAL_PTQ1_GLU") && atoi(getenv("GGML_METAL_PTQ1_GLU")) == 1;
+    static const bool en_pq2  = getenv("GGML_METAL_PQ2_GLU")  && atoi(getenv("GGML_METAL_PQ2_GLU"))  == 1;
+    static const bool en_q1   = getenv("GGML_METAL_Q1_GLU")   && atoi(getenv("GGML_METAL_Q1_GLU"))   == 1;
+    if (!(en_ptq1 || en_pq2 || en_q1) || !ctx->use_fusion || idx + 2 >= ctx->n_nodes()) {
+        return nullptr;
+    }
+
+    // the two projections are siblings, not a chain: only the GLU output may leave the subgraph
+    const ggml_op ops[3] = { GGML_OP_MUL_MAT, GGML_OP_MUL_MAT, GGML_OP_GLU };
+    const int gi[3] = { ctx->gf_index(idx), ctx->gf_index(idx + 1), ctx->gf_index(idx + 2) };
+    if (!ggml_can_fuse_subgraph_ext(ctx->graph(), gi, 3, ops, &gi[2], 1)) {
+        return nullptr;
+    }
+
+    const ggml_tensor * a   = ctx->node(idx);
+    const ggml_tensor * b   = ctx->node(idx + 1);
+    const ggml_tensor * glu = ctx->node(idx + 2);
+
+    if (ggml_get_glu_op(glu) != GGML_GLU_OP_SWIGLU || ggml_get_op_params_i32(glu, 1) != 0 || !glu->src[1]) {
+        return nullptr;
+    }
+    if (!((glu->src[0] == a && glu->src[1] == b) || (glu->src[0] == b && glu->src[1] == a))) {
+        return nullptr;
+    }
+
+    const ggml_tensor * w = a->src[0];
+    const ggml_tensor * x = a->src[1];
+    const int64_t n = x->ne[1];
+
+    // at the widths the tensor path takes, two tensor-unit products beat the fused scalar kernel
+    if (ggml_metal_op_mul_mat_ptq1_tensor(ctx, a) && ggml_metal_op_mul_mat_ptq1_tensor(ctx, b)) {
+        return nullptr;
+    }
+
+    // PTQ1_0, PQ2_0 and Q1_0 (all group 128) each have a fused kernel behind their own flag
+    const bool type_ok = (w->type == GGML_TYPE_PTQ1_0 && en_ptq1) || (w->type == GGML_TYPE_PQ2_0 && en_pq2) ||
+                         (w->type == GGML_TYPE_Q1_0 && en_q1);
+    // Q1_0: M5 decode graph -3.3% at n=1, -6.0% at n=2, -6.8% at n=3, +4.5% at n=4 against PrismMLs multi-column
+    // kernels (GGML_METAL_Q1_GLU_MAX, 1..4)
+    static const int q1_max = getenv("GGML_METAL_Q1_GLU_MAX") ? std::min(4, std::max(1, atoi(getenv("GGML_METAL_Q1_GLU_MAX")))) : 3;
+    const int  max_n   = w->type == GGML_TYPE_PTQ1_0 ? ggml_metal_ptq1_multicol_max() :
+                         w->type == GGML_TYPE_PQ2_0  ? ggml_metal_pq2_mc_max() : q1_max;
+
+    return a->src[1] == b->src[1] && !ggml_metal_tensors_overlap(glu, x) &&
+           type_ok && b->src[0]->type == w->type &&
+           ggml_are_same_shape(w, b->src[0]) && ggml_are_same_stride(w, b->src[0]) &&
+           x->type == GGML_TYPE_F32 && glu->type == GGML_TYPE_F32 && x->nb[0] == sizeof(float) &&
+           w->ne[0] % 128 == 0 && w->ne[2] == 1 && w->ne[3] == 1 && x->ne[2] == 1 && x->ne[3] == 1 &&
+           ggml_is_contiguous(glu) && glu->ne[0] == w->ne[1] && glu->ne[1] == n &&
+           n >= 1 && n <= max_n ? glu : nullptr;
+}
+
+static int ggml_metal_op_mul_mat_ptq1_glu(ggml_metal_op_t ctx, int idx, const ggml_tensor * glu) {
+    ggml_metal_library_t lib = ctx->lib;
+    ggml_metal_encoder_t enc = ctx->enc;
+
+    const ggml_tensor * gate = glu->src[0];
+    const ggml_tensor * up   = glu->src[1];
+
+    const ggml_tensor * w = gate->src[0];
+    const ggml_tensor * x = gate->src[1];
+
+    // the first node was checked by the caller; the fused kernel also reads the second
+    // projection's weights and writes the GLU output
+    for (int i = 1; i < 3; ++i) {
+        if (!ggml_metal_op_concurrency_check(ctx, ctx->node(idx + i))) {
+            ggml_metal_op_concurrency_reset(ctx);
+            break;
+        }
+    }
+
+    // stage into the gate projection's own output: fusion leaves it unread, and it is
+    // larger than the pre-layout for these shapes (4*M vs 5*K bytes per column)
+    const bool staged = ggml_metal_ptq1_stage_enabled() && x->ne[1] >= 2 && ggml_metal_ptq1_stage_bytes(gate) <= ggml_nbytes(gate) &&
+                        !ggml_metal_tensors_overlap(glu, gate); // the GLU output may be allocated in place over gate
+    if (staged) {
+        ggml_metal_op_ptq1_stage(ctx, gate, ggml_metal_get_buffer_id(gate));
+    }
+
+    auto pipeline = ggml_metal_library_get_pipeline_mul_mv_ptq1_glu(lib, gate, staged);
+
+    ggml_metal_kargs_mul_mv args = {
+        /*.ne00 =*/ (int32_t) w->ne[0],
+        /*.ne01 =*/ (int32_t) w->ne[1],
+        /*.ne02 =*/ 1,
+        /*.nb00 =*/ w->nb[0],
+        /*.nb01 =*/ w->nb[1],
+        /*.nb02 =*/ w->nb[2],
+        /*.nb03 =*/ w->nb[3],
+        /*.ne10 =*/ (int32_t) x->ne[0],
+        /*.ne11 =*/ (int32_t) x->ne[1],
+        /*.ne12 =*/ 1,
+        /*.nb10 =*/ x->nb[0],
+        /*.nb11 =*/ x->nb[1],
+        /*.nb12 =*/ x->nb[2],
+        /*.nb13 =*/ x->nb[3],
+        /*.ne0  =*/ (int32_t) glu->ne[0],
+        /*.ne1  =*/ (int32_t) glu->ne[1],
+        /*.nr0  =*/ pipeline.nr0,
+        /*.r2   =*/ 1,
+        /*.r3   =*/ 1,
+    };
+
+    ggml_metal_encoder_set_pipeline(enc, pipeline);
+    ggml_metal_encoder_set_bytes   (enc, &args, sizeof(args), 0);
+    ggml_metal_encoder_set_buffer  (enc, ggml_metal_get_buffer_id(w),              1);
+    ggml_metal_encoder_set_buffer  (enc, ggml_metal_get_buffer_id(x),              2);
+    ggml_metal_encoder_set_buffer  (enc, ggml_metal_get_buffer_id(glu),            3);
+    ggml_metal_encoder_set_buffer  (enc, ggml_metal_get_buffer_id(up->src[0]),     4);
+    ggml_metal_encoder_set_buffer  (enc, ggml_metal_get_buffer_id(gate),           5);
+
+    const int nr0 = pipeline.nr0;
+    const int nr1 = pipeline.nr1;
+    const int nsg = pipeline.nsg;
+
+    ggml_metal_encoder_dispatch_threadgroups(enc, (args.ne01 + nr0*nsg - 1)/(nr0*nsg), (args.ne11 + nr1 - 1)/nr1, 1, 32, nsg, 1);
+
+    return 3;
+}
+
+// PQ2_0 multi-column products and fused gate/up/SWIGLU (research flags GGML_METAL_PQ2_MULTICOL /
+// GGML_METAL_PQ2_GLU), plain 2D, 2..max columns (1..max when fused)
+static bool ggml_metal_op_mul_mat_pq2_mc(const ggml_tensor * op) {
+    static const bool enabled = getenv("GGML_METAL_PQ2_MULTICOL") && atoi(getenv("GGML_METAL_PQ2_MULTICOL")) == 1;
+    const ggml_tensor * w = op->src[0];
+    const ggml_tensor * x = op->src[1];
+    return enabled && w->type == GGML_TYPE_PQ2_0 && x->type == GGML_TYPE_F32 && x->nb[0] == sizeof(float) &&
+           w->ne[0] % 128 == 0 && w->ne[2] == 1 && w->ne[3] == 1 && x->ne[2] == 1 && x->ne[3] == 1 &&
+           x->ne[1] >= 2 && x->ne[1] <= ggml_metal_pq2_mc_max() && ggml_is_contiguous(op);
+}
+
+// also serves the fused Q1_0 kernel (same buffer layout, glu always set there)
+static int ggml_metal_op_mul_mat_pq2(ggml_metal_op_t ctx, int idx, const ggml_tensor * glu) {
+    ggml_metal_library_t lib = ctx->lib;
+    ggml_metal_encoder_t enc = ctx->enc;
+
+    const ggml_tensor * gate = glu ? glu->src[0] : ctx->node(idx);
+    const ggml_tensor * w    = gate->src[0];
+    const ggml_tensor * x    = gate->src[1];
+    const ggml_tensor * out  = glu ? glu : gate;
+
+    if (glu) {
+        for (int i = 1; i < 3; ++i) {
+            if (!ggml_metal_op_concurrency_check(ctx, ctx->node(idx + i))) {
+                ggml_metal_op_concurrency_reset(ctx);
+                break;
+            }
+        }
+    }
+
+    auto pipeline = w->type == GGML_TYPE_Q1_0 ? ggml_metal_library_get_pipeline_mul_mv_q1_glu(lib, (int) x->ne[1])
+                                              : ggml_metal_library_get_pipeline_mul_mv_pq2(lib, (int) x->ne[1], glu != nullptr);
+
+    ggml_metal_kargs_mul_mv args = {};
+    args.ne00 = (int32_t) w->ne[0];
+    args.ne01 = (int32_t) w->ne[1];
+    args.nb01 = w->nb[1];
+    args.ne11 = (int32_t) x->ne[1];
+    args.nb11 = x->nb[1];
+    args.ne0  = (int32_t) out->ne[0];
+    args.ne1  = (int32_t) out->ne[1];
+
+    ggml_metal_encoder_set_pipeline(enc, pipeline);
+    ggml_metal_encoder_set_bytes   (enc, &args, sizeof(args), 0);
+    ggml_metal_encoder_set_buffer  (enc, ggml_metal_get_buffer_id(w),   1);
+    ggml_metal_encoder_set_buffer  (enc, ggml_metal_get_buffer_id(x),   2);
+    ggml_metal_encoder_set_buffer  (enc, ggml_metal_get_buffer_id(out), 3);
+    ggml_metal_encoder_set_buffer  (enc, ggml_metal_get_buffer_id(glu ? glu->src[1]->src[0] : w), 4);
+
+    const int nr0 = pipeline.nr0;
+    const int nr1 = pipeline.nr1;
+    const int nsg = pipeline.nsg;
+
+    ggml_metal_encoder_dispatch_threadgroups(enc, (args.ne01 + nr0*nsg - 1)/(nr0*nsg), (args.ne11 + nr1 - 1)/nr1, 1, 32, nsg, 1);
+
+    return glu ? 3 : 1;
+}
+
+// products with very few output rows (the 48-row ssm_alpha/ssm_beta at prefill) keep the mat-vec
+// kernels, which tile over tokens: mul_mm's 64x128 tiles give them only ceil(n/128) threadgroups
+// (M5: BF16 48x5120 at 9 tokens 148 -> 6 µs). Only types whose mat-vec kernel takes any column
+// count. Research flag GGML_METAL_SMALLM_MM=1.
+static bool ggml_metal_op_mul_mat_small_rows(const ggml_tensor * op) {
+    static const bool enabled = getenv("GGML_METAL_SMALLM_MM") && atoi(getenv("GGML_METAL_SMALLM_MM")) == 1;
+    const ggml_type t = op->src[0]->type;
+    return enabled && op->src[0]->ne[1] <= 64 && op->src[0]->ne[0] >= 1024 && op->src[1]->type == GGML_TYPE_F32 &&
+           op->src[0]->ne[2] == 1 && op->src[0]->ne[3] == 1 &&
+           (t == GGML_TYPE_F32 || t == GGML_TYPE_F16 || t == GGML_TYPE_BF16 || t == GGML_TYPE_Q1_0 || t == GGML_TYPE_PQ2_0);
+}
+
 int ggml_metal_op_mul_mat(ggml_metal_op_t ctx, int idx) {
     ggml_tensor * op = ctx->node(idx);
+
+    if (const ggml_tensor * glu = ggml_metal_op_ptq1_glu_fusable(ctx, idx)) {
+        return glu->src[0]->src[0]->type == GGML_TYPE_PTQ1_0 ? ggml_metal_op_mul_mat_ptq1_glu(ctx, idx, glu)
+                                                             : ggml_metal_op_mul_mat_pq2(ctx, idx, glu);
+    }
+
+    if (ggml_metal_op_mul_mat_pq2_mc(op)) {
+        return ggml_metal_op_mul_mat_pq2(ctx, idx, nullptr);
+    }
+
+    if (ggml_metal_op_mul_mat_ptq1_tensor(ctx, op)) {
+        return ggml_metal_op_mul_mat_ptq1_tmv(ctx, idx);
+    }
+
+    if (ggml_metal_op_mul_mat_ptq1_staged(op)) {
+        return ggml_metal_op_mul_mat_ptq1_mcs(ctx, idx);
+    }
 
     ggml_metal_library_t lib = ctx->lib;
     ggml_metal_encoder_t enc = ctx->enc;
@@ -2788,9 +3204,14 @@ int ggml_metal_op_mul_mat(ggml_metal_op_t ctx, int idx) {
         return 1;
     }
 
+    // batch-invariant mode (research, GGML_METAL_BATCH_INVARIANT=1): float weights at 2..4 columns skip
+    // mul_mv_ext and use the per-column mat-vec kernel that single columns use (the CUDA flag's F16/BF16 part)
+    const bool float_invariant = ggml_metal_batch_invariant() && ne11 <= 4 &&
+        (op->src[0]->type == GGML_TYPE_F32 || op->src[0]->type == GGML_TYPE_F16 || op->src[0]->type == GGML_TYPE_BF16);
+
     // first try to use small-batch mat-mv kernels
     // these should be efficient for BS [2, ~8]
-    if (op->src[1]->type == GGML_TYPE_F32 && (ne00%128 == 0) &&
+    if (!float_invariant && op->src[1]->type == GGML_TYPE_F32 && (ne00%128 == 0) &&
         (
          (
           (
@@ -2897,7 +3318,7 @@ int ggml_metal_op_mul_mat(ggml_metal_op_t ctx, int idx) {
         !ggml_is_transposed(op->src[1]) &&
         // for now the matrix-matrix multiplication kernel only works on A14+/M1+ SoCs
         // AMD GPU and older A-chips will reuse matrix-vector multiplication kernel
-        props_dev->has_simdgroup_mm && ne00 >= 64 && ne11 > ne11_mm_min) {
+        props_dev->has_simdgroup_mm && ne00 >= 64 && ne11 > ne11_mm_min && !ggml_metal_op_mul_mat_small_rows(op)) {
         //GGML_LOG_INFO("matrix: ne00 = %6d, ne01 = %6d, ne02 = %6d, ne11 = %6d, ne12 = %6d\n", ne00, ne01, ne02, ne11, ne12);
 
         // some Metal matrix data types require aligned pointers
@@ -3819,7 +4240,11 @@ int ggml_metal_op_flash_attn_ext(ggml_metal_op_t ctx, int idx) {
 #undef FATTN_SMEM
     } else {
         // half4x4 kernel
-        auto cfg = ggml_metal_tuning::fa_vec_pick(
+        // batch-invariant mode: the tuned table picks per query count once the KV length is >= 1024,
+        // so use the query-count-independent baseline
+        auto cfg = ggml_metal_batch_invariant()
+            ? ggml_metal_tuning::fa_vec_baseline_cfg((int) ne00, (int) ne20)
+            : ggml_metal_tuning::fa_vec_pick(
                 props_dev->device_id,
                 props_dev->gpu_family,
                 (int) op->src[1]->type,
@@ -3906,6 +4331,11 @@ int ggml_metal_op_flash_attn_ext(ggml_metal_op_t ctx, int idx) {
             nsg = 1;
             while (2*nwg*nsg*ncpsg < ne11 && nsg < 4) {
                 nsg *= 2;
+            }
+            // batch-invariant mode: a lone token and a small batch at the same position can pad the KV
+            // length across one of the thresholds above, which changes the reduction split
+            if (ggml_metal_batch_invariant()) {
+                nsg = 4;
             }
         }
 

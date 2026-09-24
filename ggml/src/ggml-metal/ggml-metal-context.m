@@ -441,6 +441,67 @@ enum ggml_status ggml_metal_graph_compute(ggml_metal_t ctx, struct ggml_cgraph *
         return GGML_STATUS_FAILED;
     }
 
+    // research profiler: GGML_METAL_PROFILE_OPS=<file> encodes each (fused) op in its own
+    // command buffer, waits, and appends the GPU time per op as one JSON line per graph.
+    // This serializes the graph, so totals exceed normal execution; use it for shares only.
+    const char * profile_path = getenv("GGML_METAL_PROFILE_OPS");
+    if (profile_path) {
+        id<MTLCommandQueue> queue = ggml_metal_device_get_queue(ctx->dev);
+        if (ctx->cmd_buf_last) {
+            [ctx->cmd_buf_last waitUntilCompleted];
+            ctx->cmd_buf_last = nil;
+        }
+        FILE * f = fopen(profile_path, "a");
+        if (!f) {
+            GGML_LOG_ERROR("%s: cannot open GGML_METAL_PROFILE_OPS file '%s'\n", __func__, profile_path);
+            return GGML_STATUS_FAILED;
+        }
+        fprintf(f, "{\"n_nodes\":%d,\"ops\":[", gf->n_nodes);
+        bool first = true;
+        for (int i = 0; i < gf->n_nodes; ) {
+            @autoreleasepool {
+                id<MTLCommandBuffer> cmd_buf = [queue commandBuffer];
+                ggml_metal_op_t ctx_op = ggml_metal_op_init(ctx->dev, cmd_buf, gf, i, gf->n_nodes,
+                        ctx->use_fusion, ctx->use_concurrency, false, 0, 0);
+                if (ggml_metal_op_n_nodes(ctx_op) == 0) {
+                    ggml_metal_op_free(ctx_op);
+                    break;
+                }
+                const int gi0 = ggml_metal_op_gf_index(ctx_op, 0);
+                int res = ggml_metal_op_encode(ctx_op, 0);
+                if (res <= 0) {
+                    res = 1;
+                }
+                const int gi_next = res < ggml_metal_op_n_nodes(ctx_op) ? ggml_metal_op_gf_index(ctx_op, res) : gf->n_nodes;
+                ggml_metal_op_free(ctx_op);
+                [cmd_buf commit];
+                [cmd_buf waitUntilCompleted];
+                if (cmd_buf.status != MTLCommandBufferStatusCompleted) {
+                    GGML_LOG_ERROR("%s: profiled command buffer failed with status %lu\n", __func__, (unsigned long) cmd_buf.status);
+                    fclose(f);
+                    return GGML_STATUS_FAILED;
+                }
+                const struct ggml_tensor * node = gf->nodes[gi0];
+                const double us = (cmd_buf.GPUEndTime - cmd_buf.GPUStartTime)*1e6;
+                if (node->op != GGML_OP_NONE && node->op != GGML_OP_VIEW && node->op != GGML_OP_RESHAPE &&
+                    node->op != GGML_OP_PERMUTE && node->op != GGML_OP_TRANSPOSE && !ggml_is_empty(node)) {
+                    const struct ggml_tensor * s0 = node->src[0];
+                    const struct ggml_tensor * s1 = node->src[1];
+                    fprintf(f, "%s[\"%s\",%d,\"%s\",\"%s\",%lld,%lld,%lld,%lld,%.3f,\"%s\"]", first ? "" : ",",
+                        ggml_op_desc(node), res,
+                        s0 ? ggml_type_name(s0->type) : "", s1 ? ggml_type_name(s1->type) : "",
+                        s0 ? (long long) s0->ne[0] : 0, s0 ? (long long) s0->ne[1] : 0,
+                        s1 ? (long long) s1->ne[0] : 0, s1 ? (long long) s1->ne[1] : 0, us, node->name);
+                    first = false;
+                }
+                i = gi_next;
+            }
+        }
+        fprintf(f, "]}\n");
+        fclose(f);
+        return GGML_STATUS_SUCCESS;
+    }
+
     // number of nodes encoded by the main thread (empirically determined)
     const int n_main = MAX(64, 0.1*gf->n_nodes);
 

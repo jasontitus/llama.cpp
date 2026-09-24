@@ -859,3 +859,205 @@ template [[host_name("kernel_mul_mm_id_iq1_m_f16")]]   kernel mul_mm_id kernel_m
 template [[host_name("kernel_mul_mm_id_iq4_nl_f16")]]  kernel mul_mm_id kernel_mul_mm_id<half,   half4x4,   simdgroup_half8x8,   half,   half2x4,   simdgroup_half8x8,   block_iq4_nl,  2,     dequantize_iq4_nl,  float,  float4x4,  half, half2x4>;
 template [[host_name("kernel_mul_mm_id_iq4_xs_f16")]]  kernel mul_mm_id kernel_mul_mm_id<half,   half4x4,   simdgroup_half8x8,   half,   half2x4,   simdgroup_half8x8,   block_iq4_xs,  QK_NL, dequantize_iq4_xs,  float,  float4x4,  half, half2x4>;
 template [[host_name("kernel_mul_mm_id_tq2_0_f16")]]   kernel mul_mm_id kernel_mul_mm_id<half,   half4x4,   simdgroup_half8x8,   half,   half2x4,   simdgroup_half8x8,   block_tq2_0,   QK_NL, dequantize_tq2_0,   float,  float4x4,  half, half2x4>;
+
+#ifdef GGML_METAL_HAS_TENSOR
+// PTQ1_0 product with 5..8 activation columns on the tensor units (research: GGML_METAL_PTQ1_TENSOR).
+// Weights are decoded to half, w = (t-1)*d, which is exact. Each activation column is split into
+// hi = half(y) and lo = half(y - hi): their products with the exact weights are exact and the tensor
+// op accumulates in fp32, so hi+lo keeps about 22 bits of y (NMSE ~4e-13 against a double reference,
+// tighter than the scalar kernels). Pre-pass: 16 half tensor columns x K, column 2c = hi, 2c+1 = lo.
+kernel void kernel_ptq1_0_hilo(
+        constant ggml_metal_kargs_mul_mv & args,
+        device const char * src1,
+        device       half * hl,
+        uint3  tgpig[[threadgroup_position_in_grid]],
+        ushort tiisg[[thread_index_in_simdgroup]]) {
+    const int k  = tgpig.x*32 + tiisg;
+    const int tc = tgpig.y;          // tensor column 0..15
+    const int c  = tc/2;
+    if (k >= args.ne00) {
+        return;
+    }
+    const float y  = c < args.ne11 ? *((device const float *) (src1 + (uint64_t) c*args.nb11) + k) : 0.0f;
+    const half  hi = (half) y;
+    hl[(uint64_t) tc*args.ne00 + k] = (tc & 1) ? (half) (y - (float) hi) : hi;
+}
+
+// four bytes of qs (u < 6) or both qh bytes (u == 6) of one block -> half weights at their element
+// positions within the row's 128-slot slab
+static inline void ptq1_0_decode_half(device const block_ptq1_0 * blk, short u, threadgroup half * out) {
+    const half dh = blk->d;
+    if (u < 6) {
+        const float4 uu = float4(*((device const uchar4 *) blk->qs + u)) * (1.0f/256.0f);
+        float4 gp = 0.0f;
+        float  p3 = 3.0f;
+        const short base = u < 4 ? 4*u : 80 + 4*(u - 4);
+        const short step = u < 4 ? 16 : 8;
+        FOR_UNROLL (short n = 0; n < 5; ++n) {
+            const float4 g = floor(uu*p3);
+            const float4 t = g - 3.0f*gp;
+            gp = g;
+            p3 *= 3.0f;
+            *((threadgroup half4 *) (out + base + n*step)) = fma(half4(t), half4(dh), half4(-dh));
+        }
+    } else {
+        const float2 uu = float2(blk->qh[0], blk->qh[1]) * (1.0f/256.0f);
+        float2 gp = 0.0f;
+        float  p3 = 3.0f;
+        FOR_UNROLL (short n = 0; n < 4; ++n) {
+            const float2 g = floor(uu*p3);
+            const float2 t = g - 3.0f*gp;
+            gp = g;
+            p3 *= 3.0f;
+            *((threadgroup half2 *) (out + 120 + 2*n)) = fma(half2(t), half2(dh), half2(-dh));
+        }
+    }
+}
+
+// each simdgroup owns 16 rows: it decodes one 128-weight block of them into its own threadgroup
+// slab and multiplies it by the 16 hi/lo tensor columns read straight from device memory, so no
+// threadgroup-wide barrier is needed. 4 simdgroups, 16 KB of threadgroup memory.
+kernel void kernel_mul_mv_ptq1_0_f32_tmv(
+        constant ggml_metal_kargs_mul_mv & args,
+        device const char * src0,
+        device       half * hl,
+        device       char * dst,
+        threadgroup  char * shmem [[threadgroup(0)]],
+        uint3  tgpig[[threadgroup_position_in_grid]],
+        ushort tiisg[[thread_index_in_simdgroup]],
+        ushort sgitg[[simdgroup_index_in_threadgroup]]) {
+    constexpr short NK  = 128;
+    constexpr short NR0 = 16;
+    constexpr short NP  = 16;
+    constexpr short NU  = (NR0*7 + 31)/32; // decode units per lane
+
+    threadgroup half * sa = (threadgroup half *) shmem + sgitg*NR0*NK;
+
+    const int r0 = (tgpig.x*4 + sgitg)*NR0;
+    const int nb = args.ne00/QK_PTQ1_0;
+
+    auto tBall = tensor<device half, dextents<int32_t, 2>, tensor_inline>(hl, dextents<int32_t, 2>(args.ne00, NP));
+    auto tA    = tensor<threadgroup half, dextents<int32_t, 2>, tensor_inline>(sa, dextents<int32_t, 2>(NK, NR0));
+
+    mpp::tensor_ops::matmul2d<
+        mpp::tensor_ops::matmul2d_descriptor(NP, NR0, NK, false, true, false, mpp::tensor_ops::matmul2d_descriptor::mode::multiply_accumulate),
+        execution_simdgroups<1>> mm;
+
+    auto cT = mm.get_destination_cooperative_tensor<decltype(tA), decltype(tBall), float>();
+
+    device const block_ptq1_0 * rows[NU];
+    short units[NU];
+    FOR_UNROLL (short j = 0; j < NU; ++j) {
+        const short unit = tiisg + 32*j;
+        units[j] = unit < NR0*7 ? unit % 7 : -1;
+        rows[j]  = (device const block_ptq1_0 *) (src0 + (uint64_t) min(r0 + min(unit/7, NR0 - 1), args.ne01 - 1)*args.nb01);
+    }
+
+    for (int kb = 0; kb < nb; ++kb) {
+        FOR_UNROLL (short j = 0; j < NU; ++j) {
+            if (units[j] >= 0) {
+                ptq1_0_decode_half(rows[j] + kb, units[j], sa + ((tiisg + 32*j)/7)*NK);
+            }
+        }
+        simdgroup_barrier(mem_flags::mem_threadgroup);
+
+        auto tB = tBall.slice(kb*NK, 0);
+        mm.run(tB, tA, cT);
+
+        simdgroup_barrier(mem_flags::mem_threadgroup);
+    }
+
+    threadgroup float * sc = (threadgroup float *) sa;
+    auto tC = tensor<threadgroup float, dextents<int32_t, 2>, tensor_inline>(sc, dextents<int32_t, 2>(NR0, NP));
+    cT.store(tC);
+    simdgroup_barrier(mem_flags::mem_threadgroup);
+
+    device float * dst_f32 = (device float *) dst;
+    for (short i = tiisg; i < args.ne11*NR0; i += 32) {
+        const short c = i / NR0;
+        const short r = i % NR0;
+        if (r0 + r < args.ne01) {
+            dst_f32[(uint64_t) c*args.ne0 + r0 + r] = sc[(2*c)*NR0 + r] + sc[(2*c + 1)*NR0 + r];
+        }
+    }
+}
+
+// PTQ1_0 prefill on the tensor units (research flag GGML_METAL_PTQ1_MM_B128; the CUDA "uniform trit
+// unpacking" idea). Same 64-row x 128-column output tile, cooperative tensor, B operand and relaxed
+// precision as kernel_mul_mm above, but K advances one 128-weight block per step and every packed
+// byte is decoded once into all of its trits (ptq1_0_decode_half) instead of once per trit position
+// by dequantize_ptq1_0. Four times fewer barriers; the weights are exact in half either way.
+kernel void kernel_mul_mm_ptq1_0_f32_b128(
+        constant ggml_metal_kargs_mul_mm & args,
+        device const char * srcA,
+        device const char * srcB,
+        device       char * dst,
+        threadgroup  char * shmem [[threadgroup(0)]],
+        uint3  tgpig [[threadgroup_position_in_grid]],
+        ushort tiitg [[thread_index_in_threadgroup]]) {
+    const int K = args.ne00;
+    const int M = args.ne0;
+    const int N = args.ne1;
+
+    const int im  = tgpig.z;
+    const int i12 = im % FC_mul_mm_ne12;
+    const int i13 = im / FC_mul_mm_ne12;
+
+    const uint64_t offset0 = (i12/FC_mul_mm_r2)*args.nb02 + (i13/FC_mul_mm_r3)*args.nb03;
+
+    constexpr int NRB = SZ_SIMDGROUP * N_MM_BLOCK_X * N_MM_SIMD_GROUP_X;
+    constexpr int NRA = SZ_SIMDGROUP * N_MM_BLOCK_Y * N_MM_SIMD_GROUP_Y;
+    constexpr int NKB = QK_PTQ1_0;
+    constexpr int NT  = N_SIMDWIDTH * N_MM_SIMD_GROUP_X * N_MM_SIMD_GROUP_Y;
+    constexpr int NU  = (NRA*7 + NT - 1)/NT; // decode units (4 qs bytes or the qh pair) per thread
+
+    const int ra = tgpig.y * NRA;
+    const int rb = tgpig.x * NRB;
+
+    threadgroup half * sa = (threadgroup half *) shmem;
+
+    device float * ptrB = (device float *)(srcB + args.nb12*i12 + args.nb13*i13);
+    const int strideB = args.nb11 / sizeof(float);
+    auto tB = tensor(ptrB, dextents<int32_t, 2>(K, N), array<int, 2>({1, strideB}));
+    auto tA = tensor(sa, dextents<int32_t, 2>(NKB, NRA));
+
+    mpp::tensor_ops::matmul2d<
+        mpp::tensor_ops::matmul2d_descriptor(
+            NRB, NRA, NKB, false, true, true,
+            mpp::tensor_ops::matmul2d_descriptor::mode::multiply_accumulate),
+        execution_simdgroups<N_MM_SIMD_GROUP_X * N_MM_SIMD_GROUP_Y>> mm;
+
+    auto cT = mm.get_destination_cooperative_tensor<decltype(tB), decltype(tA), float>();
+
+    // rows past M are clamped: they compute a copy of the last row that the bounded store drops
+    device const block_ptq1_0 * rows[NU];
+    short units[NU];
+    FOR_UNROLL (short j = 0; j < NU; ++j) {
+        const int unit = tiitg + NT*j;
+        units[j] = unit < NRA*7 ? unit % 7 : -1;
+        rows[j]  = (device const block_ptq1_0 *)(srcA + args.nb01*min(ra + min(unit/7, NRA - 1), M - 1) + offset0);
+    }
+
+    for (int kb = 0; kb < K/NKB; ++kb) {
+        FOR_UNROLL (short j = 0; j < NU; ++j) {
+            if (units[j] >= 0) {
+                ptq1_0_decode_half(rows[j] + kb, units[j], sa + ((tiitg + NT*j)/7)*NKB);
+            }
+        }
+
+        threadgroup_barrier(mem_flags::mem_threadgroup);
+
+        auto tBv = tensor(ptrB + kb*NKB + rb*strideB, dextents<int32_t, 2>(NKB, N - rb), array<int, 2>({1, strideB}));
+
+        mm.run(tBv, tA, cT);
+
+        threadgroup_barrier(mem_flags::mem_threadgroup);
+    }
+
+    device float * dstBatch = (device float *)dst + im * N * M;
+
+    auto tD = tensor(dstBatch, dextents<int32_t, 2>(M, N), array<int, 2>({1, M}));
+    cT.store(tD.slice(ra, rb));
+}
+
+#endif // GGML_METAL_HAS_TENSOR

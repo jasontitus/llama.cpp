@@ -23,6 +23,8 @@ ggml_metal_op_t ggml_metal_op_init(
 void ggml_metal_op_free(ggml_metal_op_t ctx);
 
 int ggml_metal_op_n_nodes(ggml_metal_op_t ctx);
+// graph index of the idx-th encodable node (research profiler)
+int ggml_metal_op_gf_index(ggml_metal_op_t ctx, int idx);
 
 int ggml_metal_op_encode(ggml_metal_op_t ctx, int idx);
 
@@ -32,6 +34,8 @@ int ggml_metal_op_encode(ggml_metal_op_t ctx, int idx);
 
 // activation bit-planes for the Q1_0 word-parallel path
 size_t ggml_metal_op_mul_mat_extra_q1_0_planes(const struct ggml_tensor * op);
+size_t ggml_metal_op_mul_mat_extra_ptq1_stage (const struct ggml_tensor * op);
+size_t ggml_metal_op_mul_mat_extra_ptq1_tensor(const struct ggml_tensor * op);
 
 // tokens per expert
 size_t ggml_metal_op_mul_mat_id_extra_tpe(const struct ggml_tensor * op);
