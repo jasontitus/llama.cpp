@@ -1,0 +1,977 @@
+{
+  "armA" : {
+    "flags" : {
+
+    },
+    "name" : "upstream"
+  },
+  "armB" : {
+    "flags" : {
+      "GGML_GDN_ROWS_PLAIN" : "1",
+      "GGML_METAL_PTQ1_GLU" : "1",
+      "GGML_METAL_PTQ1_MULTICOL" : "1",
+      "GGML_METAL_PTQ1_MULTICOL_MAX" : "8",
+      "GGML_METAL_PTQ1_STAGE" : "1",
+      "GGML_METAL_SMALLM_MM" : "1"
+    },
+    "name" : "M5 stack (PTQ1)"
+  },
+  "build" : {
+    "appDirtyFiles" : "0",
+    "frameworkDirtyFiles" : "0",
+    "frameworkRevision" : "625143d68d9f4605f46cc0ab06b3ff280c9de224",
+    "frameworkSHA256" : "664384877867bb3632f2fd21b55295c17c36f8da6383be1006f1c43ffcbf568c",
+    "sourceRevision" : "625143d68d9f4605f46cc0ab06b3ff280c9de224"
+  },
+  "cancelled" : true,
+  "cooldownSeconds" : 8,
+  "cycles" : 3,
+  "device" : {
+    "appAvailableMemoryBytes" : 6306424744,
+    "gpuName" : "Apple A19 Pro GPU",
+    "highestAppleFamily" : 10,
+    "lowPowerMode" : false,
+    "machine" : "iPhone18,2",
+    "physicalMemoryBytes" : 12263424000,
+    "systemVersion" : "Version 27.0 (Build 24A437)",
+    "thermalState" : "fair"
+  },
+  "finished" : "2026-09-24T20:17:03Z",
+  "launchEnvironment" : {
+
+  },
+  "minAvailableBytes" : 5986559624,
+  "model" : "Ternary-Bonsai-2-27B-PTQ1_0.gguf",
+  "modelBytes" : 5946648928,
+  "modelDescription" : "qwen35 27B PTQ1_0 - 1.75 bpw ternary (group 128)",
+  "modelSHA256Verified" : "53107f530aa52eb00912263ab1ee29bd199261c87cd7b4ad4ca1318c1fe33ee3",
+  "peakFootprintBytes" : 455891320,
+  "prompt" : "<|im_start|>user\nWrite a Python function that merges two sorted lists into one sorted list, with a docstring.<|im_end|>\n<|im_start|>assistant\n<think>\n\n<\/think>\n\n",
+  "promptUbatch" : 512,
+  "quartets" : [
+    {
+      "accepted" : false,
+      "attempt" : 1,
+      "cell" : "pp2",
+      "cycle" : 0,
+      "observations" : [
+        {
+          "arm" : "upstream",
+          "availableBytes" : 6022014624,
+          "callSeconds" : [
+            0.947856542,
+            0.96995225,
+            0.996958958,
+            0.987159959,
+            1.000209042
+          ],
+          "footprintBytes" : 420436320,
+          "gateReached" : true,
+          "interrupted" : false,
+          "libraryMessages" : [
+
+          ],
+          "position" : 0,
+          "startedAt" : "2026-09-24T19:33:27Z",
+          "thermalAfter" : "fair",
+          "thermalBefore" : "fair",
+          "thermalMax" : "fair",
+          "thermalWaitSeconds" : 0.002131938934326172,
+          "tokensPerSecond" : 2.0399267723325085,
+          "warmupCallSeconds" : [
+            0.806893916,
+            0.910836458
+          ]
+        },
+        {
+          "arm" : "M5 stack (PTQ1)",
+          "availableBytes" : 6019376800,
+          "callSeconds" : [
+            0.265479667,
+            0.252608333,
+            0.262543291,
+            0.27134475,
+            0.283051041,
+            0.284397333,
+            0.367766042,
+            0.290412042,
+            0.286749917
+          ],
+          "footprintBytes" : 423074144,
+          "gateReached" : true,
+          "interrupted" : false,
+          "libraryMessages" : [
+
+          ],
+          "position" : 1,
+          "startedAt" : "2026-09-24T19:33:42Z",
+          "thermalAfter" : "fair",
+          "thermalBefore" : "fair",
+          "thermalMax" : "fair",
+          "thermalWaitSeconds" : 0.005025982856750488,
+          "tokensPerSecond" : 7.019316022123537,
+          "warmupCallSeconds" : [
+            0.507411792,
+            0.194872542,
+            0.220279375,
+            0.23690425
+          ]
+        },
+        {
+          "arm" : "M5 stack (PTQ1)",
+          "availableBytes" : 6019458720,
+          "callSeconds" : [
+            0.358478166,
+            0.403149167,
+            0.421176,
+            0.422124167,
+            0.414233584,
+            0.407609167,
+            0.413280084
+          ],
+          "footprintBytes" : 422992224,
+          "gateReached" : true,
+          "interrupted" : false,
+          "libraryMessages" : [
+
+          ],
+          "position" : 2,
+          "startedAt" : "2026-09-24T19:33:55Z",
+          "thermalAfter" : "fair",
+          "thermalBefore" : "fair",
+          "thermalMax" : "fair",
+          "thermalWaitSeconds" : 0.0042150020599365234,
+          "tokensPerSecond" : 4.929490096519715,
+          "warmupCallSeconds" : [
+            0.182086667,
+            0.184868625,
+            0.210259,
+            0.241020375,
+            0.343428458
+          ]
+        },
+        {
+          "arm" : "upstream",
+          "availableBytes" : 6027421344,
+          "callSeconds" : [
+            1.86090125,
+            1.577763084,
+            1.502761125,
+            1.475845708,
+            1.619399125
+          ],
+          "footprintBytes" : 415029600,
+          "gateReached" : true,
+          "interrupted" : false,
+          "libraryMessages" : [
+
+          ],
+          "position" : 3,
+          "startedAt" : "2026-09-24T19:34:07Z",
+          "thermalAfter" : "serious",
+          "thermalBefore" : "fair",
+          "thermalMax" : "serious",
+          "thermalWaitSeconds" : 0.004836916923522949,
+          "tokensPerSecond" : 1.2442964109096737,
+          "warmupCallSeconds" : [
+            1.013815917
+          ]
+        }
+      ],
+      "ratio" : 3.638244251977845,
+      "rejectReason" : "the phone reached serious\/critical",
+      "spread" : 1.639421888906012
+    },
+    {
+      "accepted" : false,
+      "attempt" : 2,
+      "cell" : "pp2",
+      "cycle" : 0,
+      "observations" : [
+        {
+          "arm" : "upstream",
+          "availableBytes" : 6026880672,
+          "callSeconds" : [
+            0.663125958,
+            0.67834525,
+            0.701044417,
+            0.724621292,
+            0.7430815
+          ],
+          "footprintBytes" : 415570272,
+          "gateReached" : false,
+          "interrupted" : false,
+          "libraryMessages" : [
+
+          ],
+          "position" : 0,
+          "startedAt" : "2026-09-24T19:39:25Z",
+          "thermalAfter" : "serious",
+          "thermalBefore" : "serious",
+          "thermalMax" : "serious",
+          "thermalWaitSeconds" : 300.2363350391388,
+          "tokensPerSecond" : 2.8488255749471216,
+          "warmupCallSeconds" : [
+            1.626507208
+          ]
+        }
+      ],
+      "ratio" : "nan",
+      "rejectReason" : "the phone did not cool to the gate within 5 minutes (it was serious)",
+      "spread" : "inf"
+    },
+    {
+      "accepted" : false,
+      "attempt" : 3,
+      "cell" : "pp2",
+      "cycle" : 0,
+      "observations" : [
+        {
+          "arm" : "upstream",
+          "availableBytes" : 6024586912,
+          "callSeconds" : [
+            0.659730834,
+            0.664624416,
+            0.671362958,
+            0.683147708,
+            0.696590584
+          ],
+          "footprintBytes" : 417864032,
+          "gateReached" : true,
+          "interrupted" : false,
+          "libraryMessages" : [
+
+          ],
+          "position" : 0,
+          "startedAt" : "2026-09-24T19:42:39Z",
+          "thermalAfter" : "fair",
+          "thermalBefore" : "fair",
+          "thermalMax" : "fair",
+          "thermalWaitSeconds" : 180.15223503112793,
+          "tokensPerSecond" : 2.9625622489876555,
+          "warmupCallSeconds" : [
+            0.663733375,
+            0.65465625
+          ]
+        },
+        {
+          "arm" : "M5 stack (PTQ1)",
+          "availableBytes" : 6020916896,
+          "callSeconds" : [
+            0.17703775,
+            0.179302208,
+            0.182819916,
+            0.184455625,
+            0.186674583,
+            0.203355375,
+            0.189537708,
+            0.191982333,
+            0.204127292,
+            0.248021042,
+            0.19401025,
+            0.202180708,
+            0.206621583
+          ],
+          "footprintBytes" : 421534048,
+          "gateReached" : true,
+          "interrupted" : false,
+          "libraryMessages" : [
+
+          ],
+          "position" : 1,
+          "startedAt" : "2026-09-24T19:42:52Z",
+          "thermalAfter" : "fair",
+          "thermalBefore" : "fair",
+          "thermalMax" : "fair",
+          "thermalWaitSeconds" : 0.0021909475326538086,
+          "tokensPerSecond" : 10.19557315875812,
+          "warmupCallSeconds" : [
+            0.199470917,
+            0.183280125,
+            0.1831605,
+            0.173343708,
+            0.171770459,
+            0.189631042
+          ]
+        },
+        {
+          "arm" : "M5 stack (PTQ1)",
+          "availableBytes" : 6025291424,
+          "callSeconds" : [
+            0.197053583,
+            0.204273959,
+            0.211465333,
+            0.2152415,
+            0.275265125,
+            0.214345292,
+            0.221824792,
+            0.229074917,
+            0.232962584,
+            0.238879458,
+            0.239680958,
+            0.2443915
+          ],
+          "footprintBytes" : 417159520,
+          "gateReached" : true,
+          "interrupted" : false,
+          "libraryMessages" : [
+
+          ],
+          "position" : 2,
+          "startedAt" : "2026-09-24T19:43:04Z",
+          "thermalAfter" : "fair",
+          "thermalBefore" : "fair",
+          "thermalMax" : "fair",
+          "thermalWaitSeconds" : 0.0046269893646240234,
+          "tokensPerSecond" : 8.809088333203368,
+          "warmupCallSeconds" : [
+            0.23002925,
+            0.209234291,
+            0.171982875,
+            0.177329625,
+            0.183461333,
+            0.201115583
+          ]
+        },
+        {
+          "arm" : "upstream",
+          "availableBytes" : 6028289696,
+          "callSeconds" : [
+            1.015666667,
+            1.062604042,
+            1.099539167,
+            1.116003417,
+            1.168966083
+          ],
+          "footprintBytes" : 414161248,
+          "gateReached" : true,
+          "interrupted" : false,
+          "libraryMessages" : [
+
+          ],
+          "position" : 3,
+          "startedAt" : "2026-09-24T19:43:16Z",
+          "thermalAfter" : "fair",
+          "thermalBefore" : "fair",
+          "thermalMax" : "fair",
+          "thermalWaitSeconds" : 0.0015799999237060547,
+          "tokensPerSecond" : 1.8305699922522372,
+          "warmupCallSeconds" : [
+            0.794658167,
+            0.939528125
+          ]
+        }
+      ],
+      "ratio" : 3.964977500192096,
+      "rejectReason" : "spread 1.618 over the gate",
+      "spread" : 1.618382395388594
+    },
+    {
+      "accepted" : false,
+      "attempt" : 1,
+      "cell" : "pp8",
+      "cycle" : 0,
+      "observations" : [
+        {
+          "arm" : "upstream",
+          "availableBytes" : 6029878944,
+          "callSeconds" : [
+            3.678985416,
+            3.447543625,
+            3.560874583,
+            3.685418875,
+            3.721683625
+          ],
+          "footprintBytes" : 412572000,
+          "gateReached" : true,
+          "interrupted" : false,
+          "libraryMessages" : [
+
+          ],
+          "position" : 0,
+          "startedAt" : "2026-09-24T19:43:32Z",
+          "thermalAfter" : "serious",
+          "thermalBefore" : "fair",
+          "thermalMax" : "serious",
+          "thermalWaitSeconds" : 0.0043239593505859375,
+          "tokensPerSecond" : 2.21061573749975,
+          "warmupCallSeconds" : [
+            2.212586708
+          ]
+        }
+      ],
+      "ratio" : "nan",
+      "rejectReason" : "the phone reached serious\/critical",
+      "spread" : "inf"
+    },
+    {
+      "accepted" : false,
+      "attempt" : 2,
+      "cell" : "pp8",
+      "cycle" : 0,
+      "observations" : [
+        {
+          "arm" : "upstream",
+          "availableBytes" : 6030157472,
+          "callSeconds" : [
+            1.479596541,
+            1.540856042,
+            1.603668459,
+            1.643024708,
+            1.671121833
+          ],
+          "footprintBytes" : 412293472,
+          "gateReached" : false,
+          "interrupted" : false,
+          "libraryMessages" : [
+
+          ],
+          "position" : 0,
+          "startedAt" : "2026-09-24T19:49:01Z",
+          "thermalAfter" : "serious",
+          "thermalBefore" : "serious",
+          "thermalMax" : "serious",
+          "thermalWaitSeconds" : 300.2659629583359,
+          "tokensPerSecond" : 5.038882801791792,
+          "warmupCallSeconds" : [
+            1.930781417
+          ]
+        }
+      ],
+      "ratio" : "nan",
+      "rejectReason" : "the phone did not cool to the gate within 5 minutes (it was serious)",
+      "spread" : "inf"
+    },
+    {
+      "accepted" : false,
+      "attempt" : 3,
+      "cell" : "pp8",
+      "cycle" : 0,
+      "observations" : [
+        {
+          "arm" : "upstream",
+          "availableBytes" : 6030075552,
+          "callSeconds" : [
+            2.282127625,
+            2.199706583,
+            2.174530875,
+            2.162249542,
+            2.199511916
+          ],
+          "footprintBytes" : 412375392,
+          "gateReached" : false,
+          "interrupted" : false,
+          "libraryMessages" : [
+
+          ],
+          "position" : 0,
+          "startedAt" : "2026-09-24T19:54:19Z",
+          "thermalAfter" : "serious",
+          "thermalBefore" : "serious",
+          "thermalMax" : "serious",
+          "thermalWaitSeconds" : 300.25598204135895,
+          "tokensPerSecond" : 3.6303812495848877,
+          "warmupCallSeconds" : [
+            2.10387475
+          ]
+        }
+      ],
+      "ratio" : "nan",
+      "rejectReason" : "the phone did not cool to the gate within 5 minutes (it was serious)",
+      "spread" : "inf"
+    },
+    {
+      "accepted" : false,
+      "attempt" : 1,
+      "cell" : "pp4",
+      "cycle" : 0,
+      "observations" : [
+        {
+          "arm" : "upstream",
+          "availableBytes" : 6029239968,
+          "callSeconds" : [
+            0.755080792,
+            0.755365583,
+            0.76300825,
+            0.779445333,
+            0.796785542
+          ],
+          "footprintBytes" : 413210976,
+          "gateReached" : false,
+          "interrupted" : false,
+          "libraryMessages" : [
+
+          ],
+          "position" : 0,
+          "startedAt" : "2026-09-24T19:59:41Z",
+          "thermalAfter" : "serious",
+          "thermalBefore" : "serious",
+          "thermalMax" : "serious",
+          "thermalWaitSeconds" : 300.2499610185623,
+          "tokensPerSecond" : 5.195229584338773,
+          "warmupCallSeconds" : [
+            0.896316833,
+            0.754402917
+          ]
+        }
+      ],
+      "ratio" : "nan",
+      "rejectReason" : "the phone did not cool to the gate within 5 minutes (it was serious)",
+      "spread" : "inf"
+    },
+    {
+      "accepted" : false,
+      "attempt" : 2,
+      "cell" : "pp4",
+      "cycle" : 0,
+      "observations" : [
+        {
+          "arm" : "upstream",
+          "availableBytes" : 6029108896,
+          "callSeconds" : [
+            0.895174,
+            0.933958792,
+            0.958650625,
+            1.0768695,
+            1.184074875
+          ],
+          "footprintBytes" : 413342048,
+          "gateReached" : true,
+          "interrupted" : false,
+          "libraryMessages" : [
+
+          ],
+          "position" : 0,
+          "startedAt" : "2026-09-24T20:03:25Z",
+          "thermalAfter" : "fair",
+          "thermalBefore" : "fair",
+          "thermalMax" : "fair",
+          "thermalWaitSeconds" : 210.17027294635773,
+          "tokensPerSecond" : 3.961394003394509,
+          "warmupCallSeconds" : [
+            0.778771833,
+            0.841064417
+          ]
+        },
+        {
+          "arm" : "M5 stack (PTQ1)",
+          "availableBytes" : 6026094240,
+          "callSeconds" : [
+            0.511063958,
+            0.396107125,
+            0.41545125,
+            0.454509958,
+            0.519028542,
+            0.4235415
+          ],
+          "footprintBytes" : 416356704,
+          "gateReached" : true,
+          "interrupted" : false,
+          "libraryMessages" : [
+
+          ],
+          "position" : 1,
+          "startedAt" : "2026-09-24T20:03:40Z",
+          "thermalAfter" : "fair",
+          "thermalBefore" : "fair",
+          "thermalMax" : "fair",
+          "thermalWaitSeconds" : 0.0027559995651245117,
+          "tokensPerSecond" : 8.824495132717894,
+          "warmupCallSeconds" : [
+            0.589909916,
+            0.338336083,
+            0.364776834
+          ]
+        },
+        {
+          "arm" : "M5 stack (PTQ1)",
+          "availableBytes" : 6028781216,
+          "callSeconds" : [
+            0.398753875,
+            0.4572275,
+            0.434201834,
+            0.458839167,
+            0.459816625,
+            0.560727834
+          ],
+          "footprintBytes" : 413669728,
+          "gateReached" : true,
+          "interrupted" : false,
+          "libraryMessages" : [
+
+          ],
+          "position" : 2,
+          "startedAt" : "2026-09-24T20:03:53Z",
+          "thermalAfter" : "fair",
+          "thermalBefore" : "fair",
+          "thermalMax" : "fair",
+          "thermalWaitSeconds" : 0.00506901741027832,
+          "tokensPerSecond" : 8.665615032900982,
+          "warmupCallSeconds" : [
+            0.323528667,
+            0.324549292,
+            0.349944,
+            0.383330458
+          ]
+        },
+        {
+          "arm" : "upstream",
+          "availableBytes" : 6029878944,
+          "callSeconds" : [
+            1.882417584,
+            1.829466708,
+            2.022596959,
+            1.873925166,
+            1.6573405
+          ],
+          "footprintBytes" : 412572000,
+          "gateReached" : true,
+          "interrupted" : false,
+          "libraryMessages" : [
+
+          ],
+          "position" : 3,
+          "startedAt" : "2026-09-24T20:04:05Z",
+          "thermalAfter" : "serious",
+          "thermalBefore" : "fair",
+          "thermalMax" : "serious",
+          "thermalWaitSeconds" : 0.00047600269317626953,
+          "tokensPerSecond" : 2.158487618877838,
+          "warmupCallSeconds" : [
+            0.896242583,
+            1.220630042
+          ]
+        }
+      ],
+      "ratio" : 2.8579164181814187,
+      "rejectReason" : "the phone reached serious\/critical",
+      "spread" : 1.8352637136987482
+    },
+    {
+      "accepted" : true,
+      "attempt" : 3,
+      "cell" : "pp4",
+      "cycle" : 0,
+      "observations" : [
+        {
+          "arm" : "upstream",
+          "availableBytes" : 6012839584,
+          "callSeconds" : [
+            0.758745917,
+            0.7712115,
+            0.810461584,
+            0.833390708,
+            0.840090792
+          ],
+          "footprintBytes" : 429611360,
+          "gateReached" : true,
+          "interrupted" : false,
+          "libraryMessages" : [
+
+          ],
+          "position" : 0,
+          "startedAt" : "2026-09-24T20:09:10Z",
+          "thermalAfter" : "fair",
+          "thermalBefore" : "fair",
+          "thermalMax" : "fair",
+          "thermalWaitSeconds" : 285.2247189283371,
+          "tokensPerSecond" : 4.982684547117527,
+          "warmupCallSeconds" : [
+            2.08462175
+          ]
+        },
+        {
+          "arm" : "M5 stack (PTQ1)",
+          "availableBytes" : 6014002848,
+          "callSeconds" : [
+            0.31119925,
+            0.310805666,
+            0.317062541,
+            0.322379916,
+            0.328028542,
+            0.336128459,
+            0.338454375,
+            0.340977959
+          ],
+          "footprintBytes" : 428448096,
+          "gateReached" : true,
+          "interrupted" : false,
+          "libraryMessages" : [
+
+          ],
+          "position" : 1,
+          "startedAt" : "2026-09-24T20:09:25Z",
+          "thermalAfter" : "fair",
+          "thermalBefore" : "fair",
+          "thermalMax" : "fair",
+          "thermalWaitSeconds" : 0.0050449371337890625,
+          "tokensPerSecond" : 12.28389600105397,
+          "warmupCallSeconds" : [
+            0.319487167,
+            0.310776167,
+            0.309389209,
+            0.311887
+          ]
+        },
+        {
+          "arm" : "M5 stack (PTQ1)",
+          "availableBytes" : 6015035040,
+          "callSeconds" : [
+            0.31142975,
+            0.314999041,
+            0.320036916,
+            0.327190333,
+            0.33136125,
+            0.335880875,
+            0.337741667,
+            0.339798458
+          ],
+          "footprintBytes" : 427415904,
+          "gateReached" : true,
+          "interrupted" : false,
+          "libraryMessages" : [
+
+          ],
+          "position" : 2,
+          "startedAt" : "2026-09-24T20:09:37Z",
+          "thermalAfter" : "fair",
+          "thermalBefore" : "fair",
+          "thermalMax" : "fair",
+          "thermalWaitSeconds" : 0.002321004867553711,
+          "tokensPerSecond" : 12.22102507521764,
+          "warmupCallSeconds" : [
+            0.318395792,
+            0.310122958,
+            0.3108535,
+            0.310120417
+          ]
+        },
+        {
+          "arm" : "upstream",
+          "availableBytes" : 6018213536,
+          "callSeconds" : [
+            0.80243875,
+            0.832717792,
+            0.848730333,
+            0.862418,
+            0.869405125
+          ],
+          "footprintBytes" : 424237408,
+          "gateReached" : true,
+          "interrupted" : false,
+          "libraryMessages" : [
+
+          ],
+          "position" : 3,
+          "startedAt" : "2026-09-24T20:09:49Z",
+          "thermalAfter" : "fair",
+          "thermalBefore" : "fair",
+          "thermalMax" : "fair",
+          "thermalWaitSeconds" : 0.00495600700378418,
+          "tokensPerSecond" : 4.744159346824142,
+          "warmupCallSeconds" : [
+            0.762770791,
+            0.75973675
+          ]
+        }
+      ],
+      "ratio" : 2.519308559226946,
+      "spread" : 1.0502776536064413
+    },
+    {
+      "accepted" : false,
+      "attempt" : 1,
+      "cell" : "pp512",
+      "cycle" : 0,
+      "observations" : [
+        {
+          "arm" : "upstream",
+          "availableBytes" : 5995423344,
+          "callSeconds" : [
+            7.092222291,
+            7.355711542
+          ],
+          "footprintBytes" : 447027600,
+          "gateReached" : true,
+          "interrupted" : false,
+          "libraryMessages" : [
+
+          ],
+          "position" : 0,
+          "startedAt" : "2026-09-24T20:10:03Z",
+          "thermalAfter" : "fair",
+          "thermalBefore" : "fair",
+          "thermalMax" : "fair",
+          "thermalWaitSeconds" : 0.0050580501556396484,
+          "tokensPerSecond" : 70.87518615714579,
+          "warmupCallSeconds" : [
+            6.58926775
+          ]
+        },
+        {
+          "arm" : "M5 stack (PTQ1)",
+          "availableBytes" : 5986559624,
+          "callSeconds" : [
+            10.141068167,
+            10.472366583
+          ],
+          "footprintBytes" : 455891320,
+          "gateReached" : true,
+          "interrupted" : false,
+          "libraryMessages" : [
+
+          ],
+          "position" : 1,
+          "startedAt" : "2026-09-24T20:10:32Z",
+          "thermalAfter" : "fair",
+          "thermalBefore" : "fair",
+          "thermalMax" : "fair",
+          "thermalWaitSeconds" : 0.005047917366027832,
+          "tokensPerSecond" : 49.67634032945431,
+          "warmupCallSeconds" : [
+            7.778285375
+          ]
+        },
+        {
+          "arm" : "M5 stack (PTQ1)",
+          "availableBytes" : 5986576008,
+          "callSeconds" : [
+            10.666161167,
+            10.790555083
+          ],
+          "footprintBytes" : 455874936,
+          "gateReached" : true,
+          "interrupted" : false,
+          "libraryMessages" : [
+
+          ],
+          "position" : 2,
+          "startedAt" : "2026-09-24T20:11:09Z",
+          "thermalAfter" : "serious",
+          "thermalBefore" : "fair",
+          "thermalMax" : "serious",
+          "thermalWaitSeconds" : 0.0010069608688354492,
+          "tokensPerSecond" : 47.72398479194131,
+          "warmupCallSeconds" : [
+            7.324903666
+          ]
+        }
+      ],
+      "ratio" : "nan",
+      "rejectReason" : "the phone reached serious\/critical",
+      "spread" : "inf"
+    },
+    {
+      "accepted" : false,
+      "attempt" : 2,
+      "cell" : "pp512",
+      "cycle" : 0,
+      "observations" : [
+        {
+          "arm" : "upstream",
+          "availableBytes" : 5990835872,
+          "callSeconds" : [
+            6.952882542,
+            7.378517125
+          ],
+          "footprintBytes" : 451615072,
+          "gateReached" : true,
+          "interrupted" : false,
+          "libraryMessages" : [
+
+          ],
+          "position" : 0,
+          "startedAt" : "2026-09-24T20:13:21Z",
+          "thermalAfter" : "fair",
+          "thermalBefore" : "fair",
+          "thermalMax" : "fair",
+          "thermalWaitSeconds" : 95.07131910324097,
+          "tokensPerSecond" : 71.45149976927233,
+          "warmupCallSeconds" : [
+            6.486780875
+          ]
+        },
+        {
+          "arm" : "M5 stack (PTQ1)",
+          "availableBytes" : 5995767456,
+          "callSeconds" : [
+            8.9683485,
+            10.783339667
+          ],
+          "footprintBytes" : 446683488,
+          "gateReached" : true,
+          "interrupted" : false,
+          "libraryMessages" : [
+
+          ],
+          "position" : 1,
+          "startedAt" : "2026-09-24T20:13:50Z",
+          "thermalAfter" : "serious",
+          "thermalBefore" : "fair",
+          "thermalMax" : "serious",
+          "thermalWaitSeconds" : 0.005051016807556152,
+          "tokensPerSecond" : 51.8436698343001,
+          "warmupCallSeconds" : [
+            7.26752975
+          ]
+        }
+      ],
+      "ratio" : "nan",
+      "rejectReason" : "the phone reached serious\/critical",
+      "spread" : "inf"
+    }
+  ],
+  "spreadGate" : 1.2,
+  "started" : "2026-09-24T19:33:19Z",
+  "summaries" : [
+    {
+      "acceptedQuartets" : 0,
+      "cell" : "tg128",
+      "complete" : false,
+      "rejectedQuartets" : 0,
+      "tokenMismatchQuartets" : 0
+    },
+    {
+      "acceptedQuartets" : 0,
+      "cell" : "chat128",
+      "complete" : false,
+      "rejectedQuartets" : 0,
+      "tokenMismatchQuartets" : 0
+    },
+    {
+      "acceptedQuartets" : 0,
+      "cell" : "pp2",
+      "complete" : false,
+      "rejectedQuartets" : 3,
+      "tokenMismatchQuartets" : 0
+    },
+    {
+      "aMean" : 4.863421946970835,
+      "acceptedQuartets" : 1,
+      "bMean" : 12.252460538135804,
+      "cell" : "pp4",
+      "complete" : false,
+      "rejectedQuartets" : 2,
+      "speedupGeomean" : 2.519308559226946,
+      "speedupMax" : 2.519308559226946,
+      "speedupMin" : 2.519308559226946,
+      "tokenMismatchQuartets" : 0
+    },
+    {
+      "acceptedQuartets" : 0,
+      "cell" : "pp8",
+      "complete" : false,
+      "rejectedQuartets" : 3,
+      "tokenMismatchQuartets" : 0
+    },
+    {
+      "acceptedQuartets" : 0,
+      "cell" : "pp512",
+      "complete" : false,
+      "rejectedQuartets" : 2,
+      "tokenMismatchQuartets" : 0
+    }
+  ],
+  "tool" : "BonsaiBench 3",
+  "waitForNominal" : false
+}
