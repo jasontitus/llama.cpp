@@ -403,3 +403,21 @@ matter mainly for MTP (1.34x / 1.22x total) and concurrency.
   same ternary weights in two packings.
 - The Bonsai 1 ternary ratio (1.00048 +/- 0.00038) is within 1.3 standard errors of 1.
 
+
+## PTQ1 small batches and 2 requests vs upstream (M5 Max)
+
+Upstream (no flags) vs the recommended PTQ1 flags, same protocol as the headline (3 A-B-B-A quartets, 8 s
+cooldown, AC power, no thermal warnings), revision `9f7a364` with a clean library tree. Results are in
+`results/fill-ptq1-ppk-2requests/`. Every quartet was accepted on the first attempt.
+
+| Cell | Upstream | Flags | Paired | Range |
+|---|---:|---:|---:|---|
+| pp2 | 20.6 | 79.3 | 3.85x | 3.83-3.87 |
+| pp4 | 37.0 | 78.4 | 2.12x | 2.12-2.13 |
+| pp8 | 40.5 | 92.8 | 2.29x | 2.29-2.29 |
+| llama-server, 2 concurrent requests | 17.9 | 62.2 | 3.43x | 2.94-3.71 |
+
+Upstream's PTQ1_0 multi-token path is slower than its own single-token decode. Two concurrent requests
+total 17.9 tok/s, less than half of one request (41); the multi-column kernels are what fix it. The
+generated text was identical in every slot. The iPhone 17 Pro Max shows the same pattern: 4.19x / 2.44x /
+2.35x at pp2 / pp4 / pp8, preliminary, 2 quartets.
