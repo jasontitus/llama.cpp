@@ -14,7 +14,8 @@ import time
 p = argparse.ArgumentParser(description=__doc__)
 p.add_argument('--workspace', type=Path, required=True)
 p.add_argument('--output', type=Path, required=True)
-p.add_argument('--studies', nargs='+', help='run named studies in this order; omit for the original full suite')
+p.add_argument('--suite', choices=['device','replay'], default='device', help='device: current 21-cell device table; replay: earlier 55-cell research suite')
+p.add_argument('--studies', nargs='+', help='run named studies in this order instead of the selected suite')
 a = p.parse_args()
 root = a.workspace.resolve()
 out = a.output.resolve()
@@ -28,7 +29,7 @@ pq2 = dict(GGML_METAL_PQ2_MULTICOL='1', GGML_METAL_PQ2_GLU='1', GGML_GDN_ROWS_PL
 q1 = dict(GGML_GDN_ROWS_PLAIN='1', GGML_METAL_SMALLM='1', GGML_METAL_SMALLM_MM='1')
 
 # Same cells, flags, prompts, and ABBA settings as the committed M5 scripts.
-studies=[
+replay_studies=[
  ('headline-ptq1-same-mode','b2-ptq1',{},ptq,['tg128'],['s0c1','s1c1'],None),
  ('headline-ptq1-total','b2-ptq1',{},ptq,[],['s1c1'],[0,1]),
  ('headline-pq2-total','b2-pq2',{},pq2,[],['s1c1'],[0,1]),
@@ -41,8 +42,20 @@ studies=[
  ('abba5-invariant-cost','b2-ptq1',ptq,dict(ptq,GGML_METAL_BATCH_INVARIANT='1'),['tg128','pp2','pp4','pp8'],['s0c1','s1c1','s1c2'],None),
  ('abba1-m1cand-vs-m5stack','b2-ptq1',dict(GGML_METAL_PTQ1_MULTICOL='1'),{k:v for k,v in ptq.items() if k!='GGML_METAL_SMALLM_MM'},['tg128','pp2','pp3','pp4','pp8','pp512'],['s0c1','s1c1','s0c2','s1c2','s0c4','s1c4'],None),
 ]
+# Match run-device-study.sh without its missing-model skips.
+device_studies=[
+ ('ptq1-same-mode','b2-ptq1',{},ptq,['tg128','pp2','pp4','pp8'],['s0c1','s1c1','s0c2'],None),
+ ('ptq1-bitexact','b2-ptq1',{},dict(GGML_GDN_ROWS_PLAIN='1'),['tg128'],['s0c1'],None),
+ ('ptq1-total','b2-ptq1',{},ptq,[],['s1c1'],[0,1]),
+ ('pq2-same-mode','b2-pq2',{},pq2,['tg128','pp2'],['s0c1','s0c2'],None),
+ ('pq2-total','b2-pq2',{},pq2,[],['s1c1'],[0,1]),
+ ('b1-ternary','b1-ternary',{},pq2,['tg128'],['s0c1','s0c2'],None),
+ ('b1-binary','b1-binary',{},q1,['tg128'],['s0c1','s0c2'],None),
+]
+studies=device_studies if a.suite=='device' else replay_studies
 # These targeted comparisons run only when explicitly selected.
 optional_studies=[
+ ('reload-baseline','b2-ptq1',{},{},[],['s0c1','s1c1'],None),
  ('m1-geometry','b2-ptq1',ptq,ptq,['pp2','pp3'],['s1c1'],None),
  ('previous-pr','b2-ptq1',dict(GGML_METAL_PTQ1_MULTICOL='1'),ptq,['pp2','pp3'],['s0c1','s1c1'],None),
  ('previous-pr-no-stage','b2-ptq1',dict(GGML_METAL_PTQ1_MULTICOL='1'),dict(ptq,GGML_METAL_PTQ1_STAGE='0'),[],['s1c1'],None),
@@ -50,8 +63,11 @@ optional_studies=[
  ('m1-no-stage-prefill','b2-ptq1',dict(GGML_METAL_PTQ1_MULTICOL='1'),dict(ptq,GGML_METAL_PTQ1_STAGE='0'),['pp2','pp3'],[],None),
  ('full-column-specialization','b2-ptq1',dict(GGML_METAL_PTQ1_MULTICOL='1',GGML_METAL_PTQ1_MULTICOL_MAX='8'),dict(GGML_METAL_PTQ1_MULTICOL='1',GGML_METAL_PTQ1_MULTICOL_MAX='8'),['pp2','pp3'],['s1c1'],None),
  ('previous-pr-m1','b2-ptq1',dict(GGML_METAL_PTQ1_MULTICOL='1'),dict(ptq,GGML_METAL_PTQ1_STAGE='0'),['pp2','pp3'],['s0c1','s1c1'],None),
+ ('m1-single-user','b2-ptq1',{},dict(ptq,GGML_METAL_PTQ1_STAGE='0'),[],['s0c1','s1c1'],None),
+ ('m1-total','b2-ptq1',{},dict(ptq,GGML_METAL_PTQ1_STAGE='0'),[],['s1c1'],[0,1]),
 ]
 comparison_builds={
+    'reload-baseline':(root/'work/llama-tuning-r4',root/'work/build-tuning-r4/bin'),
     'm1-geometry':(root/'work/llama-tuning-before',root/'work/build-tuning-before/bin'),
     'previous-pr':(root/'work/llama-pr',root/'work/build-pr/bin'),
     'previous-pr-no-stage':(root/'work/llama-pr',root/'work/build-pr/bin'),
@@ -61,7 +77,7 @@ comparison_builds={
     'previous-pr-m1':(root/'work/llama-pr',root/'work/build-pr/bin'),
 }
 if a.studies is not None:
-    available={study[0]:study for study in studies+optional_studies}
+    available={study[0]:study for study in replay_studies+device_studies+optional_studies}
     unknown=[name for name in a.studies if name not in available]
     if unknown:
         p.error('unknown studies: '+', '.join(unknown))
@@ -115,6 +131,7 @@ m1_tools=Path(__file__).resolve().parent
 sources=snapshot_sources([
     m1_tools/'run.py',m1_tools/'summarize.py',m1_tools/'thermal-state.m',
     m1_tools.parent/'models.json',tools/'abba-m5.py',tools/'abba-m5-draft.py',
+    tools/'run-device-study.sh',tools/'device-table.py',
     src/'tests/test-backend-ops.cpp',
     *[tools/f'check-numerical-{kind}.cpp' for kind in ['m5','pq2','q1']],
 ])
@@ -161,7 +178,7 @@ manifest = dict(started=time.time(), source=capture(['git','-C',str(src),'rev-pa
     source_snapshots=sources,
     hardware={k:capture(['sysctl','-n',k]) for k in ['hw.model','hw.memsize','hw.ncpu','machdep.cpu.brand_string']},
     os=capture(['sw_vers']), compiler=capture(['clang','--version']), models=pins,
-    binaries=binary_hashes,comparison_a=comparison_a,studies=[study[0] for study in studies],
+    binaries=binary_hashes,comparison_a=comparison_a,suite=a.suite,studies=[study[0] for study in studies],
     telemetry_note='Codex remains open. GPU counters cover only the first AGXAccelerator PerformanceStatistics entry returned by ioreg, not an aggregate across entries. Process CPU activity is sampled; per-process GPU attribution unavailable because sudo is not authenticated. Thermal state: 0 nominal, 1 fair, 2 serious, 3 critical.',
     protocol=dict(cycles=3,cooldown_seconds=8,spread_limit=1.20,attempts=3,tokens=128),
     flags=dict(ptq1=ptq,pq2=pq2,q1=q1),

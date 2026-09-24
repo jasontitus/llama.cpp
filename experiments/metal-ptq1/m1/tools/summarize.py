@@ -38,6 +38,19 @@ if a.self_test:
         assert row['cross_arm_token_mismatches']==2 and row['within_arm_token_mismatches']==1
         assert '| Bonsai 2 PTQ1_0 |' not in report
         assert 'output mismatch' in report
+        (fixture/'studies.json').write_text(json.dumps([
+            ('pq2-same-mode','b2-pq2',{},{},[],['s0c1'],None),
+            ('pq2-total','b2-pq2',{},{},[],['s1c1'],[0,1])]))
+        for study,cell,b_rate in [('pq2-same-mode','s0c1',45.0),('pq2-total','s1c1',60.0)]:
+            (fixture/study).mkdir()
+            for cycle in range(3):
+                obs=[dict(arm=arm,tps=30.0 if arm=='A' else b_rate,
+                          gen_tps_mean=30.0 if arm=='A' else b_rate,
+                          requests=[dict(slot=0,tokens=[1])]) for arm in 'ABBA']
+                (fixture/study/f'{cell}-cycle{cycle}.json').write_text(json.dumps(
+                    dict(cycle=cycle,obs=obs,ratio=b_rate/30.0,token_mismatch_slots=0)))
+        row,report=summarize_fixture()
+        assert '| Bonsai 2 PQ2_0 | 30.00 | - | 45.00 | 60.00 | +33.3% |' in report
     print('Synthetic matching/mismatching output acceptance checks passed.')
     sys.exit(0)
 if a.run is None:
@@ -88,15 +101,21 @@ for r in results:
     status='output mismatch' if r['output_match'] is False else ('accepted' if r['accepted'] else 'incomplete')
     lines.append(f"| {r['study']} | {r['cell']} | {r['quartets']}/3 | {r['A_tps']:.2f} | {r['B_tps']:.2f} | {(r['speedup']-1)*100:+.1f}% | {r['min_ratio']:.3f}-{r['max_ratio']:.3f}x | {r['cross_arm_token_mismatches']} | {r['within_arm_token_mismatches']} | {r['rejected']} | {status} |")
 lines+=['','## Single-user native generation','',
-    'These means exclude prompt/request overhead. Only timing-complete cells with matching generated output are shown. Plain and MTP are separate cells; their ratio is descriptive, not a paired ABBA estimate. A/B means all flags off / M5-recommended flags under test. Bonsai 1 has no MTP head in this experiment.','',
+    'These means exclude prompt/request overhead. Only timing-complete cells with matching generated output are shown. Plain and MTP are separate cells; their ratio is descriptive, not a paired ABBA estimate. A/B means all flags off / flags under test (see studies.json). The M1 profile disables PTQ1 staging. Bonsai 1 has no MTP head in this experiment. When only the PQ2 total-benefit study provides optimized MTP, original MTP remains unmeasured.','',
     '| Model | Original plain | Original MTP | Optimized plain | Optimized MTP | MTP vs optimized plain |',
     '|---|---:|---:|---:|---:|---:|']
-for name,study in [('Bonsai 2 PTQ1_0','headline-ptq1-same-mode'),('Bonsai 2 PQ2_0','abba3-b2-pq2'),('Bonsai 1 ternary','abba3-b1-ternary'),('Bonsai 1 binary','abba3-b1-binary')]:
-    plain=next((r for r in results if r['study']==study and r['cell']=='s0c1' and r['accepted']),None)
-    mtp=next((r for r in results if r['study']==study and r['cell']=='s1c1' and r['accepted']),None)
+for name,names in [('Bonsai 2 PTQ1_0',['ptq1-same-mode','headline-ptq1-same-mode']),
+                   ('Bonsai 2 PTQ1_0 (M1 profile)',['m1-single-user']),
+                   ('Bonsai 2 PQ2_0',['pq2-same-mode','abba3-b2-pq2']),
+                   ('Bonsai 1 ternary',['b1-ternary','abba3-b1-ternary']),
+                   ('Bonsai 1 binary',['b1-binary','abba3-b1-binary'])]:
+    plain=next((r for r in results if r['study'] in names and r['cell']=='s0c1' and r['accepted']),None)
+    mtp=next((r for r in results if r['study'] in names and r['cell']=='s1c1' and r['accepted']),None)
     if not plain:
         continue
     oldmtp=f"{mtp['A_gen_tps']:.2f}" if mtp else '-'
+    if mtp is None and name=='Bonsai 2 PQ2_0':
+        mtp=next((r for r in results if r['study'] in ['pq2-total','headline-pq2-total'] and r['cell']=='s1c1' and r['accepted']),None)
     newmtp=f"{mtp['B_gen_tps']:.2f}" if mtp else '-'
     gain=f"{(mtp['B_gen_tps']/plain['B_gen_tps']-1)*100:+.1f}%" if mtp else '-'
     lines.append(f"| {name} | {plain['A_gen_tps']:.2f} | {oldmtp} | {plain['B_gen_tps']:.2f} | {newmtp} | {gain} |")
