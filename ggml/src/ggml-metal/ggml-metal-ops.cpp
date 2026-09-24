@@ -2725,7 +2725,8 @@ static int ggml_metal_op_mul_mat_ptq1_mcs(ggml_metal_op_t ctx, int idx) {
 
     ggml_metal_buffer_id bid_dst = ggml_metal_get_buffer_id(op);
     ggml_metal_buffer_id bid_stg = bid_dst;
-    bid_stg.offs += ggml_nbytes(op);
+    bid_stg.offs += GGML_PAD(ggml_nbytes(op), 16);
+    GGML_ASSERT(bid_stg.offs % 16 == 0);
 
     // the scratch lies past the tracked dst range, so no in-flight op may still use that memory
     ggml_metal_op_concurrency_reset(ctx);
@@ -2759,7 +2760,11 @@ static int ggml_metal_op_mul_mat_ptq1_mcs(ggml_metal_op_t ctx, int idx) {
 }
 
 size_t ggml_metal_op_mul_mat_extra_ptq1_stage(const ggml_tensor * op) {
-    return ggml_metal_op_mul_mat_ptq1_staged(op) ? ggml_metal_ptq1_stage_bytes(op) : 0;
+    if (!ggml_metal_op_mul_mat_ptq1_staged(op)) {
+        return 0;
+    }
+    const size_t size = ggml_nbytes(op);
+    return GGML_PAD(size, 16) - size + ggml_metal_ptq1_stage_bytes(op);
 }
 
 // true when two tensors' byte ranges intersect. The allocator may place a node's output in memory

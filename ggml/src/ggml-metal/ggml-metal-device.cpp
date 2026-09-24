@@ -1290,8 +1290,7 @@ ggml_metal_pipeline_with_params ggml_metal_library_get_pipeline_ptq1_stage(ggml_
     return res;
 }
 
-// multi-column PTQ1_0 product over pre-laid-out activations. Rows default by tile width: M5 sweeps
-// preferred two rows for 2-3 column tiles (n=3 up to 29% faster) and four for 4-column tiles;
+// M1 measurements prefer four rows; M5 prefers two for narrow tiles.
 // GGML_METAL_PTQ1_NR0 / GGML_METAL_PTQ1_NSG still override.
 ggml_metal_pipeline_with_params ggml_metal_library_get_pipeline_mul_mv_ptq1_mcs(ggml_metal_library_t lib, const ggml_tensor * op) {
     static const int rows   = getenv("GGML_METAL_PTQ1_NR0") ? atoi(getenv("GGML_METAL_PTQ1_NR0")) : 0;
@@ -1300,7 +1299,9 @@ ggml_metal_pipeline_with_params ggml_metal_library_get_pipeline_mul_mv_ptq1_mcs(
     const int ne11 = op->src[1]->ne[1];
 
     const int nr1 = (ne11 + (ne11 + 3)/4 - 1) / ((ne11 + 3)/4);
-    const int nr0 = rows == 2 || rows == 4 ? rows : (nr1 <= 3 ? 2 : 4);
+    const auto * props = ggml_metal_device_get_props(ggml_metal_library_get_device(lib));
+    const int default_rows = props->gpu_family == 7 ? 4 : (nr1 <= 3 ? 2 : 4);
+    const int nr0 = rows == 2 || rows == 4 ? rows : default_rows;
     const int nsg = groups == 2 || groups == 4 ? groups : 1;
 
     char base[256];
