@@ -1,11 +1,59 @@
-# Bonsai on Apple M5: faster Metal decoding with identical output
+# Bonsai on Apple silicon: faster Metal decoding with identical output
 
-Downstream research on PrismML's llama.cpp fork (base `0324c66`), measured on an Apple M5 Max.
-It ports the CUDA small-batch work from [PrismML PR #218](https://github.com/PrismML-Eng/llama.cpp/pull/218)
-to Metal and adds M5-specific findings. **Every change is an opt-in environment flag**; with no flags set,
-behaviour is upstream's.
+Downstream research on PrismML's llama.cpp fork (base `0324c66`). It ports the CUDA small-batch work from
+[PrismML PR #218](https://github.com/PrismML-Eng/llama.cpp/pull/218) to Metal, plus findings from tuning
+on Apple silicon. **Every change is an opt-in environment flag**; with no flags set, behaviour is upstream's.
 
-## Headline (paired against upstream on the same machine)
+| Device | Status |
+|---|---|
+| Apple M5 Max (40-core GPU, Apple10) | **Measured**: results below |
+| Apple M1 Ultra (64-core GPU, Apple7) | In progress (the portable flags; no tensor units on Apple7) |
+| iPhone 17 Pro Max (A19 Pro, Apple10) | Benchmark app built: [`../ios/BonsaiBench`](../ios/BonsaiBench); results to come |
+
+All devices use the same flags, the same paired A-B-B-A protocol and the same tools (see
+"Reproduce on your Mac" below), so results are comparable as paired speedups. Absolute tokens/s
+differ by device.
+
+## Results by device
+
+Paired speedup vs upstream PrismML **on the same device** (geometric mean of three A-B-B-A quartets),
+with upstream -> flags tokens/s in parentheses. Server rows: llama-server, 128 greedy tokens, short prompt;
+generated text was identical between arms unless noted. Flags per model are listed under "Recommended
+flags" below; the bit-identical row uses `GGML_GDN_ROWS_PLAIN=1` only.
+
+| Result | Apple M5 Max | Apple M1 Ultra | iPhone 17 Pro Max |
+|---|---|---|---|
+| PTQ1: upstream plain -> flags + MTP (server, 1 request) | **1.34x** (41.4 -> 55.5) | _pending_ | n/a (no MTP in app) |
+| PQ2: upstream plain -> flags + MTP (server, 1 request) | **1.22x** (42.9 -> 52.5) | _pending_ | n/a (no MTP in app) |
+| PTQ1 plain decoding (server, 1 request) | 1.10x (41.3 -> 45.7) | _pending_ | n/a |
+| PTQ1 plain decoding, bit-identical subset (server, 1 request) | 1.07x (41.2 -> 44.3) | _pending_ | n/a |
+| PTQ1 tg128 | 1.08x (43.4 -> 47.0) | _pending_ | _pending_ |
+| PTQ1 MTP -> MTP (server, 1 request) | 3.34x (16.6 -> 55.4) | _pending_ | n/a |
+| PTQ1 2 requests (server) | _pending_ | _pending_ | n/a |
+| PTQ1 pp2 / pp4 / pp8 | _pending_ | _pending_ | _pending_ |
+| PQ2 tg128 | 1.11x (45.5 -> 50.4) | _pending_ | _pending_ |
+| PQ2 2 requests (server) | 1.33x (48.1 -> 64.1) | _pending_ | n/a |
+| Bonsai 1 ternary tg128 | 1.12x (48.0 -> 53.6) | _pending_ | _pending_ |
+| Bonsai 1 ternary 2 requests (server) | 1.33x (50.1 -> 66.6) | _pending_ | n/a |
+| Bonsai 1 binary tg128 | 1.14x (66.7 -> 75.7) | _pending_ | _pending_ |
+| Bonsai 1 binary 2 requests (server) | 1.17x (79.8 -> 93.2) | _pending_ | n/a |
+
+### Filling in a device column
+
+On the device, from a checkout of this branch built with Metal:
+
+```sh
+zsh experiments/metal-ptq1/m5/tools/run-device-study.sh build/bin /path/to/models /path/to/mtp-models out-<device>
+python3 experiments/metal-ptq1/m5/tools/device-table.py out-<device>
+```
+
+The first command runs every study behind the table (about 1.5 hours; nothing else on the GPU, AC
+power). The second prints one line per row; paste the values into that device's column, add the
+device's details (chip, GPU cores, memory, macOS) to the device list above, copy `out-<device>/*/summary.json`
+into `results/<device>/`, and commit. The iPhone column comes from the BonsaiBench app's exported JSON
+(tg128 and ppK cells; the app has no server/MTP).
+
+## Apple M5 Max: headline (paired against upstream on the same machine)
 
 Bonsai 2 27B, one request, 128 greedy tokens, llama-server, tokens/s including the short prompt:
 
@@ -89,6 +137,21 @@ int8 activations change greedy text under concurrency.
   2011-token contexts.
 - Three adversarial code reviews; all findings fixed (see EXPERIMENTS.md).
 - Quality benchmarks (KL divergence on WikiText-2 at batch 1 and 2/4, HellaSwag, Winogrande): **pending**.
+
+## Reproduce on your Mac
+
+1. Check out this branch and build with Metal: `cmake -B build -DGGML_METAL=ON -DLLAMA_BUILD_SERVER=ON && cmake --build build -j`.
+2. Run any tool with a flag set, e.g. `GGML_GDN_ROWS_PLAIN=1 GGML_METAL_PTQ1_MULTICOL=1 ... build/bin/llama-server -m model.gguf`.
+3. For paired numbers comparable to the tables above, use `tools/abba-m5.py` (A-B-B-A, spread gate, token
+   comparison): `python3 tools/abba-m5.py --output out --bin build/bin --src . --model M.gguf --mtp-model M-mtp.gguf
+   --bench tg128 --server s0c1 s1c1 --env-a '{}' --env-b '{"GGML_GDN_ROWS_PLAIN":"1", ...}'`, and
+   `tools/abba-m5-draft.py --draft-a 0 --draft-b 1` for upstream plain decoding vs MTP.
+4. Correctness on a new device: `tools/correctness-matrix.sh` (test-backend-ops + strict checkers per flag
+   set) and `tools/check-model-m5.py` (full-model logits vs upstream).
+
+On Apple7/8/9 GPUs (M1-M4), `GGML_METAL_PTQ1_TENSOR` has no effect (no tensor units); everything else is
+portable. Tuned defaults (rows per simdgroup, tile widths, the PQ2 width limit) were chosen on the M5 Max
+and may not be optimal elsewhere; the paired study will show it.
 
 ## Files
 

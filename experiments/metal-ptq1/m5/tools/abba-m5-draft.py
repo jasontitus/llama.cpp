@@ -42,7 +42,7 @@ a = p.parse_args()
 a.output.mkdir(parents=True, exist_ok=True)
 (a.output / 'rejected').mkdir(exist_ok=True)
 
-base_env = {k: v for k, v in os.environ.items() if not k.startswith(('GGML_METAL_PTQ1', 'GGML_GDN', 'LLAMA_ARG_'))}
+base_env = {k: v for k, v in os.environ.items() if not k.startswith(('GGML_METAL_', 'GGML_GDN_', 'LLAMA_ARG_'))}
 ARMS = {'A': dict(base_env, **json.loads(a.env_a)), 'B': dict(base_env, **json.loads(a.env_b))}
 
 def digest(path):
