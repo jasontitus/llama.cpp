@@ -2640,13 +2640,9 @@ int ggml_metal_op_pool_2d(ggml_metal_op_t ctx, int idx) {
 // int8 bit-planes once, then consume 32 weights per AND+popcount instead of one
 // select per weight. See the kernel comment in mul_mv.metal.
 //
-// The plane scratch is carved out of the padding the allocator adds behind dst, so
-// the encoder must take this path exactly when the allocator reserved for it. Both
-// call this predicate rather than repeating the shape test.
-static bool ggml_metal_op_mul_mat_q1_0_pc_supported(const ggml_tensor * op) {
-    const bool q1_0_pc = GGML_METAL_ENV_SET("GGML_METAL_Q1_0_POPCNT");
-
-    if (!q1_0_pc || !op->src[0] || !op->src[1]) {
+// Reserve plane scratch for every supported shape, including when the path is disabled.
+static bool ggml_metal_op_mul_mat_q1_0_pc_shape(const ggml_tensor * op) {
+    if (!op->src[0] || !op->src[1]) {
         return false;
     }
 
@@ -2670,6 +2666,22 @@ static bool ggml_metal_op_mul_mat_q1_0_pc_supported(const ggml_tensor * op) {
     return ne02 == 1 && ne03 == 1 && ne12 == 1 && ne13 == 1;
 }
 
+static bool ggml_metal_op_mul_mat_q1_0_pc_supported(const ggml_tensor * op) {
+    return GGML_METAL_ENV_SET("GGML_METAL_Q1_0_POPCNT") && ggml_metal_op_mul_mat_q1_0_pc_shape(op);
+}
+
+// Shape bound for scratch that any PTQ1 research profile can use.
+static bool ggml_metal_ptq1_scratch_shape(const ggml_tensor * op) {
+    if (op->op != GGML_OP_MUL_MAT) {
+        return false;
+    }
+    const ggml_tensor * w = op->src[0];
+    const ggml_tensor * x = op->src[1];
+    return w->type == GGML_TYPE_PTQ1_0 && x->type == GGML_TYPE_F32 && x->nb[0] == sizeof(float) &&
+           w->ne[0] % 128 == 0 && w->ne[2] == 1 && w->ne[3] == 1 && x->ne[2] == 1 && x->ne[3] == 1 &&
+           x->ne[1] >= 2 && x->ne[1] <= 8 && ggml_is_contiguous(op);
+}
+
 // bytes of pre-laid-out activations for a PTQ1_0 product: per column, block and lane, five float4
 static size_t ggml_metal_ptq1_stage_bytes(const ggml_tensor * op) {
     return (size_t) op->src[1]->ne[1] * (op->src[0]->ne[0]/128) * 8 * 5 * 4 * sizeof(float);
@@ -2685,9 +2697,8 @@ static bool ggml_metal_ptq1_stage_enabled(void) {
 // the staged multi-column path: plain 2D products the multi-column kernel already takes, with
 // enough rows to amortize the extra pass and barrier (M5: 1024-row attn_k/v at n=2 was 15% slower)
 static bool ggml_metal_op_mul_mat_ptq1_staged(const ggml_tensor * op) {
-    return ggml_metal_ptq1_stage_enabled() && ggml_metal_ptq1_multicol_enabled(op) && op->src[1]->ne[1] >= 2 && op->src[0]->ne[1] >= 4096 &&
-           op->src[0]->ne[2] == 1 && op->src[0]->ne[3] == 1 && op->src[1]->ne[2] == 1 && op->src[1]->ne[3] == 1 &&
-           ggml_is_contiguous(op);
+    return ggml_metal_ptq1_stage_enabled() && ggml_metal_ptq1_multicol_enabled(op) &&
+           ggml_metal_ptq1_scratch_shape(op) && op->src[0]->ne[1] >= 4096;
 }
 
 // write the activation pre-layout for src1 of op into stg, then order the consumer after it
@@ -2760,7 +2771,7 @@ static int ggml_metal_op_mul_mat_ptq1_mcs(ggml_metal_op_t ctx, int idx) {
 }
 
 size_t ggml_metal_op_mul_mat_extra_ptq1_stage(const ggml_tensor * op) {
-    if (!ggml_metal_op_mul_mat_ptq1_staged(op)) {
+    if (!ggml_metal_ptq1_scratch_shape(op) || op->src[0]->ne[1] < 4096) {
         return 0;
     }
     const size_t size = ggml_nbytes(op);
@@ -2777,8 +2788,8 @@ static bool ggml_metal_tensors_overlap(const ggml_tensor * a, const ggml_tensor 
 }
 
 // M5/A19 tensor-unit path for 5..8 PTQ1_0 columns (research flag GGML_METAL_PTQ1_TENSOR=1). The
-// allocation predicate cannot see the device, so it reserves scratch whenever the flag and shape
-// allow; the encoder additionally requires the device's tensor support and otherwise falls through.
+// allocator reserves scratch for every supported shape on devices with tensor support.
+// The encoder additionally checks the selected profile.
 // M5 ABBA: 0.78x at 5 columns, 0.83x at 6, 1.02x at 7, 1.04x at 8 (MTP C4 verify 1.09x): the tensor
 // kernel's cost is flat in the column count while the scalar 3+3 tiles are cheap, so default to 8
 static int ggml_metal_ptq1_tensor_min(void) {
@@ -2789,14 +2800,8 @@ static int ggml_metal_ptq1_tensor_min(void) {
 static bool ggml_metal_op_mul_mat_ptq1_tensor_shape(const ggml_tensor * op) {
     const bool enabled = GGML_METAL_ENV_INT("GGML_METAL_PTQ1_TENSOR", 0) == 1;
     // off in batch-invariant mode: its arithmetic differs from the scalar multi-column template
-    if (!enabled || ggml_metal_batch_invariant() || op->op != GGML_OP_MUL_MAT) {
-        return false;
-    }
-    const ggml_tensor * w = op->src[0];
-    const ggml_tensor * x = op->src[1];
-    return w->type == GGML_TYPE_PTQ1_0 && x->type == GGML_TYPE_F32 && x->nb[0] == sizeof(float) &&
-           w->ne[0] % 128 == 0 && w->ne[2] == 1 && w->ne[3] == 1 && x->ne[2] == 1 && x->ne[3] == 1 &&
-           x->ne[1] >= ggml_metal_ptq1_tensor_min() && x->ne[1] <= 8 && ggml_is_contiguous(op);
+    return enabled && !ggml_metal_batch_invariant() && ggml_metal_ptq1_scratch_shape(op) &&
+           op->src[1]->ne[1] >= ggml_metal_ptq1_tensor_min();
 }
 
 // scratch past dst: 16 half tensor columns x K, 64-byte aligned
@@ -2805,7 +2810,7 @@ static size_t ggml_metal_ptq1_tensor_offset(const ggml_tensor * op) {
 }
 
 size_t ggml_metal_op_mul_mat_extra_ptq1_tensor(const ggml_tensor * op) {
-    if (!ggml_metal_op_mul_mat_ptq1_tensor_shape(op)) {
+    if (!ggml_metal_ptq1_scratch_shape(op)) {
         return 0;
     }
     return ggml_metal_ptq1_tensor_offset(op) - ggml_nbytes(op) + 16*op->src[0]->ne[0]*sizeof(uint16_t);
@@ -3427,9 +3432,7 @@ int ggml_metal_op_mul_mat(ggml_metal_op_t ctx, int idx) {
 size_t ggml_metal_op_mul_mat_extra_q1_0_planes(const ggml_tensor * op) {
     assert(op->op == GGML_OP_MUL_MAT);
 
-    // the encoder gates on this exact predicate, so nothing is reserved for a shape
-    // that path would not take -- and nothing at all when the path is off
-    if (!ggml_metal_op_mul_mat_q1_0_pc_supported(op)) {
+    if (!ggml_metal_op_mul_mat_q1_0_pc_shape(op)) {
         return 0;
     }
 

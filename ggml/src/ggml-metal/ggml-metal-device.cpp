@@ -892,15 +892,81 @@ ggml_metal_pipeline_with_params ggml_metal_library_get_pipeline_mul_mm(ggml_meta
 }
 
 #include <atomic>
+#include <mutex>
 
-static std::atomic<int> g_research_generation{0};
+static std::atomic<uint64_t> g_research_generation{0};
+static std::mutex g_research_mutex;
+static size_t g_research_contexts = 0;
+static std::unordered_map<std::string, std::string> g_research_flags;
+static const char * const g_research_names[] = {
+    "GGML_METAL_BATCH_INVARIANT",
+    "GGML_METAL_PQ2_GLU",
+    "GGML_METAL_PQ2_GLU_NR0",
+    "GGML_METAL_PQ2_MC_MAX",
+    "GGML_METAL_PQ2_MULTICOL",
+    "GGML_METAL_PQ2_NR0",
+    "GGML_METAL_PQ2_NSG",
+    "GGML_METAL_PTQ1_GLU",
+    "GGML_METAL_PTQ1_GLU_NR0",
+    "GGML_METAL_PTQ1_GLU_NSG",
+    "GGML_METAL_PTQ1_MM_B128",
+    "GGML_METAL_PTQ1_MULTICOL",
+    "GGML_METAL_PTQ1_MULTICOL_MAX",
+    "GGML_METAL_PTQ1_NR0",
+    "GGML_METAL_PTQ1_NSG",
+    "GGML_METAL_PTQ1_STAGE",
+    "GGML_METAL_PTQ1_TENSOR",
+    "GGML_METAL_PTQ1_TENSOR_MIN",
+    "GGML_METAL_Q1_0_POPCNT",
+    "GGML_METAL_Q1_GLU",
+    "GGML_METAL_Q1_GLU_MAX",
+    "GGML_METAL_Q1_GLU_NR0",
+    "GGML_METAL_SMALLM",
+    "GGML_METAL_SMALLM_MM",
+    "GGML_GDN_ROWS_PLAIN",
+};
 
-int ggml_metal_research_generation(void) {
+uint64_t ggml_metal_research_generation(void) {
     return g_research_generation.load(std::memory_order_acquire);
 }
 
-void ggml_metal_research_reload(void) {
-    g_research_generation.fetch_add(1, std::memory_order_acq_rel);
+// All live Metal contexts share one immutable profile. Sequential contexts can change it.
+bool ggml_metal_research_acquire(void) {
+    std::lock_guard<std::mutex> lock(g_research_mutex);
+    std::unordered_map<std::string, std::string> flags;
+    for (const char * name : g_research_names) {
+        if (const char * value = getenv(name)) {
+            flags.emplace(name, value);
+        }
+    }
+    if (g_research_contexts > 0 && flags != g_research_flags) {
+        GGML_LOG_ERROR("%s: cannot change research flags while %zu Metal context(s) remain live; free them first\n",
+                __func__, g_research_contexts);
+        return false;
+    }
+    if (g_research_contexts == 0) {
+        g_research_flags = std::move(flags);
+        g_research_generation.fetch_add(1, std::memory_order_release);
+    }
+    ++g_research_contexts;
+    return true;
+}
+
+void ggml_metal_research_release(void) {
+    std::lock_guard<std::mutex> lock(g_research_mutex);
+    GGML_ASSERT(g_research_contexts > 0);
+    --g_research_contexts;
+}
+
+int ggml_metal_research_get_int(const char * name, int def) {
+    std::lock_guard<std::mutex> lock(g_research_mutex);
+    const auto it = g_research_flags.find(name);
+    return it == g_research_flags.end() ? def : atoi(it->second.c_str());
+}
+
+bool ggml_metal_research_get_set(const char * name) {
+    std::lock_guard<std::mutex> lock(g_research_mutex);
+    return g_research_flags.count(name) != 0;
 }
 
 // research: GGML_METAL_BATCH_INVARIANT=1 also routes single columns through the multi-column template, so

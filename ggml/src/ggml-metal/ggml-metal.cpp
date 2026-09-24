@@ -8,6 +8,7 @@
 #include "ggml-metal-ops.h"
 #include "ggml-metal-tuning.h"
 
+#include <algorithm>
 #include <mutex>
 #include <string>
 
@@ -218,9 +219,12 @@ static size_t ggml_backend_metal_buffer_type_get_alloc_size(ggml_backend_buffer_
     switch (tensor->op) {
         case GGML_OP_MUL_MAT:
             {
-                res += ggml_metal_op_mul_mat_extra_q1_0_planes(tensor);
-                res += ggml_metal_op_mul_mat_extra_ptq1_stage(tensor);
-                res += ggml_metal_op_mul_mat_extra_ptq1_tensor(tensor);
+                const ggml_metal_device_t dev = (ggml_metal_device_t) buft->device->context;
+                const size_t stage = ggml_metal_op_mul_mat_extra_ptq1_stage(tensor);
+                const size_t tensor_extra = ggml_metal_device_get_props(dev)->has_tensor ?
+                        ggml_metal_op_mul_mat_extra_ptq1_tensor(tensor) : 0;
+                // These paths are exclusive and each extra includes its offset padding.
+                res += std::max(ggml_metal_op_mul_mat_extra_q1_0_planes(tensor), std::max(stage, tensor_extra));
             } break;
         case GGML_OP_MUL_MAT_ID:
             {

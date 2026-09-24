@@ -82,8 +82,9 @@ struct ggml_metal {
 };
 
 ggml_metal_t ggml_metal_init(ggml_metal_device_t dev) {
-    // research flags take the environment as of this context's creation
-    ggml_metal_research_reload();
+    if (!ggml_metal_research_acquire()) {
+        return NULL;
+    }
 
     GGML_LOG_INFO("%s: allocating\n", __func__);
 
@@ -98,6 +99,10 @@ ggml_metal_t ggml_metal_init(ggml_metal_device_t dev) {
 
     // init context
     ggml_metal_t res = calloc(1, sizeof(struct ggml_metal));
+    if (res == NULL) {
+        ggml_metal_research_release();
+        return NULL;
+    }
 
     id<MTLDevice> device = ggml_metal_device_get_obj(dev);
 
@@ -109,6 +114,8 @@ ggml_metal_t ggml_metal_init(ggml_metal_device_t dev) {
     id<MTLCommandQueue> queue = ggml_metal_device_get_queue(dev);
     if (queue == nil) {
         GGML_LOG_ERROR("%s: error: failed to create command queue\n", __func__);
+        free(res);
+        ggml_metal_research_release();
         return NULL;
     }
 
@@ -123,6 +130,7 @@ ggml_metal_t ggml_metal_init(ggml_metal_device_t dev) {
             GGML_LOG_ERROR("%s: error: failed to initialize the Metal library\n", __func__);
 
             free(res);
+            ggml_metal_research_release();
 
             return NULL;
         }
@@ -232,6 +240,7 @@ void ggml_metal_free(ggml_metal_t ctx) {
 
     ggml_metal_device_event_free(ctx->dev, ctx->ev_cpy);
 
+    ggml_metal_research_release();
     free(ctx);
 }
 
