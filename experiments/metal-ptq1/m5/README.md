@@ -8,7 +8,7 @@ on Apple silicon. **Every change is an opt-in environment flag**; with no flags 
 |---|---|
 | Apple M5 Max (40-core GPU, Apple10) | **Measured**: results below |
 | Apple M1 Ultra (64-core GPU, Apple7) | In progress (the portable flags; no tensor units on Apple7) |
-| iPhone 17 Pro Max (A19 Pro, Apple10) | Benchmark app built: [`../ios/BonsaiBench`](../ios/BonsaiBench); results to come |
+| iPhone 17 Pro Max (A19 Pro, Apple10, 12 GB, iOS 27) | First results, from the [`BonsaiBench`](../ios/BonsaiBench) app |
 
 All devices use the same flags, the same paired A-B-B-A protocol and the same tools (see
 "Reproduce on your Mac" below), so results are comparable as paired speedups. Absolute tokens/s
@@ -35,7 +35,7 @@ flags" below; the bit-identical row uses `GGML_GDN_ROWS_PLAIN=1` only.
 | PQ2 2 requests (server) | 1.33x (48.1 -> 64.1) | _pending_ | n/a |
 | Bonsai 1 ternary tg128 | 1.12x (48.0 -> 53.6) | _pending_ | _pending_ |
 | Bonsai 1 ternary 2 requests (server) | 1.33x (50.1 -> 66.6) | _pending_ | n/a |
-| Bonsai 1 binary tg128 | 1.14x (66.7 -> 75.7) | _pending_ | _pending_ |
+| Bonsai 1 binary tg128 | 1.14x (66.7 -> 75.7) | _pending_ | **1.18x** (10.9 -> 12.8) |
 | Bonsai 1 binary 2 requests (server) | 1.17x (79.8 -> 93.2) | _pending_ | n/a |
 
 ### Filling in a device column
@@ -50,8 +50,13 @@ python3 experiments/metal-ptq1/m5/tools/device-table.py out-<device>
 The first command runs every study behind the table (about 1.5 hours; nothing else on the GPU, AC
 power). The second prints one line per row; paste the values into that device's column, add the
 device's details (chip, GPU cores, memory, macOS) to the device list above, copy `out-<device>/*/summary.json`
-into `results/<device>/`, and commit. The iPhone column comes from the BonsaiBench app's exported JSON
-(tg128 and ppK cells; the app has no server/MTP).
+into `results/<device>/`, and commit.
+
+The iPhone column comes from the BonsaiBench app's exported JSON (tg128 and ppK cells; the app has no
+server or MTP), saved in [`../ios/results`](../ios/results).
+- The app's tg128 is measured like llama-bench's (128 single-token decodes from an empty context, no
+  sampling), with 1 repetition per observation instead of 3.
+- It used a 40 s cooldown so that the phone stayed at a nominal thermal state.
 
 ## Apple M5 Max: headline (paired against upstream on the same machine)
 

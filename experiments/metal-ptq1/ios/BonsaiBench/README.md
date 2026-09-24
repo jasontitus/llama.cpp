@@ -168,13 +168,15 @@ BonsaiBench, and send or save the `bonsaibench-*.json` files (e.g. to iCloud Dri
 
 ## Findings so far (iPhone 17 Pro Max, A19 Pro, iOS 27)
 
-Three partial studies of Bonsai 1 binary (Q1_0), one quartet per cell, so early signals. Raw JSON in
+Bonsai 1 binary (Q1_0). tg128 is a complete study: 3 accepted quartets, 40 s cooldown, nominal throughout.
+The other cells come from partial studies with one quartet each, so they are early signals. Raw JSON in
 [`../results`](../results).
 
 **Our changes** (the Q1_0 stack: in-place delta-net state, small-row routing), against default upstream:
 
 | Cell | Upstream | Our Q1_0 stack | Speedup |
 |---|---:|---:|---:|
+| **tg128** (3 quartets, all accepted, all nominal) | **10.90 tok/s** | **12.81** | **1.18x** (1.157-1.188) |
 | pp2 | 15.8 tok/s | 18.4 | 1.16x |
 | pp4 | 17.5 | 18.8 | 1.07x |
 | pp8 | 18.2 | 18.8 | 1.03x |
