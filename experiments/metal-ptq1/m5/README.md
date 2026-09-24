@@ -30,7 +30,7 @@ flags" below; the bit-identical row uses `GGML_GDN_ROWS_PLAIN=1` only.
 | PTQ1 tg128 | 1.08x (43.4 -> 47.0) | _pending_ | _pending_ |
 | PTQ1 MTP -> MTP (server, 1 request) | 3.34x (16.6 -> 55.4) | _pending_ | n/a |
 | PTQ1 2 requests (server) | _pending_ | _pending_ | n/a |
-| PTQ1 pp2 / pp4 / pp8 | _pending_ | _pending_ | preliminary, 1 quartet each: 4.27x / 2.35x / 2.30x (2.8 -> 11.9, 4.5 -> 10.6, 5.1 -> 11.8) |
+| PTQ1 pp2 / pp4 / pp8 | _pending_ | _pending_ | preliminary, 2 quartets each: **4.19x / 2.44x / 2.35x** (2.9 -> 11.9, 4.8 -> 11.7, 5.0 -> 11.7) |
 | PQ2 tg128 | 1.11x (45.5 -> 50.4) | _pending_ | _pending_ |
 | PQ2 2 requests (server) | 1.33x (48.1 -> 64.1) | _pending_ | n/a |
 | Bonsai 1 ternary tg128 | 1.12x (48.0 -> 53.6) | _pending_ | _pending_ |

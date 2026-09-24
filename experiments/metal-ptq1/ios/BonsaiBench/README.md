@@ -194,14 +194,19 @@ off by default in their code. It is not one of our changes and is not counted in
   under concurrency. On the phone, single-stream greedy output matched upstream in all 8 chat128 runs.
 - At pp512 it has no effect (0.99x): it only covers batches of up to 16 columns.
 
-**Bonsai 2 PTQ1_0, our changes against default upstream** (one accepted quartet per cell, thermal state
-fair throughout):
+**Bonsai 2 PTQ1_0, our changes against default upstream.** Two studies with one accepted quartet per cell
+each; the thermal state was fair throughout and the cooldown 50-60 s:
 
-| Cell | Upstream | Our PTQ1 stack | Speedup |
-|---|---:|---:|---:|
-| pp2 | 2.65 / 2.93 tok/s | 11.86 / 11.96 | **4.27x** |
-| pp4 | 4.32 / 4.70 | 10.39 / 10.81 | **2.35x** |
-| pp8 | 5.03 / 5.18 | 11.74 / 11.76 | **2.30x** (after one rejected quartet, spread 1.30) |
+| Cell | Upstream | Our PTQ1 stack | Speedup (study 1, study 2) | Geomean |
+|---|---:|---:|---:|---:|
+| pp2 | 2.9 tok/s | 11.9 | 4.27x, 4.10x | **4.19x** |
+| pp4 | 4.8 | 11.7 | 2.35x, 2.53x | **2.44x** |
+| pp8 | 5.0 | 11.7 | 2.30x, 2.41x | **2.35x** |
+| chat128 (greedy decode) | 5.67 | 6.25 | 1.10x (study 2; identical tokens in all 4 runs) | |
+
+- The tg128 quartet was rejected: the phone went from fair to serious during a stack run, which then ran
+  at 3.3 tok/s.
+- PTQ1_0 generation is compute-bound on the phone too: 5.7 tok/s upstream, against 10.9 for Q1_0.
 
 Upstream's PTQ1_0 path for 2-8-token batches is very slow on the A19: 2.65 tok/s at pp2, against 15.8
 for Q1_0 upstream on the same phone. The multi-column kernels (the CUDA PR #218 port) remove that
