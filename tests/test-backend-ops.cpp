@@ -58,10 +58,13 @@ static void init_tensor_uniform(ggml_tensor * tensor, float min = -1.0f, float m
         // parallel initialization
         static const size_t n_threads = N_THREADS;
 
+        static std::atomic<uint32_t> seed_counter{0};
+        const uint32_t seed_serial = seed_counter++;
         auto init_thread = [&](size_t start, size_t end) {
             thread_local std::default_random_engine gen(std::random_device{}());
             const char * seed_env = std::getenv("GGML_TEST_SEED");
-            std::default_random_engine seeded(seed_env ? std::strtoul(seed_env, nullptr, 10) + start + tensor->type : 0);
+            // the per-tensor sequence number keeps same-type, same-shape tensors (e.g. gate and up) distinct
+            std::default_random_engine seeded(seed_env ? std::strtoul(seed_env, nullptr, 10) + start + tensor->type + 7919u*seed_serial : 0);
             auto & rng = seed_env ? seeded : gen;
             std::uniform_real_distribution<float> distribution(min, max);
             for (size_t i = start; i < end; i++) {
@@ -10174,6 +10177,28 @@ static std::vector<std::unique_ptr<test_case>> make_test_cases_eval() {
                     }
                 }
             }
+        }
+    }
+
+    // M5 research cases: PTQ1_0 shapes that reach the tiled/staged multi-column and fused-GLU paths
+    // (>= 4096 rows with a row tail, 5*K <= 4*M for staged fusion, odd column counts)
+    for (ggml_type type : {GGML_TYPE_PTQ1_0, GGML_TYPE_PQ2_0, GGML_TYPE_Q1_0}) {
+        for (int64_t n_cols = 1; n_cols <= 8; ++n_cols) {
+            test_cases.emplace_back(new test_mul_mat(type, GGML_TYPE_F32, 4096 + 67, n_cols, 5120, {1, 1}, {1, 1}));
+            test_cases.emplace_back(new test_mul_mat_vec_fusion(type, GGML_GLU_OP_SWIGLU, n_cols, 6400 + 67, 5120,
+                false, 16, 8, false, false, true, false, {1, 1}));
+        }
+    }
+    // K past 32767 (PQ2_0 staging offsets once overflowed a short), and 48-row projections at
+    // prompt lengths that reach mul_mm (small-row routing)
+    for (int64_t n_cols : {1, 2, 3, 8}) {
+        test_cases.emplace_back(new test_mul_mat(GGML_TYPE_PQ2_0, GGML_TYPE_F32, 67, n_cols, 33024, {1, 1}, {1, 1}));
+        test_cases.emplace_back(new test_mul_mat_vec_fusion(GGML_TYPE_PQ2_0, GGML_GLU_OP_SWIGLU, n_cols, 67, 33024,
+            false, 16, 8, false, false, true, false, {1, 1}));
+    }
+    for (ggml_type type : {GGML_TYPE_BF16, GGML_TYPE_Q1_0, GGML_TYPE_PQ2_0}) {
+        for (int64_t n_cols : {9, 17, 130}) {
+            test_cases.emplace_back(new test_mul_mat(type, GGML_TYPE_F32, 48, n_cols, 5120, {1, 1}, {1, 1}));
         }
     }
 
