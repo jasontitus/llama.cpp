@@ -1,0 +1,50 @@
+{
+  "created": 1790264313.902314,
+  "env_a": {
+    "GGML_METAL_PTQ1_MULTICOL": "1"
+  },
+  "env_b": {
+    "GGML_METAL_PTQ1_MULTICOL": "1",
+    "GGML_METAL_PTQ1_MULTICOL_MAX": "8",
+    "GGML_METAL_PTQ1_STAGE": "1",
+    "GGML_METAL_PTQ1_GLU": "1",
+    "GGML_GDN_ROWS_PLAIN": "1",
+    "GGML_METAL_SMALLM_MM": "1",
+    "GGML_METAL_PTQ1_NR0": "4"
+  },
+  "args": {
+    "output": "/Users/jasontitus/Documents/Codex/2026-09-23/referenced-chatgpt-conversation-this-is-an-2/outputs/m1-diagnosis-20260924/full_r4",
+    "bin": "/Users/jasontitus/Documents/Codex/2026-09-23/referenced-chatgpt-conversation-this-is-an-2/work/build-tuning/bin",
+    "src": "/Users/jasontitus/Documents/Codex/2026-09-23/referenced-chatgpt-conversation-this-is-an-2/work/llama-tuning",
+    "model": "/Users/jasontitus/Documents/Codex/2026-09-23/referenced-chatgpt-conversation-this-is-an-2/work/models/Ternary-Bonsai-2-27B-PTQ1_0.gguf",
+    "mtp_model": "/Users/jasontitus/Documents/Codex/2026-09-23/referenced-chatgpt-conversation-this-is-an-2/work/mtp/Ternary-Bonsai-2-27B-PTQ1_0-mtp.gguf",
+    "env_a": "{\"GGML_METAL_PTQ1_MULTICOL\": \"1\"}",
+    "env_b": "{\"GGML_METAL_PTQ1_MULTICOL\": \"1\", \"GGML_METAL_PTQ1_MULTICOL_MAX\": \"8\", \"GGML_METAL_PTQ1_STAGE\": \"1\", \"GGML_METAL_PTQ1_GLU\": \"1\", \"GGML_GDN_ROWS_PLAIN\": \"1\", \"GGML_METAL_SMALLM_MM\": \"1\", \"GGML_METAL_PTQ1_NR0\": \"4\"}",
+    "bench": "[]",
+    "server": "['s1c1']",
+    "cycles": "1",
+    "attempts": "3",
+    "cooldown": "8.0",
+    "tokens": "128",
+    "spread": "1.2"
+  },
+  "binaries": {
+    "libggml-base.0.21.0.dylib": "463c5a2f67902e8e9185a4fae1d5b1ca2c7cb8a510f4eb27767793a8431a91ca",
+    "libggml-blas.0.21.0.dylib": "8437cae4b33589c8700c16e2431fa2c7f7812587118bb7de95a8d01ae3bbf58b",
+    "libggml-cpu.0.21.0.dylib": "f5377e332937849f6ca34a87182da1660c92458ae4d6b74660214b0645584b98",
+    "libggml-metal.0.21.0.dylib": "42b66916262ac717b641635fbfbdd4023138b88fc7ffe26fa12a657c0538666e",
+    "libggml.0.21.0.dylib": "c50bcd88494cb5612d28202e4df7e3e043fd029835490b5ec78c4c440ee2fc57",
+    "libllama-bench-impl.dylib": "55389328338b23920566dcb82f9115a3393a6a3f55f8983b3bb476cc1469a0fc",
+    "libllama-common.0.2.0.dylib": "02df52aeda27179bfc66f89a62ecfef8867a98c432c4ea315e96e59de4aaf9c9",
+    "libllama-server-impl.dylib": "bdaa8161b98e18803a102f010d54fd7db6c25a6d47e26ac07ec06a91a04caa23",
+    "libllama.0.2.0.dylib": "7108bccf2e50c708735e22db25de7caa0a9ad4a3a4faf58cda074f94a8a778ee",
+    "libmtmd.0.2.0.dylib": "9180414231357ebf473917c54cd689eb9b9550a5980867cb339d1f9a4ee66369",
+    "llama-bench": "f1d648dfb2bfc7da5996e24608138a70cf3145c76779c76b5965af6fd0e5259d",
+    "llama-server": "8e5467fa083cdb775357c22f1506a5c5be066bf8fa2ca9c73459d45677f65c96"
+  },
+  "revision": "7ff43583b29278b44d770220fc1c60ff9c47c78e",
+  "src": "/Users/jasontitus/Documents/Codex/2026-09-23/referenced-chatgpt-conversation-this-is-an-2/work/llama-tuning",
+  "diff_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+  "thermal": "Note: No thermal warning level has been recorded\nNote: No performance warning level has been recorded\nNote: No CPU power status has been recorded\n",
+  "power": "Now drawing from 'AC Power'\n"
+}

@@ -1,0 +1,62 @@
+{
+  "created": 1790275193.931896,
+  "env_a": {},
+  "env_b": {},
+  "args": {
+    "output": "/Users/jasontitus/Documents/Codex/2026-09-23/referenced-chatgpt-conversation-this-is-an-2/outputs/m1-final-device-20260924/reload-baseline",
+    "bin": "/Users/jasontitus/Documents/Codex/2026-09-23/referenced-chatgpt-conversation-this-is-an-2/work/build-tuning/bin",
+    "src": "/Users/jasontitus/Documents/Codex/2026-09-23/referenced-chatgpt-conversation-this-is-an-2/work/llama-tuning",
+    "model": "/Users/jasontitus/Documents/Codex/2026-09-23/referenced-chatgpt-conversation-this-is-an-2/work/models/Ternary-Bonsai-2-27B-PTQ1_0.gguf",
+    "mtp_model": "/Users/jasontitus/Documents/Codex/2026-09-23/referenced-chatgpt-conversation-this-is-an-2/work/mtp/Ternary-Bonsai-2-27B-PTQ1_0-mtp.gguf",
+    "env_a": "{}",
+    "env_b": "{}",
+    "bench": "[]",
+    "server": "['s0c1', 's1c1']",
+    "cycles": "3",
+    "attempts": "3",
+    "cooldown": "8.0",
+    "tokens": "128",
+    "spread": "1.2",
+    "bin_a": "/Users/jasontitus/Documents/Codex/2026-09-23/referenced-chatgpt-conversation-this-is-an-2/work/build-tuning-r4/bin",
+    "src_a": "/Users/jasontitus/Documents/Codex/2026-09-23/referenced-chatgpt-conversation-this-is-an-2/work/llama-tuning-r4"
+  },
+  "binaries": {
+    "libggml-base.0.21.0.dylib": "335c6bf758561d54e6c13a56e994c6489ca6cb688aab906f93cc361fb29d294f",
+    "libggml-blas.0.21.0.dylib": "8437cae4b33589c8700c16e2431fa2c7f7812587118bb7de95a8d01ae3bbf58b",
+    "libggml-cpu.0.21.0.dylib": "f5377e332937849f6ca34a87182da1660c92458ae4d6b74660214b0645584b98",
+    "libggml-metal.0.21.0.dylib": "02987d7aaffa58b9756a88b0787a0304539204b9cb281c649e702f62590baf4c",
+    "libggml.0.21.0.dylib": "c50bcd88494cb5612d28202e4df7e3e043fd029835490b5ec78c4c440ee2fc57",
+    "libllama-bench-impl.dylib": "55389328338b23920566dcb82f9115a3393a6a3f55f8983b3bb476cc1469a0fc",
+    "libllama-common.0.2.0.dylib": "3fd7cba4f0bac021dffb8cc0c60bb4a5e4ae2df76aa78819416b9a3fbd856076",
+    "libllama-server-impl.dylib": "bc26e82918f9085b92e782d7e119a4caf76373a8ce421c7afc420dcb4bd641df",
+    "libllama.0.2.0.dylib": "221ee8b48cb717f3570522a690f83fc3a6e5609d0792fbf8031dbd56154aae38",
+    "libmtmd.0.2.0.dylib": "9180414231357ebf473917c54cd689eb9b9550a5980867cb339d1f9a4ee66369",
+    "llama-bench": "f1d648dfb2bfc7da5996e24608138a70cf3145c76779c76b5965af6fd0e5259d",
+    "llama-server": "8e5467fa083cdb775357c22f1506a5c5be066bf8fa2ca9c73459d45677f65c96"
+  },
+  "revision": "8a1bdf74a2693ef178bdd039910c0fff9cb73510",
+  "src": "/Users/jasontitus/Documents/Codex/2026-09-23/referenced-chatgpt-conversation-this-is-an-2/work/llama-tuning",
+  "diff_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+  "thermal": "Note: No thermal warning level has been recorded\nNote: No performance warning level has been recorded\nNote: No CPU power status has been recorded\n",
+  "power": "Now drawing from 'AC Power'\n",
+  "comparison_a": {
+    "bin": "/Users/jasontitus/Documents/Codex/2026-09-23/referenced-chatgpt-conversation-this-is-an-2/work/build-tuning-r4/bin",
+    "src": "/Users/jasontitus/Documents/Codex/2026-09-23/referenced-chatgpt-conversation-this-is-an-2/work/llama-tuning-r4",
+    "binaries": {
+      "libggml-base.0.21.0.dylib": "9156ad2e03273d4b4f90abd9ef052e7d99cf5b1a503062478a7c7b88bbc411c5",
+      "libggml-blas.0.21.0.dylib": "6107cdbafdb3328a006c62622df558eeea40122a561543847eab869625df16b7",
+      "libggml-cpu.0.21.0.dylib": "ca26ce9176c8c93768b8445c1170d90d084be437daea683bea7f8a800a8a47a4",
+      "libggml-metal.0.21.0.dylib": "6bd7801c8666480f24d01de8e9fe6be42b077cddbb968e396cbc002148daa542",
+      "libggml.0.21.0.dylib": "be563c16b40471462cb3a988e87cb5bb83464bd94d01f9c6ebaaf1de901524d6",
+      "libllama-bench-impl.dylib": "66444d4337f6ebd4e74bd10219457f7964c5cc53bb30ed7bdb44d26af1ba851a",
+      "libllama-common.0.2.0.dylib": "7a0b1910f18a7f916976a817254123eb3b694f7eb28c4f901454fef52fd89b26",
+      "libllama-server-impl.dylib": "c26782a858044228695de6871a97a40a5fd9ed7c3a61b7904b372fb9ecce0685",
+      "libllama.0.2.0.dylib": "af6d7a8020e2e86cce95b9c3242f1f1f58f7b551c784b63d02567ba0315ddcc2",
+      "libmtmd.0.2.0.dylib": "5614374bf73704d5946d37a3191d2f73264238f46cf3f46379a0e315d6c27410",
+      "llama-bench": "a9c8e9e6f6fa57608e6ddd50c40cc604444d3cff87f8b67c9dd4ee7fdda0850a",
+      "llama-server": "a77ee9e15eef902a1a4a2a50f30904e654850d8a663c7e27011b83e4e602bb68"
+    },
+    "revision": "7414230e58329e07f2d77cb9a10ebf3f8755d704",
+    "diff_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+  }
+}

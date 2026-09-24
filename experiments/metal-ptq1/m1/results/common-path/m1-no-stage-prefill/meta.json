@@ -1,0 +1,72 @@
+{
+  "created": 1790267295.488297,
+  "env_a": {
+    "GGML_METAL_PTQ1_MULTICOL": "1"
+  },
+  "env_b": {
+    "GGML_METAL_PTQ1_MULTICOL": "1",
+    "GGML_METAL_PTQ1_MULTICOL_MAX": "8",
+    "GGML_METAL_PTQ1_GLU": "1",
+    "GGML_METAL_PTQ1_STAGE": "0",
+    "GGML_GDN_ROWS_PLAIN": "1",
+    "GGML_METAL_SMALLM_MM": "1"
+  },
+  "args": {
+    "output": "/Users/jasontitus/Documents/Codex/2026-09-23/referenced-chatgpt-conversation-this-is-an-2/outputs/m1-common-path-confirmation-20260924/m1-no-stage-prefill",
+    "bin": "/Users/jasontitus/Documents/Codex/2026-09-23/referenced-chatgpt-conversation-this-is-an-2/work/build-tuning/bin",
+    "src": "/Users/jasontitus/Documents/Codex/2026-09-23/referenced-chatgpt-conversation-this-is-an-2/work/llama-tuning",
+    "model": "/Users/jasontitus/Documents/Codex/2026-09-23/referenced-chatgpt-conversation-this-is-an-2/work/models/Ternary-Bonsai-2-27B-PTQ1_0.gguf",
+    "mtp_model": "/Users/jasontitus/Documents/Codex/2026-09-23/referenced-chatgpt-conversation-this-is-an-2/work/mtp/Ternary-Bonsai-2-27B-PTQ1_0-mtp.gguf",
+    "env_a": "{\"GGML_METAL_PTQ1_MULTICOL\": \"1\"}",
+    "env_b": "{\"GGML_METAL_PTQ1_MULTICOL\": \"1\", \"GGML_METAL_PTQ1_MULTICOL_MAX\": \"8\", \"GGML_METAL_PTQ1_GLU\": \"1\", \"GGML_METAL_PTQ1_STAGE\": \"0\", \"GGML_GDN_ROWS_PLAIN\": \"1\", \"GGML_METAL_SMALLM_MM\": \"1\"}",
+    "bench": "['pp2', 'pp3']",
+    "server": "[]",
+    "cycles": "3",
+    "attempts": "3",
+    "cooldown": "8.0",
+    "tokens": "128",
+    "spread": "1.2",
+    "bin_a": "/Users/jasontitus/Documents/Codex/2026-09-23/referenced-chatgpt-conversation-this-is-an-2/work/build-pr/bin",
+    "src_a": "/Users/jasontitus/Documents/Codex/2026-09-23/referenced-chatgpt-conversation-this-is-an-2/work/llama-pr"
+  },
+  "binaries": {
+    "libggml-base.0.21.0.dylib": "fadbf8aed9018bf6298206f47a44e1e67a89e7cb60ad3c0d5281b824b94a752b",
+    "libggml-blas.0.21.0.dylib": "8437cae4b33589c8700c16e2431fa2c7f7812587118bb7de95a8d01ae3bbf58b",
+    "libggml-cpu.0.21.0.dylib": "f5377e332937849f6ca34a87182da1660c92458ae4d6b74660214b0645584b98",
+    "libggml-metal.0.21.0.dylib": "71185c2f87e2e1972d06155f0c029de0a6528b2d84d28962a6a2261786885616",
+    "libggml.0.21.0.dylib": "c50bcd88494cb5612d28202e4df7e3e043fd029835490b5ec78c4c440ee2fc57",
+    "libllama-bench-impl.dylib": "55389328338b23920566dcb82f9115a3393a6a3f55f8983b3bb476cc1469a0fc",
+    "libllama-common.0.2.0.dylib": "7ff9be6609958fb513f4b24c95cf653bef656d86d9e280a7c54ac7ba1b01e13f",
+    "libllama-server-impl.dylib": "bc26e82918f9085b92e782d7e119a4caf76373a8ce421c7afc420dcb4bd641df",
+    "libllama.0.2.0.dylib": "7108bccf2e50c708735e22db25de7caa0a9ad4a3a4faf58cda074f94a8a778ee",
+    "libmtmd.0.2.0.dylib": "9180414231357ebf473917c54cd689eb9b9550a5980867cb339d1f9a4ee66369",
+    "llama-bench": "f1d648dfb2bfc7da5996e24608138a70cf3145c76779c76b5965af6fd0e5259d",
+    "llama-server": "8e5467fa083cdb775357c22f1506a5c5be066bf8fa2ca9c73459d45677f65c96"
+  },
+  "revision": "7414230e58329e07f2d77cb9a10ebf3f8755d704",
+  "src": "/Users/jasontitus/Documents/Codex/2026-09-23/referenced-chatgpt-conversation-this-is-an-2/work/llama-tuning",
+  "diff_sha256": "4e8eb3bdec7ca4677df7cccbf32eca892201a8e08186018e16abeed9e8a71bf3",
+  "thermal": "Note: No thermal warning level has been recorded\nNote: No performance warning level has been recorded\nNote: No CPU power status has been recorded\n",
+  "power": "Now drawing from 'AC Power'\n",
+  "comparison_a": {
+    "bin": "/Users/jasontitus/Documents/Codex/2026-09-23/referenced-chatgpt-conversation-this-is-an-2/work/build-pr/bin",
+    "src": "/Users/jasontitus/Documents/Codex/2026-09-23/referenced-chatgpt-conversation-this-is-an-2/work/llama-pr",
+    "binaries": {
+      "libggml-base.0.21.0.dylib": "a0cbdaa89f7ecb3c163579e3c230c2f8f82ee6114372c8ab9e9ec0dfd82d5ee0",
+      "libggml-blas.0.21.0.dylib": "26b3ef6ddc686d941f1e8510d85a6d57812cb3ffc89e96e2f510b108c4e60466",
+      "libggml-cpu.0.21.0.dylib": "69eb9808dd17a3c9748bcd4edd9fc8b7087f1cd446e5a172f9b3502c4688c2a3",
+      "libggml-metal.0.21.0.dylib": "3b79753146d95b83cd22b4ec0bdb1890f93f139ba8359d3335c826e810d81fc4",
+      "libggml.0.21.0.dylib": "66c3597bf2cf3581003e12720dc467bdf75f1e9dc23d4ada5d2de568e67dbab4",
+      "libllama-bench-impl.dylib": "102ded6c61c9f7ac156aaf2a470e85caa7f1c9aedc482d07e4aabd7d2ffabd69",
+      "libllama-common.0.2.0.dylib": "40f314e2a937764ce677332be3c5c39aad1005a52969b949d5caf6c640e5bc42",
+      "libllama-perplexity-impl.dylib": "9be993824beed9fdb4dd422b8a915a1b61899fd9cee2e6cf81bb8317423fa4d1",
+      "libllama-server-impl.dylib": "8d0b302c729110f8cdd33683c82fa5c62bde3650160e64ebd7cd496b16d8df0b",
+      "libllama.0.2.0.dylib": "0192082cac5dd74361f9f8cbf2480655a3c67a17af23a348929d0ac6211c9987",
+      "libmtmd.0.2.0.dylib": "afa9e046d9a36fd255f58a781be93016f3c8be3bfac11006ddf9c3d4c97d87f8",
+      "llama-bench": "3fb8c0fef7c2ad0b0e35d00723062fe3a63ee33a10aae0e9e06e22604f52b212",
+      "llama-server": "032fa4fc50d51386421e16c374a3ef3eaca5bb1964738253833990e70108bf47"
+    },
+    "revision": "d4ca15de27a8502218832ee85caf0fdf4222db3b",
+    "diff_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+  }
+}

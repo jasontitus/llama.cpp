@@ -1,0 +1,53 @@
+{
+  "purpose": "Exploratory single-quartet ablations; finalists require three-quartet confirmation.",
+  "baseline": {
+    "GGML_METAL_PTQ1_MULTICOL": "1"
+  },
+  "configs": {
+    "full": {
+      "GGML_METAL_PTQ1_MULTICOL": "1",
+      "GGML_METAL_PTQ1_MULTICOL_MAX": "8",
+      "GGML_METAL_PTQ1_STAGE": "1",
+      "GGML_METAL_PTQ1_GLU": "1",
+      "GGML_GDN_ROWS_PLAIN": "1",
+      "GGML_METAL_SMALLM_MM": "1"
+    },
+    "staging_only": {
+      "GGML_METAL_PTQ1_MULTICOL": "1",
+      "GGML_METAL_PTQ1_STAGE": "1"
+    },
+    "fusion_only": {
+      "GGML_METAL_PTQ1_MULTICOL": "1",
+      "GGML_METAL_PTQ1_GLU": "1"
+    },
+    "no_stage": {
+      "GGML_METAL_PTQ1_MULTICOL": "1",
+      "GGML_METAL_PTQ1_MULTICOL_MAX": "8",
+      "GGML_METAL_PTQ1_GLU": "1",
+      "GGML_GDN_ROWS_PLAIN": "1",
+      "GGML_METAL_SMALLM_MM": "1"
+    },
+    "no_glu": {
+      "GGML_METAL_PTQ1_MULTICOL": "1",
+      "GGML_METAL_PTQ1_MULTICOL_MAX": "8",
+      "GGML_METAL_PTQ1_STAGE": "1",
+      "GGML_GDN_ROWS_PLAIN": "1",
+      "GGML_METAL_SMALLM_MM": "1"
+    },
+    "no_stage_or_glu": {
+      "GGML_METAL_PTQ1_MULTICOL": "1",
+      "GGML_METAL_PTQ1_MULTICOL_MAX": "8",
+      "GGML_GDN_ROWS_PLAIN": "1",
+      "GGML_METAL_SMALLM_MM": "1"
+    },
+    "full_r4": {
+      "GGML_METAL_PTQ1_MULTICOL": "1",
+      "GGML_METAL_PTQ1_MULTICOL_MAX": "8",
+      "GGML_METAL_PTQ1_STAGE": "1",
+      "GGML_METAL_PTQ1_GLU": "1",
+      "GGML_GDN_ROWS_PLAIN": "1",
+      "GGML_METAL_SMALLM_MM": "1",
+      "GGML_METAL_PTQ1_NR0": "4"
+    }
+  }
+}

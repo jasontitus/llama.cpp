@@ -1,0 +1,227 @@
+[
+  [
+    "headline-ptq1-same-mode",
+    "b2-ptq1",
+    {},
+    {
+      "GGML_METAL_PTQ1_MULTICOL": "1",
+      "GGML_METAL_PTQ1_MULTICOL_MAX": "8",
+      "GGML_METAL_PTQ1_GLU": "1",
+      "GGML_METAL_PTQ1_STAGE": "1",
+      "GGML_GDN_ROWS_PLAIN": "1",
+      "GGML_METAL_SMALLM_MM": "1"
+    },
+    [
+      "tg128"
+    ],
+    [
+      "s0c1",
+      "s1c1"
+    ],
+    null
+  ],
+  [
+    "headline-ptq1-total",
+    "b2-ptq1",
+    {},
+    {
+      "GGML_METAL_PTQ1_MULTICOL": "1",
+      "GGML_METAL_PTQ1_MULTICOL_MAX": "8",
+      "GGML_METAL_PTQ1_GLU": "1",
+      "GGML_METAL_PTQ1_STAGE": "1",
+      "GGML_GDN_ROWS_PLAIN": "1",
+      "GGML_METAL_SMALLM_MM": "1"
+    },
+    [],
+    [
+      "s1c1"
+    ],
+    [
+      0,
+      1
+    ]
+  ],
+  [
+    "headline-pq2-total",
+    "b2-pq2",
+    {},
+    {
+      "GGML_METAL_PQ2_MULTICOL": "1",
+      "GGML_METAL_PQ2_GLU": "1",
+      "GGML_GDN_ROWS_PLAIN": "1",
+      "GGML_METAL_SMALLM": "1",
+      "GGML_METAL_SMALLM_MM": "1"
+    },
+    [],
+    [
+      "s1c1"
+    ],
+    [
+      0,
+      1
+    ]
+  ],
+  [
+    "abba3-b2-pq2",
+    "b2-pq2",
+    {},
+    {
+      "GGML_METAL_PQ2_MULTICOL": "1",
+      "GGML_METAL_PQ2_GLU": "1",
+      "GGML_GDN_ROWS_PLAIN": "1",
+      "GGML_METAL_SMALLM": "1",
+      "GGML_METAL_SMALLM_MM": "1"
+    },
+    [
+      "tg128",
+      "pp2",
+      "pp3",
+      "pp32",
+      "pp512"
+    ],
+    [
+      "s0c1",
+      "s1c1",
+      "s0c2",
+      "s1c2"
+    ],
+    null
+  ],
+  [
+    "abba3-b1-ternary",
+    "b1-ternary",
+    {},
+    {
+      "GGML_METAL_PQ2_MULTICOL": "1",
+      "GGML_METAL_PQ2_GLU": "1",
+      "GGML_GDN_ROWS_PLAIN": "1",
+      "GGML_METAL_SMALLM": "1",
+      "GGML_METAL_SMALLM_MM": "1"
+    },
+    [
+      "tg128",
+      "pp2",
+      "pp32",
+      "pp512"
+    ],
+    [
+      "s0c1",
+      "s0c2"
+    ],
+    null
+  ],
+  [
+    "abba3-b1-binary",
+    "b1-binary",
+    {},
+    {
+      "GGML_GDN_ROWS_PLAIN": "1",
+      "GGML_METAL_SMALLM": "1",
+      "GGML_METAL_SMALLM_MM": "1"
+    },
+    [
+      "tg128",
+      "pp2",
+      "pp32",
+      "pp512"
+    ],
+    [
+      "s0c1",
+      "s0c2"
+    ],
+    null
+  ],
+  [
+    "abba3-b2-ptq1-smallm",
+    "b2-ptq1",
+    {
+      "GGML_METAL_PTQ1_MULTICOL": "1",
+      "GGML_METAL_PTQ1_MULTICOL_MAX": "8",
+      "GGML_METAL_PTQ1_GLU": "1",
+      "GGML_METAL_PTQ1_STAGE": "1",
+      "GGML_GDN_ROWS_PLAIN": "1"
+    },
+    {
+      "GGML_METAL_PTQ1_MULTICOL": "1",
+      "GGML_METAL_PTQ1_MULTICOL_MAX": "8",
+      "GGML_METAL_PTQ1_GLU": "1",
+      "GGML_METAL_PTQ1_STAGE": "1",
+      "GGML_GDN_ROWS_PLAIN": "1",
+      "GGML_METAL_SMALLM_MM": "1"
+    },
+    [
+      "pp16",
+      "pp32",
+      "pp128",
+      "pp512"
+    ],
+    [
+      "s0c1",
+      "s1c1"
+    ],
+    null
+  ],
+  [
+    "bitexact-ptq1",
+    "b2-ptq1",
+    {},
+    {
+      "GGML_GDN_ROWS_PLAIN": "1"
+    },
+    [
+      "tg128"
+    ],
+    [
+      "s0c1"
+    ],
+    null
+  ],
+  [
+    "bitexact-pq2",
+    "b2-pq2",
+    {},
+    {
+      "GGML_GDN_ROWS_PLAIN": "1"
+    },
+    [
+      "tg128"
+    ],
+    [
+      "s0c1"
+    ],
+    null
+  ],
+  [
+    "abba5-invariant-cost",
+    "b2-ptq1",
+    {
+      "GGML_METAL_PTQ1_MULTICOL": "1",
+      "GGML_METAL_PTQ1_MULTICOL_MAX": "8",
+      "GGML_METAL_PTQ1_GLU": "1",
+      "GGML_METAL_PTQ1_STAGE": "1",
+      "GGML_GDN_ROWS_PLAIN": "1",
+      "GGML_METAL_SMALLM_MM": "1"
+    },
+    {
+      "GGML_METAL_PTQ1_MULTICOL": "1",
+      "GGML_METAL_PTQ1_MULTICOL_MAX": "8",
+      "GGML_METAL_PTQ1_GLU": "1",
+      "GGML_METAL_PTQ1_STAGE": "1",
+      "GGML_GDN_ROWS_PLAIN": "1",
+      "GGML_METAL_SMALLM_MM": "1",
+      "GGML_METAL_BATCH_INVARIANT": "1"
+    },
+    [
+      "tg128",
+      "pp2",
+      "pp4",
+      "pp8"
+    ],
+    [
+      "s0c1",
+      "s1c1",
+      "s1c2"
+    ],
+    null
+  ]
+]

@@ -70,8 +70,9 @@ decision or another device. Each item lists the evidence that would close it.
 
 ## Other devices
 
-14. **A19 / A20 (iPhone)** (blocked on a signed iOS harness). Portable pieces (tiles, GLU fusion, staging,
+14. **A19 / A20 (iPhone)** (partial A19 app results recorded; full device validation remains open). Portable pieces (tiles, GLU fusion, staging,
     rows mode) need no Apple10-only features; the tensor path needs `has_tensor` and is capability-gated.
     A19 is Apple10; A20 family and limits are unverified.
-15. **M1 regression check** (blocked on the M1). Replay the portable flags on the M1 Ultra before any
-    cross-device default.
+15. **M1 regression check** (completed for the recorded workload). The 21-cell device suite plus nine profile/revision controls passed; see [M1 results](../m1/README.md). PTQ1 selects STAGE=0 for single-user use; enabled staging uses family7 R4. PQ2 plain is faster than MTP on M1. Concurrency four, long-context behavior, and other family7 hardware remain unmeasured by this final suite.
+
+22. **Revalidate the merged M1 fixes on M5 and phones** (open). Use the exact merged revision and rebuild the phone framework. Cover flags-off performance/allocations, n=1..8 full and partial tiles, odd rows, padded inputs, retained/pre-backend allocations, sequential profile changes and held-context rejection. Exercise tensor scratch on supported hardware; M1 cannot do so. Measure plain/MTP C1 and C2/C4 where supported, larger prefill, actual memory footprint and sustained thermal behavior before any Apple10-specific dispatch. The current phone app does not establish real MTP/server-concurrency performance; A20 capabilities remain unverified.

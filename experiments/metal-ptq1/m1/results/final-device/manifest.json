@@ -1,0 +1,532 @@
+{
+  "started": 1790269853.8002172,
+  "source": "8a1bdf74a2693ef178bdd039910c0fff9cb73510",
+  "source_diff_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+  "source_diff_snapshot": "provenance/tracked.diff",
+  "source_snapshots": {
+    "experiments/metal-ptq1/m1/tools/run.py": {
+      "sha256": "02f500dfec8f540bb543173c5941ce02e6f0184caa3a02c13e1d5c04ce361473",
+      "snapshot": "provenance/sources/experiments/metal-ptq1/m1/tools/run.py"
+    },
+    "experiments/metal-ptq1/m1/tools/summarize.py": {
+      "sha256": "7c94ae71cb94f72bbc8c95e3416b4b646839ae3d880ce1f7e5890b028da447dd",
+      "snapshot": "provenance/sources/experiments/metal-ptq1/m1/tools/summarize.py"
+    },
+    "experiments/metal-ptq1/m1/tools/thermal-state.m": {
+      "sha256": "8c6f14fe9b549206a831a158f31fdccf6acbb24db4ba0834490f6fcda1e94b57",
+      "snapshot": "provenance/sources/experiments/metal-ptq1/m1/tools/thermal-state.m"
+    },
+    "experiments/metal-ptq1/m1/models.json": {
+      "sha256": "05c75595ff8cb64ede295a3c5ec1aafdae6ee8d3e5ab2f2a68ef1c39c5ab320f",
+      "snapshot": "provenance/sources/experiments/metal-ptq1/m1/models.json"
+    },
+    "experiments/metal-ptq1/m5/tools/abba-m5.py": {
+      "sha256": "aa9fc26b785cf75a4fab0a53d94a5c2df6e80d526c57895e5359d9fc8d6d479a",
+      "snapshot": "provenance/sources/experiments/metal-ptq1/m5/tools/abba-m5.py"
+    },
+    "experiments/metal-ptq1/m5/tools/abba-m5-draft.py": {
+      "sha256": "79b71377c83aba16fd165e9b366c6055a830e89486a1b3ea70e2ebeaebcea07b",
+      "snapshot": "provenance/sources/experiments/metal-ptq1/m5/tools/abba-m5-draft.py"
+    },
+    "experiments/metal-ptq1/m5/tools/run-device-study.sh": {
+      "sha256": "5bd19330edf28c1a6c5dfd4d4a6e3d3622f8110b3f8ecf54b085df728b4ed280",
+      "snapshot": "provenance/sources/experiments/metal-ptq1/m5/tools/run-device-study.sh"
+    },
+    "experiments/metal-ptq1/m5/tools/device-table.py": {
+      "sha256": "65b6ce0ce7487eacbf15f2d0f926b922b3f7e0cc7f393e39c99c54a5e4405e43",
+      "snapshot": "provenance/sources/experiments/metal-ptq1/m5/tools/device-table.py"
+    },
+    "tests/test-backend-ops.cpp": {
+      "sha256": "9370a32b4a56d113c3846768a807ee5e202e67908bea37800b4ea11f68ed4ea1",
+      "snapshot": "provenance/sources/tests/test-backend-ops.cpp"
+    },
+    "experiments/metal-ptq1/m5/tools/check-numerical-m5.cpp": {
+      "sha256": "4276f3fe0358883f77704b5c976523b724a26a5f61888a2d66151a7557dd63c1",
+      "snapshot": "provenance/sources/experiments/metal-ptq1/m5/tools/check-numerical-m5.cpp"
+    },
+    "experiments/metal-ptq1/m5/tools/check-numerical-pq2.cpp": {
+      "sha256": "ff4193577fe0689ea10db3893a4fd16710eb2210fad130056315c066882e4a13",
+      "snapshot": "provenance/sources/experiments/metal-ptq1/m5/tools/check-numerical-pq2.cpp"
+    },
+    "experiments/metal-ptq1/m5/tools/check-numerical-q1.cpp": {
+      "sha256": "ee17877c535c6c65062aebd7c77bc3345624177d1ef3aa03ca47401a453548bb",
+      "snapshot": "provenance/sources/experiments/metal-ptq1/m5/tools/check-numerical-q1.cpp"
+    }
+  },
+  "hardware": {
+    "hw.model": "Mac13,2",
+    "hw.memsize": "137438953472",
+    "hw.ncpu": "20",
+    "machdep.cpu.brand_string": "Apple M1 Ultra"
+  },
+  "os": "ProductName:\t\tmacOS\nProductVersion:\t\t26.7\nBuildVersion:\t\t25G229",
+  "compiler": "Apple clang version 21.0.0 (clang-2100.3.34.2)\nTarget: arm64-apple-darwin25.6.0\nThread model: posix\nInstalledDir: /Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin",
+  "models": [
+    {
+      "key": "b2-ptq1",
+      "repo": "prism-ml/Ternary-Bonsai-2-27B-gguf",
+      "revision": "6ed5e12bf84b7a63069882c91dd9e9218647d17b",
+      "file": "Ternary-Bonsai-2-27B-PTQ1_0.gguf",
+      "sha256": "53107f530aa52eb00912263ab1ee29bd199261c87cd7b4ad4ca1318c1fe33ee3",
+      "size": 5946648928,
+      "architecture": "qwen35",
+      "tensor_types": {
+        "PTQ1_0": 402,
+        "F32": 353,
+        "BF16": 96
+      },
+      "nextn": 0,
+      "merged_mtp": {
+        "file": "Ternary-Bonsai-2-27B-PTQ1_0-mtp.gguf",
+        "sha256": "83a396ee218c36e5ed88205eccb940a71549d9a72a3d020cc2713f94a78f70f0",
+        "size": 7012820512
+      }
+    },
+    {
+      "key": "b2-pq2",
+      "repo": "prism-ml/Ternary-Bonsai-2-27B-gguf",
+      "revision": "6ed5e12bf84b7a63069882c91dd9e9218647d17b",
+      "file": "Ternary-Bonsai-2-27B-PQ2_0.gguf",
+      "sha256": "3907dc1658db1f78a9826bf8d5bcb8dc65db0d466388937af57f2294fae62ec1",
+      "size": 7206168928,
+      "architecture": "qwen35",
+      "tensor_types": {
+        "PQ2_0": 402,
+        "F32": 353,
+        "BF16": 96
+      },
+      "nextn": 0,
+      "merged_mtp": {
+        "file": "Ternary-Bonsai-2-27B-PQ2_0-mtp.gguf",
+        "sha256": "753d4620b99f77d9d9515a8900c026f431c656c1070bdd41f026f35e8b8d53b3",
+        "size": 8272340512
+      }
+    },
+    {
+      "key": "b1-ternary",
+      "repo": "prism-ml/Ternary-Bonsai-27B-gguf",
+      "revision": "86e89f34c93201c3dfd5e5880fedb0022fc7e34d",
+      "file": "Ternary-Bonsai-27B-PQ2_0.gguf",
+      "sha256": "e4781999f1997ef97ce0c58d05750835acc999d18d83ee6489ba7ac7b14cb5f6",
+      "size": 7165121600,
+      "architecture": "qwen35",
+      "tensor_types": {
+        "PQ2_0": 498,
+        "F32": 353
+      },
+      "nextn": 0
+    },
+    {
+      "key": "b1-binary",
+      "repo": "prism-ml/Bonsai-27B-gguf",
+      "revision": "f10afb355f104535e3e3e98cf7ab7795c72bd292",
+      "file": "Bonsai-27B-Q1_0.gguf",
+      "sha256": "17ef842e47450caeb8eaa3ebfbbab5d2f2278b62b79be107985fb69a2f819aa0",
+      "size": 3803452480,
+      "architecture": "qwen35",
+      "tensor_types": {
+        "Q1_0": 498,
+        "F32": 353
+      },
+      "nextn": 0
+    }
+  ],
+  "binaries": {
+    "llama-bench": "f1d648dfb2bfc7da5996e24608138a70cf3145c76779c76b5965af6fd0e5259d",
+    "llama-server": "8e5467fa083cdb775357c22f1506a5c5be066bf8fa2ca9c73459d45677f65c96",
+    "test-backend-ops": "0dcdc49dcc3979023e2596853272e7a4d999cd067d5af73a9021f3610a18c2d1",
+    "thermal-state": "209e2ea69a88a31106ea759c514f661a6902a9ada1a5aa874c20d4e07002c641",
+    "check-numerical-m5": "f964dbe259f6f0d97c178ee7284a293baa0355552a21d6b11d67a4f778837da4",
+    "check-numerical-pq2": "a30d764e9d1c9d2101a00332a1a44d5f2e54d47dd8a29738f132cee15409fe78",
+    "check-numerical-q1": "77be6849910d882c6f2708509ffb722d61260fcc593bb039173e05d6a1b08f3f",
+    "libllama.0.dylib": "221ee8b48cb717f3570522a690f83fc3a6e5609d0792fbf8031dbd56154aae38",
+    "libmtmd.0.dylib": "9180414231357ebf473917c54cd689eb9b9550a5980867cb339d1f9a4ee66369",
+    "libggml.dylib": "c50bcd88494cb5612d28202e4df7e3e043fd029835490b5ec78c4c440ee2fc57",
+    "libggml-base.0.21.0.dylib": "335c6bf758561d54e6c13a56e994c6489ca6cb688aab906f93cc361fb29d294f",
+    "libggml.0.dylib": "c50bcd88494cb5612d28202e4df7e3e043fd029835490b5ec78c4c440ee2fc57",
+    "libmtmd.dylib": "9180414231357ebf473917c54cd689eb9b9550a5980867cb339d1f9a4ee66369",
+    "libllama-server-impl.dylib": "bc26e82918f9085b92e782d7e119a4caf76373a8ce421c7afc420dcb4bd641df",
+    "libggml-base.dylib": "335c6bf758561d54e6c13a56e994c6489ca6cb688aab906f93cc361fb29d294f",
+    "libggml-blas.dylib": "8437cae4b33589c8700c16e2431fa2c7f7812587118bb7de95a8d01ae3bbf58b",
+    "libggml-metal.0.dylib": "02987d7aaffa58b9756a88b0787a0304539204b9cb281c649e702f62590baf4c",
+    "libllama-bench-impl.dylib": "55389328338b23920566dcb82f9115a3393a6a3f55f8983b3bb476cc1469a0fc",
+    "libllama-common.0.dylib": "3fd7cba4f0bac021dffb8cc0c60bb4a5e4ae2df76aa78819416b9a3fbd856076",
+    "libllama.dylib": "221ee8b48cb717f3570522a690f83fc3a6e5609d0792fbf8031dbd56154aae38",
+    "libggml-cpu.dylib": "f5377e332937849f6ca34a87182da1660c92458ae4d6b74660214b0645584b98",
+    "libggml-metal.dylib": "02987d7aaffa58b9756a88b0787a0304539204b9cb281c649e702f62590baf4c",
+    "libllama-common.dylib": "3fd7cba4f0bac021dffb8cc0c60bb4a5e4ae2df76aa78819416b9a3fbd856076",
+    "libggml-blas.0.21.0.dylib": "8437cae4b33589c8700c16e2431fa2c7f7812587118bb7de95a8d01ae3bbf58b",
+    "libggml.0.21.0.dylib": "c50bcd88494cb5612d28202e4df7e3e043fd029835490b5ec78c4c440ee2fc57",
+    "libmtmd.0.2.0.dylib": "9180414231357ebf473917c54cd689eb9b9550a5980867cb339d1f9a4ee66369",
+    "libggml-base.0.dylib": "335c6bf758561d54e6c13a56e994c6489ca6cb688aab906f93cc361fb29d294f",
+    "libllama.0.2.0.dylib": "221ee8b48cb717f3570522a690f83fc3a6e5609d0792fbf8031dbd56154aae38",
+    "libllama-common.0.2.0.dylib": "3fd7cba4f0bac021dffb8cc0c60bb4a5e4ae2df76aa78819416b9a3fbd856076",
+    "libggml-blas.0.dylib": "8437cae4b33589c8700c16e2431fa2c7f7812587118bb7de95a8d01ae3bbf58b",
+    "libggml-cpu.0.21.0.dylib": "f5377e332937849f6ca34a87182da1660c92458ae4d6b74660214b0645584b98",
+    "libggml-cpu.0.dylib": "f5377e332937849f6ca34a87182da1660c92458ae4d6b74660214b0645584b98",
+    "libggml-metal.0.21.0.dylib": "02987d7aaffa58b9756a88b0787a0304539204b9cb281c649e702f62590baf4c"
+  },
+  "comparison_a": {
+    "previous-pr-m1": {
+      "source": "d4ca15de27a8502218832ee85caf0fdf4222db3b",
+      "src": "/Users/jasontitus/Documents/Codex/2026-09-23/referenced-chatgpt-conversation-this-is-an-2/work/llama-pr",
+      "bin": "/Users/jasontitus/Documents/Codex/2026-09-23/referenced-chatgpt-conversation-this-is-an-2/work/build-pr/bin",
+      "binaries": {
+        "llama-bench": "3fb8c0fef7c2ad0b0e35d00723062fe3a63ee33a10aae0e9e06e22604f52b212",
+        "llama-server": "032fa4fc50d51386421e16c374a3ef3eaca5bb1964738253833990e70108bf47",
+        "libllama.0.dylib": "0192082cac5dd74361f9f8cbf2480655a3c67a17af23a348929d0ac6211c9987",
+        "libmtmd.0.dylib": "afa9e046d9a36fd255f58a781be93016f3c8be3bfac11006ddf9c3d4c97d87f8",
+        "libggml.dylib": "66c3597bf2cf3581003e12720dc467bdf75f1e9dc23d4ada5d2de568e67dbab4",
+        "libggml-base.0.21.0.dylib": "a0cbdaa89f7ecb3c163579e3c230c2f8f82ee6114372c8ab9e9ec0dfd82d5ee0",
+        "libggml.0.dylib": "66c3597bf2cf3581003e12720dc467bdf75f1e9dc23d4ada5d2de568e67dbab4",
+        "libmtmd.dylib": "afa9e046d9a36fd255f58a781be93016f3c8be3bfac11006ddf9c3d4c97d87f8",
+        "libllama-server-impl.dylib": "8d0b302c729110f8cdd33683c82fa5c62bde3650160e64ebd7cd496b16d8df0b",
+        "libggml-base.dylib": "a0cbdaa89f7ecb3c163579e3c230c2f8f82ee6114372c8ab9e9ec0dfd82d5ee0",
+        "libggml-blas.dylib": "26b3ef6ddc686d941f1e8510d85a6d57812cb3ffc89e96e2f510b108c4e60466",
+        "libggml-metal.0.dylib": "3b79753146d95b83cd22b4ec0bdb1890f93f139ba8359d3335c826e810d81fc4",
+        "libllama-bench-impl.dylib": "102ded6c61c9f7ac156aaf2a470e85caa7f1c9aedc482d07e4aabd7d2ffabd69",
+        "libllama-common.0.dylib": "40f314e2a937764ce677332be3c5c39aad1005a52969b949d5caf6c640e5bc42",
+        "libllama.dylib": "0192082cac5dd74361f9f8cbf2480655a3c67a17af23a348929d0ac6211c9987",
+        "libllama-perplexity-impl.dylib": "9be993824beed9fdb4dd422b8a915a1b61899fd9cee2e6cf81bb8317423fa4d1",
+        "libggml-cpu.dylib": "69eb9808dd17a3c9748bcd4edd9fc8b7087f1cd446e5a172f9b3502c4688c2a3",
+        "libggml-metal.dylib": "3b79753146d95b83cd22b4ec0bdb1890f93f139ba8359d3335c826e810d81fc4",
+        "libllama-common.dylib": "40f314e2a937764ce677332be3c5c39aad1005a52969b949d5caf6c640e5bc42",
+        "libggml-blas.0.21.0.dylib": "26b3ef6ddc686d941f1e8510d85a6d57812cb3ffc89e96e2f510b108c4e60466",
+        "libggml.0.21.0.dylib": "66c3597bf2cf3581003e12720dc467bdf75f1e9dc23d4ada5d2de568e67dbab4",
+        "libmtmd.0.2.0.dylib": "afa9e046d9a36fd255f58a781be93016f3c8be3bfac11006ddf9c3d4c97d87f8",
+        "libggml-base.0.dylib": "a0cbdaa89f7ecb3c163579e3c230c2f8f82ee6114372c8ab9e9ec0dfd82d5ee0",
+        "libllama.0.2.0.dylib": "0192082cac5dd74361f9f8cbf2480655a3c67a17af23a348929d0ac6211c9987",
+        "libllama-common.0.2.0.dylib": "40f314e2a937764ce677332be3c5c39aad1005a52969b949d5caf6c640e5bc42",
+        "libggml-blas.0.dylib": "26b3ef6ddc686d941f1e8510d85a6d57812cb3ffc89e96e2f510b108c4e60466",
+        "libggml-cpu.0.21.0.dylib": "69eb9808dd17a3c9748bcd4edd9fc8b7087f1cd446e5a172f9b3502c4688c2a3",
+        "libggml-cpu.0.dylib": "69eb9808dd17a3c9748bcd4edd9fc8b7087f1cd446e5a172f9b3502c4688c2a3",
+        "libggml-metal.0.21.0.dylib": "3b79753146d95b83cd22b4ec0bdb1890f93f139ba8359d3335c826e810d81fc4"
+      },
+      "source_snapshot": "provenance/previous-pr-m1/HEAD.txt",
+      "source_diff_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "source_diff_snapshot": "provenance/previous-pr-m1/tracked.diff"
+    },
+    "reload-baseline": {
+      "source": "7414230e58329e07f2d77cb9a10ebf3f8755d704",
+      "src": "/Users/jasontitus/Documents/Codex/2026-09-23/referenced-chatgpt-conversation-this-is-an-2/work/llama-tuning-r4",
+      "bin": "/Users/jasontitus/Documents/Codex/2026-09-23/referenced-chatgpt-conversation-this-is-an-2/work/build-tuning-r4/bin",
+      "binaries": {
+        "llama-bench": "a9c8e9e6f6fa57608e6ddd50c40cc604444d3cff87f8b67c9dd4ee7fdda0850a",
+        "llama-server": "a77ee9e15eef902a1a4a2a50f30904e654850d8a663c7e27011b83e4e602bb68",
+        "libllama.0.dylib": "af6d7a8020e2e86cce95b9c3242f1f1f58f7b551c784b63d02567ba0315ddcc2",
+        "libmtmd.0.dylib": "5614374bf73704d5946d37a3191d2f73264238f46cf3f46379a0e315d6c27410",
+        "libggml.dylib": "be563c16b40471462cb3a988e87cb5bb83464bd94d01f9c6ebaaf1de901524d6",
+        "libggml-base.0.21.0.dylib": "9156ad2e03273d4b4f90abd9ef052e7d99cf5b1a503062478a7c7b88bbc411c5",
+        "libggml.0.dylib": "be563c16b40471462cb3a988e87cb5bb83464bd94d01f9c6ebaaf1de901524d6",
+        "libmtmd.dylib": "5614374bf73704d5946d37a3191d2f73264238f46cf3f46379a0e315d6c27410",
+        "libllama-server-impl.dylib": "c26782a858044228695de6871a97a40a5fd9ed7c3a61b7904b372fb9ecce0685",
+        "libggml-base.dylib": "9156ad2e03273d4b4f90abd9ef052e7d99cf5b1a503062478a7c7b88bbc411c5",
+        "libggml-blas.dylib": "6107cdbafdb3328a006c62622df558eeea40122a561543847eab869625df16b7",
+        "libggml-metal.0.dylib": "6bd7801c8666480f24d01de8e9fe6be42b077cddbb968e396cbc002148daa542",
+        "libllama-bench-impl.dylib": "66444d4337f6ebd4e74bd10219457f7964c5cc53bb30ed7bdb44d26af1ba851a",
+        "libllama-common.0.dylib": "7a0b1910f18a7f916976a817254123eb3b694f7eb28c4f901454fef52fd89b26",
+        "libllama.dylib": "af6d7a8020e2e86cce95b9c3242f1f1f58f7b551c784b63d02567ba0315ddcc2",
+        "libggml-cpu.dylib": "ca26ce9176c8c93768b8445c1170d90d084be437daea683bea7f8a800a8a47a4",
+        "libggml-metal.dylib": "6bd7801c8666480f24d01de8e9fe6be42b077cddbb968e396cbc002148daa542",
+        "libllama-common.dylib": "7a0b1910f18a7f916976a817254123eb3b694f7eb28c4f901454fef52fd89b26",
+        "libggml-blas.0.21.0.dylib": "6107cdbafdb3328a006c62622df558eeea40122a561543847eab869625df16b7",
+        "libggml.0.21.0.dylib": "be563c16b40471462cb3a988e87cb5bb83464bd94d01f9c6ebaaf1de901524d6",
+        "libmtmd.0.2.0.dylib": "5614374bf73704d5946d37a3191d2f73264238f46cf3f46379a0e315d6c27410",
+        "libggml-base.0.dylib": "9156ad2e03273d4b4f90abd9ef052e7d99cf5b1a503062478a7c7b88bbc411c5",
+        "libllama.0.2.0.dylib": "af6d7a8020e2e86cce95b9c3242f1f1f58f7b551c784b63d02567ba0315ddcc2",
+        "libllama-common.0.2.0.dylib": "7a0b1910f18a7f916976a817254123eb3b694f7eb28c4f901454fef52fd89b26",
+        "libggml-blas.0.dylib": "6107cdbafdb3328a006c62622df558eeea40122a561543847eab869625df16b7",
+        "libggml-cpu.0.21.0.dylib": "ca26ce9176c8c93768b8445c1170d90d084be437daea683bea7f8a800a8a47a4",
+        "libggml-cpu.0.dylib": "ca26ce9176c8c93768b8445c1170d90d084be437daea683bea7f8a800a8a47a4",
+        "libggml-metal.0.21.0.dylib": "6bd7801c8666480f24d01de8e9fe6be42b077cddbb968e396cbc002148daa542"
+      },
+      "source_snapshot": "provenance/reload-baseline/HEAD.txt",
+      "source_diff_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "source_diff_snapshot": "provenance/reload-baseline/tracked.diff"
+    }
+  },
+  "suite": "device",
+  "studies": [
+    "ptq1-same-mode",
+    "ptq1-bitexact",
+    "ptq1-total",
+    "pq2-same-mode",
+    "pq2-total",
+    "b1-ternary",
+    "b1-binary",
+    "m1-single-user",
+    "m1-total",
+    "previous-pr-m1",
+    "reload-baseline"
+  ],
+  "telemetry_note": "Codex remains open. GPU counters cover only the first AGXAccelerator PerformanceStatistics entry returned by ioreg, not an aggregate across entries. Process CPU activity is sampled; per-process GPU attribution unavailable because sudo is not authenticated. Thermal state: 0 nominal, 1 fair, 2 serious, 3 critical.",
+  "protocol": {
+    "cycles": 3,
+    "cooldown_seconds": 8,
+    "spread_limit": 1.2,
+    "attempts": 3,
+    "tokens": 128
+  },
+  "flags": {
+    "ptq1": {
+      "GGML_METAL_PTQ1_MULTICOL": "1",
+      "GGML_METAL_PTQ1_MULTICOL_MAX": "8",
+      "GGML_METAL_PTQ1_GLU": "1",
+      "GGML_METAL_PTQ1_STAGE": "1",
+      "GGML_GDN_ROWS_PLAIN": "1",
+      "GGML_METAL_SMALLM_MM": "1"
+    },
+    "pq2": {
+      "GGML_METAL_PQ2_MULTICOL": "1",
+      "GGML_METAL_PQ2_GLU": "1",
+      "GGML_GDN_ROWS_PLAIN": "1",
+      "GGML_METAL_SMALLM": "1",
+      "GGML_METAL_SMALLM_MM": "1"
+    },
+    "q1": {
+      "GGML_GDN_ROWS_PLAIN": "1",
+      "GGML_METAL_SMALLM": "1",
+      "GGML_METAL_SMALLM_MM": "1"
+    }
+  },
+  "correctness_scope": {
+    "build": "current",
+    "source": "8a1bdf74a2693ef178bdd039910c0fff9cb73510",
+    "bin": "/Users/jasontitus/Documents/Codex/2026-09-23/referenced-chatgpt-conversation-this-is-an-2/work/build-tuning/bin",
+    "note": "Every selected A/B flag configuration is checked on the current build. Separate comparison A binaries are not revalidated by these checks; their correctness needs separate evidence."
+  },
+  "correctness_configs": [
+    {
+      "type": "ptq1_0",
+      "checker": "m5",
+      "label": "config-44136fa355b3",
+      "flags": {},
+      "uses": [
+        {
+          "study": "ptq1-same-mode",
+          "model": "b2-ptq1",
+          "arm": "A",
+          "benchmark_build": "current"
+        },
+        {
+          "study": "ptq1-bitexact",
+          "model": "b2-ptq1",
+          "arm": "A",
+          "benchmark_build": "current"
+        },
+        {
+          "study": "ptq1-total",
+          "model": "b2-ptq1",
+          "arm": "A",
+          "benchmark_build": "current"
+        },
+        {
+          "study": "m1-single-user",
+          "model": "b2-ptq1",
+          "arm": "A",
+          "benchmark_build": "current"
+        },
+        {
+          "study": "m1-total",
+          "model": "b2-ptq1",
+          "arm": "A",
+          "benchmark_build": "current"
+        },
+        {
+          "study": "reload-baseline",
+          "model": "b2-ptq1",
+          "arm": "A",
+          "benchmark_build": "comparison_a"
+        },
+        {
+          "study": "reload-baseline",
+          "model": "b2-ptq1",
+          "arm": "B",
+          "benchmark_build": "current"
+        }
+      ]
+    },
+    {
+      "type": "ptq1_0",
+      "checker": "m5",
+      "label": "config-17a9c34bf045",
+      "flags": {
+        "GGML_METAL_PTQ1_MULTICOL": "1",
+        "GGML_METAL_PTQ1_MULTICOL_MAX": "8",
+        "GGML_METAL_PTQ1_GLU": "1",
+        "GGML_METAL_PTQ1_STAGE": "1",
+        "GGML_GDN_ROWS_PLAIN": "1",
+        "GGML_METAL_SMALLM_MM": "1"
+      },
+      "uses": [
+        {
+          "study": "ptq1-same-mode",
+          "model": "b2-ptq1",
+          "arm": "B",
+          "benchmark_build": "current"
+        },
+        {
+          "study": "ptq1-total",
+          "model": "b2-ptq1",
+          "arm": "B",
+          "benchmark_build": "current"
+        }
+      ]
+    },
+    {
+      "type": "ptq1_0",
+      "checker": "m5",
+      "label": "config-ab8358b5b832",
+      "flags": {
+        "GGML_GDN_ROWS_PLAIN": "1"
+      },
+      "uses": [
+        {
+          "study": "ptq1-bitexact",
+          "model": "b2-ptq1",
+          "arm": "B",
+          "benchmark_build": "current"
+        }
+      ]
+    },
+    {
+      "type": "pq2_0",
+      "checker": "pq2",
+      "label": "config-44136fa355b3",
+      "flags": {},
+      "uses": [
+        {
+          "study": "pq2-same-mode",
+          "model": "b2-pq2",
+          "arm": "A",
+          "benchmark_build": "current"
+        },
+        {
+          "study": "pq2-total",
+          "model": "b2-pq2",
+          "arm": "A",
+          "benchmark_build": "current"
+        },
+        {
+          "study": "b1-ternary",
+          "model": "b1-ternary",
+          "arm": "A",
+          "benchmark_build": "current"
+        }
+      ]
+    },
+    {
+      "type": "pq2_0",
+      "checker": "pq2",
+      "label": "config-c2ebb17c8aa1",
+      "flags": {
+        "GGML_METAL_PQ2_MULTICOL": "1",
+        "GGML_METAL_PQ2_GLU": "1",
+        "GGML_GDN_ROWS_PLAIN": "1",
+        "GGML_METAL_SMALLM": "1",
+        "GGML_METAL_SMALLM_MM": "1"
+      },
+      "uses": [
+        {
+          "study": "pq2-same-mode",
+          "model": "b2-pq2",
+          "arm": "B",
+          "benchmark_build": "current"
+        },
+        {
+          "study": "pq2-total",
+          "model": "b2-pq2",
+          "arm": "B",
+          "benchmark_build": "current"
+        },
+        {
+          "study": "b1-ternary",
+          "model": "b1-ternary",
+          "arm": "B",
+          "benchmark_build": "current"
+        }
+      ]
+    },
+    {
+      "type": "q1_0",
+      "checker": "q1",
+      "label": "config-44136fa355b3",
+      "flags": {},
+      "uses": [
+        {
+          "study": "b1-binary",
+          "model": "b1-binary",
+          "arm": "A",
+          "benchmark_build": "current"
+        }
+      ]
+    },
+    {
+      "type": "q1_0",
+      "checker": "q1",
+      "label": "config-192a4c70582f",
+      "flags": {
+        "GGML_GDN_ROWS_PLAIN": "1",
+        "GGML_METAL_SMALLM": "1",
+        "GGML_METAL_SMALLM_MM": "1"
+      },
+      "uses": [
+        {
+          "study": "b1-binary",
+          "model": "b1-binary",
+          "arm": "B",
+          "benchmark_build": "current"
+        }
+      ]
+    },
+    {
+      "type": "ptq1_0",
+      "checker": "m5",
+      "label": "config-5511616bb3e0",
+      "flags": {
+        "GGML_METAL_PTQ1_MULTICOL": "1",
+        "GGML_METAL_PTQ1_MULTICOL_MAX": "8",
+        "GGML_METAL_PTQ1_GLU": "1",
+        "GGML_METAL_PTQ1_STAGE": "0",
+        "GGML_GDN_ROWS_PLAIN": "1",
+        "GGML_METAL_SMALLM_MM": "1"
+      },
+      "uses": [
+        {
+          "study": "m1-single-user",
+          "model": "b2-ptq1",
+          "arm": "B",
+          "benchmark_build": "current"
+        },
+        {
+          "study": "m1-total",
+          "model": "b2-ptq1",
+          "arm": "B",
+          "benchmark_build": "current"
+        },
+        {
+          "study": "previous-pr-m1",
+          "model": "b2-ptq1",
+          "arm": "B",
+          "benchmark_build": "current"
+        }
+      ]
+    },
+    {
+      "type": "ptq1_0",
+      "checker": "m5",
+      "label": "config-673987648873",
+      "flags": {
+        "GGML_METAL_PTQ1_MULTICOL": "1"
+      },
+      "uses": [
+        {
+          "study": "previous-pr-m1",
+          "model": "b2-ptq1",
+          "arm": "A",
+          "benchmark_build": "comparison_a"
+        }
+      ]
+    }
+  ]
+}

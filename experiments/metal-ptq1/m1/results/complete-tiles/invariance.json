@@ -1,0 +1,29 @@
+{
+  "log_sha256": "87735df077ab9611144e18df3d2178942d19f68539a76e4e607b140132d57ae4",
+  "source": "7414230 plus provenance/tracked.diff",
+  "model": "b2-ptq1",
+  "flags": {
+    "GGML_METAL_PTQ1_MULTICOL": "1",
+    "GGML_METAL_PTQ1_MULTICOL_MAX": "8",
+    "GGML_METAL_PTQ1_STAGE": "0",
+    "GGML_METAL_PTQ1_GLU": "1",
+    "GGML_GDN_ROWS_PLAIN": "1",
+    "GGML_METAL_SMALLM_MM": "1",
+    "GGML_METAL_BATCH_INVARIANT": "1"
+  },
+  "prompt": "Explain why the sky appears blue on a clear day.",
+  "n_tokens_argument": 72,
+  "batches": [
+    2,
+    3,
+    4
+  ],
+  "results": [
+    "k=2 positions=64 bitwise_identical=64 max_abs=0 nmse=0 argmax_changed=0",
+    "k=3 positions=64 bitwise_identical=64 max_abs=0 nmse=0 argmax_changed=0",
+    "k=4 positions=64 bitwise_identical=64 max_abs=0 nmse=0 argmax_changed=0"
+  ],
+  "checker_sha256": "d4453573b3fc52922705989edafccde21f601a2e01d62e15e750c0c4fe3784e3",
+  "checker_source_sha256": "2be506d90e13073cb8320082f832f56787fe57b00a8032d8e5ef027a954b42c4",
+  "checker_source_snapshot": "check-invariance.cpp"
+}

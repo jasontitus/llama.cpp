@@ -1,0 +1,292 @@
+{
+  "started": 1790267666.525239,
+  "source": "7414230e58329e07f2d77cb9a10ebf3f8755d704",
+  "source_diff_sha256": "8824bad8e34b795f48654b238d2d0b40cb45592f3ca529a9b1827aba62a6976a",
+  "source_diff_snapshot": "provenance/tracked.diff",
+  "source_snapshots": {
+    "experiments/metal-ptq1/m1/tools/run.py": {
+      "sha256": "1304905dea21adb97a76df94cdb3fa7efc6b623ce51692abeeae2ab1678b2da3",
+      "snapshot": "provenance/sources/experiments/metal-ptq1/m1/tools/run.py"
+    },
+    "experiments/metal-ptq1/m1/tools/summarize.py": {
+      "sha256": "c8124f42b99dff926ac9bf0eeafed1060874d125d08418807ff21449e65f7fee",
+      "snapshot": "provenance/sources/experiments/metal-ptq1/m1/tools/summarize.py"
+    },
+    "experiments/metal-ptq1/m1/tools/thermal-state.m": {
+      "sha256": "8c6f14fe9b549206a831a158f31fdccf6acbb24db4ba0834490f6fcda1e94b57",
+      "snapshot": "provenance/sources/experiments/metal-ptq1/m1/tools/thermal-state.m"
+    },
+    "experiments/metal-ptq1/m1/models.json": {
+      "sha256": "05c75595ff8cb64ede295a3c5ec1aafdae6ee8d3e5ab2f2a68ef1c39c5ab320f",
+      "snapshot": "provenance/sources/experiments/metal-ptq1/m1/models.json"
+    },
+    "experiments/metal-ptq1/m5/tools/abba-m5.py": {
+      "sha256": "8c1fd962b9412229aa39ebdcb85a0be8d99492e671a4da0e24d2945c511bc603",
+      "snapshot": "provenance/sources/experiments/metal-ptq1/m5/tools/abba-m5.py"
+    },
+    "experiments/metal-ptq1/m5/tools/abba-m5-draft.py": {
+      "sha256": "c1873a6ceddfbabda6ac9ffb8dd78a082402cad46f2c804d7422596af2c36bf1",
+      "snapshot": "provenance/sources/experiments/metal-ptq1/m5/tools/abba-m5-draft.py"
+    },
+    "tests/test-backend-ops.cpp": {
+      "sha256": "9370a32b4a56d113c3846768a807ee5e202e67908bea37800b4ea11f68ed4ea1",
+      "snapshot": "provenance/sources/tests/test-backend-ops.cpp"
+    },
+    "experiments/metal-ptq1/m5/tools/check-numerical-m5.cpp": {
+      "sha256": "4276f3fe0358883f77704b5c976523b724a26a5f61888a2d66151a7557dd63c1",
+      "snapshot": "provenance/sources/experiments/metal-ptq1/m5/tools/check-numerical-m5.cpp"
+    },
+    "experiments/metal-ptq1/m5/tools/check-numerical-pq2.cpp": {
+      "sha256": "ff4193577fe0689ea10db3893a4fd16710eb2210fad130056315c066882e4a13",
+      "snapshot": "provenance/sources/experiments/metal-ptq1/m5/tools/check-numerical-pq2.cpp"
+    },
+    "experiments/metal-ptq1/m5/tools/check-numerical-q1.cpp": {
+      "sha256": "ee17877c535c6c65062aebd7c77bc3345624177d1ef3aa03ca47401a453548bb",
+      "snapshot": "provenance/sources/experiments/metal-ptq1/m5/tools/check-numerical-q1.cpp"
+    }
+  },
+  "hardware": {
+    "hw.model": "Mac13,2",
+    "hw.memsize": "137438953472",
+    "hw.ncpu": "20",
+    "machdep.cpu.brand_string": "Apple M1 Ultra"
+  },
+  "os": "ProductName:\t\tmacOS\nProductVersion:\t\t26.7\nBuildVersion:\t\t25G229",
+  "compiler": "Apple clang version 21.0.0 (clang-2100.3.34.2)\nTarget: arm64-apple-darwin25.6.0\nThread model: posix\nInstalledDir: /Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin",
+  "models": [
+    {
+      "key": "b2-ptq1",
+      "repo": "prism-ml/Ternary-Bonsai-2-27B-gguf",
+      "revision": "6ed5e12bf84b7a63069882c91dd9e9218647d17b",
+      "file": "Ternary-Bonsai-2-27B-PTQ1_0.gguf",
+      "sha256": "53107f530aa52eb00912263ab1ee29bd199261c87cd7b4ad4ca1318c1fe33ee3",
+      "size": 5946648928,
+      "architecture": "qwen35",
+      "tensor_types": {
+        "PTQ1_0": 402,
+        "F32": 353,
+        "BF16": 96
+      },
+      "nextn": 0,
+      "merged_mtp": {
+        "file": "Ternary-Bonsai-2-27B-PTQ1_0-mtp.gguf",
+        "sha256": "83a396ee218c36e5ed88205eccb940a71549d9a72a3d020cc2713f94a78f70f0",
+        "size": 7012820512
+      }
+    }
+  ],
+  "binaries": {
+    "llama-bench": "f1d648dfb2bfc7da5996e24608138a70cf3145c76779c76b5965af6fd0e5259d",
+    "llama-server": "8e5467fa083cdb775357c22f1506a5c5be066bf8fa2ca9c73459d45677f65c96",
+    "test-backend-ops": "0dcdc49dcc3979023e2596853272e7a4d999cd067d5af73a9021f3610a18c2d1",
+    "thermal-state": "209e2ea69a88a31106ea759c514f661a6902a9ada1a5aa874c20d4e07002c641",
+    "check-numerical-m5": "f964dbe259f6f0d97c178ee7284a293baa0355552a21d6b11d67a4f778837da4",
+    "libllama.0.dylib": "7108bccf2e50c708735e22db25de7caa0a9ad4a3a4faf58cda074f94a8a778ee",
+    "libmtmd.0.dylib": "9180414231357ebf473917c54cd689eb9b9550a5980867cb339d1f9a4ee66369",
+    "libggml.dylib": "c50bcd88494cb5612d28202e4df7e3e043fd029835490b5ec78c4c440ee2fc57",
+    "libggml-base.0.21.0.dylib": "fadbf8aed9018bf6298206f47a44e1e67a89e7cb60ad3c0d5281b824b94a752b",
+    "libggml.0.dylib": "c50bcd88494cb5612d28202e4df7e3e043fd029835490b5ec78c4c440ee2fc57",
+    "libmtmd.dylib": "9180414231357ebf473917c54cd689eb9b9550a5980867cb339d1f9a4ee66369",
+    "libllama-server-impl.dylib": "bc26e82918f9085b92e782d7e119a4caf76373a8ce421c7afc420dcb4bd641df",
+    "libggml-base.dylib": "fadbf8aed9018bf6298206f47a44e1e67a89e7cb60ad3c0d5281b824b94a752b",
+    "libggml-blas.dylib": "8437cae4b33589c8700c16e2431fa2c7f7812587118bb7de95a8d01ae3bbf58b",
+    "libggml-metal.0.dylib": "31865a3ad8db45f7c173bb1f44cf250934f8180e9f551f4246c39b8196d7e96a",
+    "libllama-bench-impl.dylib": "55389328338b23920566dcb82f9115a3393a6a3f55f8983b3bb476cc1469a0fc",
+    "libllama-common.0.dylib": "7ff9be6609958fb513f4b24c95cf653bef656d86d9e280a7c54ac7ba1b01e13f",
+    "libllama.dylib": "7108bccf2e50c708735e22db25de7caa0a9ad4a3a4faf58cda074f94a8a778ee",
+    "libggml-cpu.dylib": "f5377e332937849f6ca34a87182da1660c92458ae4d6b74660214b0645584b98",
+    "libggml-metal.dylib": "31865a3ad8db45f7c173bb1f44cf250934f8180e9f551f4246c39b8196d7e96a",
+    "libllama-common.dylib": "7ff9be6609958fb513f4b24c95cf653bef656d86d9e280a7c54ac7ba1b01e13f",
+    "libggml-blas.0.21.0.dylib": "8437cae4b33589c8700c16e2431fa2c7f7812587118bb7de95a8d01ae3bbf58b",
+    "libggml.0.21.0.dylib": "c50bcd88494cb5612d28202e4df7e3e043fd029835490b5ec78c4c440ee2fc57",
+    "libmtmd.0.2.0.dylib": "9180414231357ebf473917c54cd689eb9b9550a5980867cb339d1f9a4ee66369",
+    "libggml-base.0.dylib": "fadbf8aed9018bf6298206f47a44e1e67a89e7cb60ad3c0d5281b824b94a752b",
+    "libllama.0.2.0.dylib": "7108bccf2e50c708735e22db25de7caa0a9ad4a3a4faf58cda074f94a8a778ee",
+    "libllama-common.0.2.0.dylib": "7ff9be6609958fb513f4b24c95cf653bef656d86d9e280a7c54ac7ba1b01e13f",
+    "libggml-blas.0.dylib": "8437cae4b33589c8700c16e2431fa2c7f7812587118bb7de95a8d01ae3bbf58b",
+    "libggml-cpu.0.21.0.dylib": "f5377e332937849f6ca34a87182da1660c92458ae4d6b74660214b0645584b98",
+    "libggml-cpu.0.dylib": "f5377e332937849f6ca34a87182da1660c92458ae4d6b74660214b0645584b98",
+    "libggml-metal.0.21.0.dylib": "31865a3ad8db45f7c173bb1f44cf250934f8180e9f551f4246c39b8196d7e96a"
+  },
+  "comparison_a": {
+    "full-column-specialization": {
+      "source": "7414230e58329e07f2d77cb9a10ebf3f8755d704",
+      "src": "/Users/jasontitus/Documents/Codex/2026-09-23/referenced-chatgpt-conversation-this-is-an-2/work/llama-tuning-r4",
+      "bin": "/Users/jasontitus/Documents/Codex/2026-09-23/referenced-chatgpt-conversation-this-is-an-2/work/build-tuning-r4/bin",
+      "binaries": {
+        "llama-bench": "a9c8e9e6f6fa57608e6ddd50c40cc604444d3cff87f8b67c9dd4ee7fdda0850a",
+        "llama-server": "a77ee9e15eef902a1a4a2a50f30904e654850d8a663c7e27011b83e4e602bb68",
+        "libllama.0.dylib": "af6d7a8020e2e86cce95b9c3242f1f1f58f7b551c784b63d02567ba0315ddcc2",
+        "libmtmd.0.dylib": "5614374bf73704d5946d37a3191d2f73264238f46cf3f46379a0e315d6c27410",
+        "libggml.dylib": "be563c16b40471462cb3a988e87cb5bb83464bd94d01f9c6ebaaf1de901524d6",
+        "libggml-base.0.21.0.dylib": "9156ad2e03273d4b4f90abd9ef052e7d99cf5b1a503062478a7c7b88bbc411c5",
+        "libggml.0.dylib": "be563c16b40471462cb3a988e87cb5bb83464bd94d01f9c6ebaaf1de901524d6",
+        "libmtmd.dylib": "5614374bf73704d5946d37a3191d2f73264238f46cf3f46379a0e315d6c27410",
+        "libllama-server-impl.dylib": "c26782a858044228695de6871a97a40a5fd9ed7c3a61b7904b372fb9ecce0685",
+        "libggml-base.dylib": "9156ad2e03273d4b4f90abd9ef052e7d99cf5b1a503062478a7c7b88bbc411c5",
+        "libggml-blas.dylib": "6107cdbafdb3328a006c62622df558eeea40122a561543847eab869625df16b7",
+        "libggml-metal.0.dylib": "6bd7801c8666480f24d01de8e9fe6be42b077cddbb968e396cbc002148daa542",
+        "libllama-bench-impl.dylib": "66444d4337f6ebd4e74bd10219457f7964c5cc53bb30ed7bdb44d26af1ba851a",
+        "libllama-common.0.dylib": "7a0b1910f18a7f916976a817254123eb3b694f7eb28c4f901454fef52fd89b26",
+        "libllama.dylib": "af6d7a8020e2e86cce95b9c3242f1f1f58f7b551c784b63d02567ba0315ddcc2",
+        "libggml-cpu.dylib": "ca26ce9176c8c93768b8445c1170d90d084be437daea683bea7f8a800a8a47a4",
+        "libggml-metal.dylib": "6bd7801c8666480f24d01de8e9fe6be42b077cddbb968e396cbc002148daa542",
+        "libllama-common.dylib": "7a0b1910f18a7f916976a817254123eb3b694f7eb28c4f901454fef52fd89b26",
+        "libggml-blas.0.21.0.dylib": "6107cdbafdb3328a006c62622df558eeea40122a561543847eab869625df16b7",
+        "libggml.0.21.0.dylib": "be563c16b40471462cb3a988e87cb5bb83464bd94d01f9c6ebaaf1de901524d6",
+        "libmtmd.0.2.0.dylib": "5614374bf73704d5946d37a3191d2f73264238f46cf3f46379a0e315d6c27410",
+        "libggml-base.0.dylib": "9156ad2e03273d4b4f90abd9ef052e7d99cf5b1a503062478a7c7b88bbc411c5",
+        "libllama.0.2.0.dylib": "af6d7a8020e2e86cce95b9c3242f1f1f58f7b551c784b63d02567ba0315ddcc2",
+        "libllama-common.0.2.0.dylib": "7a0b1910f18a7f916976a817254123eb3b694f7eb28c4f901454fef52fd89b26",
+        "libggml-blas.0.dylib": "6107cdbafdb3328a006c62622df558eeea40122a561543847eab869625df16b7",
+        "libggml-cpu.0.21.0.dylib": "ca26ce9176c8c93768b8445c1170d90d084be437daea683bea7f8a800a8a47a4",
+        "libggml-cpu.0.dylib": "ca26ce9176c8c93768b8445c1170d90d084be437daea683bea7f8a800a8a47a4",
+        "libggml-metal.0.21.0.dylib": "6bd7801c8666480f24d01de8e9fe6be42b077cddbb968e396cbc002148daa542"
+      },
+      "source_snapshot": "provenance/full-column-specialization/HEAD.txt",
+      "source_diff_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "source_diff_snapshot": "provenance/full-column-specialization/tracked.diff"
+    },
+    "previous-pr-m1": {
+      "source": "d4ca15de27a8502218832ee85caf0fdf4222db3b",
+      "src": "/Users/jasontitus/Documents/Codex/2026-09-23/referenced-chatgpt-conversation-this-is-an-2/work/llama-pr",
+      "bin": "/Users/jasontitus/Documents/Codex/2026-09-23/referenced-chatgpt-conversation-this-is-an-2/work/build-pr/bin",
+      "binaries": {
+        "llama-bench": "3fb8c0fef7c2ad0b0e35d00723062fe3a63ee33a10aae0e9e06e22604f52b212",
+        "llama-server": "032fa4fc50d51386421e16c374a3ef3eaca5bb1964738253833990e70108bf47",
+        "libllama.0.dylib": "0192082cac5dd74361f9f8cbf2480655a3c67a17af23a348929d0ac6211c9987",
+        "libmtmd.0.dylib": "afa9e046d9a36fd255f58a781be93016f3c8be3bfac11006ddf9c3d4c97d87f8",
+        "libggml.dylib": "66c3597bf2cf3581003e12720dc467bdf75f1e9dc23d4ada5d2de568e67dbab4",
+        "libggml-base.0.21.0.dylib": "a0cbdaa89f7ecb3c163579e3c230c2f8f82ee6114372c8ab9e9ec0dfd82d5ee0",
+        "libggml.0.dylib": "66c3597bf2cf3581003e12720dc467bdf75f1e9dc23d4ada5d2de568e67dbab4",
+        "libmtmd.dylib": "afa9e046d9a36fd255f58a781be93016f3c8be3bfac11006ddf9c3d4c97d87f8",
+        "libllama-server-impl.dylib": "8d0b302c729110f8cdd33683c82fa5c62bde3650160e64ebd7cd496b16d8df0b",
+        "libggml-base.dylib": "a0cbdaa89f7ecb3c163579e3c230c2f8f82ee6114372c8ab9e9ec0dfd82d5ee0",
+        "libggml-blas.dylib": "26b3ef6ddc686d941f1e8510d85a6d57812cb3ffc89e96e2f510b108c4e60466",
+        "libggml-metal.0.dylib": "3b79753146d95b83cd22b4ec0bdb1890f93f139ba8359d3335c826e810d81fc4",
+        "libllama-bench-impl.dylib": "102ded6c61c9f7ac156aaf2a470e85caa7f1c9aedc482d07e4aabd7d2ffabd69",
+        "libllama-common.0.dylib": "40f314e2a937764ce677332be3c5c39aad1005a52969b949d5caf6c640e5bc42",
+        "libllama.dylib": "0192082cac5dd74361f9f8cbf2480655a3c67a17af23a348929d0ac6211c9987",
+        "libllama-perplexity-impl.dylib": "9be993824beed9fdb4dd422b8a915a1b61899fd9cee2e6cf81bb8317423fa4d1",
+        "libggml-cpu.dylib": "69eb9808dd17a3c9748bcd4edd9fc8b7087f1cd446e5a172f9b3502c4688c2a3",
+        "libggml-metal.dylib": "3b79753146d95b83cd22b4ec0bdb1890f93f139ba8359d3335c826e810d81fc4",
+        "libllama-common.dylib": "40f314e2a937764ce677332be3c5c39aad1005a52969b949d5caf6c640e5bc42",
+        "libggml-blas.0.21.0.dylib": "26b3ef6ddc686d941f1e8510d85a6d57812cb3ffc89e96e2f510b108c4e60466",
+        "libggml.0.21.0.dylib": "66c3597bf2cf3581003e12720dc467bdf75f1e9dc23d4ada5d2de568e67dbab4",
+        "libmtmd.0.2.0.dylib": "afa9e046d9a36fd255f58a781be93016f3c8be3bfac11006ddf9c3d4c97d87f8",
+        "libggml-base.0.dylib": "a0cbdaa89f7ecb3c163579e3c230c2f8f82ee6114372c8ab9e9ec0dfd82d5ee0",
+        "libllama.0.2.0.dylib": "0192082cac5dd74361f9f8cbf2480655a3c67a17af23a348929d0ac6211c9987",
+        "libllama-common.0.2.0.dylib": "40f314e2a937764ce677332be3c5c39aad1005a52969b949d5caf6c640e5bc42",
+        "libggml-blas.0.dylib": "26b3ef6ddc686d941f1e8510d85a6d57812cb3ffc89e96e2f510b108c4e60466",
+        "libggml-cpu.0.21.0.dylib": "69eb9808dd17a3c9748bcd4edd9fc8b7087f1cd446e5a172f9b3502c4688c2a3",
+        "libggml-cpu.0.dylib": "69eb9808dd17a3c9748bcd4edd9fc8b7087f1cd446e5a172f9b3502c4688c2a3",
+        "libggml-metal.0.21.0.dylib": "3b79753146d95b83cd22b4ec0bdb1890f93f139ba8359d3335c826e810d81fc4"
+      },
+      "source_snapshot": "provenance/previous-pr-m1/HEAD.txt",
+      "source_diff_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "source_diff_snapshot": "provenance/previous-pr-m1/tracked.diff"
+    }
+  },
+  "studies": [
+    "full-column-specialization",
+    "previous-pr-m1"
+  ],
+  "telemetry_note": "Codex remains open. GPU counters cover only the first AGXAccelerator PerformanceStatistics entry returned by ioreg, not an aggregate across entries. Process CPU activity is sampled; per-process GPU attribution unavailable because sudo is not authenticated. Thermal state: 0 nominal, 1 fair, 2 serious, 3 critical.",
+  "protocol": {
+    "cycles": 3,
+    "cooldown_seconds": 8,
+    "spread_limit": 1.2,
+    "attempts": 3,
+    "tokens": 128
+  },
+  "flags": {
+    "ptq1": {
+      "GGML_METAL_PTQ1_MULTICOL": "1",
+      "GGML_METAL_PTQ1_MULTICOL_MAX": "8",
+      "GGML_METAL_PTQ1_GLU": "1",
+      "GGML_METAL_PTQ1_STAGE": "1",
+      "GGML_GDN_ROWS_PLAIN": "1",
+      "GGML_METAL_SMALLM_MM": "1"
+    },
+    "pq2": {
+      "GGML_METAL_PQ2_MULTICOL": "1",
+      "GGML_METAL_PQ2_GLU": "1",
+      "GGML_GDN_ROWS_PLAIN": "1",
+      "GGML_METAL_SMALLM": "1",
+      "GGML_METAL_SMALLM_MM": "1"
+    },
+    "q1": {
+      "GGML_GDN_ROWS_PLAIN": "1",
+      "GGML_METAL_SMALLM": "1",
+      "GGML_METAL_SMALLM_MM": "1"
+    }
+  },
+  "correctness_scope": {
+    "build": "current",
+    "source": "7414230e58329e07f2d77cb9a10ebf3f8755d704",
+    "bin": "/Users/jasontitus/Documents/Codex/2026-09-23/referenced-chatgpt-conversation-this-is-an-2/work/build-tuning/bin",
+    "note": "Every selected A/B flag configuration is checked on the current build. Separate comparison A binaries are not revalidated by these checks; their correctness needs separate evidence."
+  },
+  "correctness_configs": [
+    {
+      "type": "ptq1_0",
+      "checker": "m5",
+      "label": "config-9b7d32059b68",
+      "flags": {
+        "GGML_METAL_PTQ1_MULTICOL": "1",
+        "GGML_METAL_PTQ1_MULTICOL_MAX": "8"
+      },
+      "uses": [
+        {
+          "study": "full-column-specialization",
+          "model": "b2-ptq1",
+          "arm": "A",
+          "benchmark_build": "comparison_a"
+        },
+        {
+          "study": "full-column-specialization",
+          "model": "b2-ptq1",
+          "arm": "B",
+          "benchmark_build": "current"
+        }
+      ]
+    },
+    {
+      "type": "ptq1_0",
+      "checker": "m5",
+      "label": "config-673987648873",
+      "flags": {
+        "GGML_METAL_PTQ1_MULTICOL": "1"
+      },
+      "uses": [
+        {
+          "study": "previous-pr-m1",
+          "model": "b2-ptq1",
+          "arm": "A",
+          "benchmark_build": "comparison_a"
+        }
+      ]
+    },
+    {
+      "type": "ptq1_0",
+      "checker": "m5",
+      "label": "config-5511616bb3e0",
+      "flags": {
+        "GGML_METAL_PTQ1_MULTICOL": "1",
+        "GGML_METAL_PTQ1_MULTICOL_MAX": "8",
+        "GGML_METAL_PTQ1_GLU": "1",
+        "GGML_METAL_PTQ1_STAGE": "0",
+        "GGML_GDN_ROWS_PLAIN": "1",
+        "GGML_METAL_SMALLM_MM": "1"
+      },
+      "uses": [
+        {
+          "study": "previous-pr-m1",
+          "model": "b2-ptq1",
+          "arm": "B",
+          "benchmark_build": "current"
+        }
+      ]
+    }
+  ]
+}

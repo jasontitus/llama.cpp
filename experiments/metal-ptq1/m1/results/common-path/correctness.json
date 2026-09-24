@@ -1,0 +1,233 @@
+[
+  {
+    "name": "ptq1_0-config-673987648873-strict",
+    "passed": 52,
+    "counts": [],
+    "command": [
+      "/Users/jasontitus/Documents/Codex/2026-09-23/referenced-chatgpt-conversation-this-is-an-2/work/build-tuning/bin/check-numerical-m5"
+    ],
+    "flags": {
+      "GGML_METAL_PTQ1_MULTICOL": "1"
+    },
+    "config_label": "config-673987648873",
+    "uses": [
+      {
+        "study": "previous-pr-mc-only",
+        "model": "b2-ptq1",
+        "arm": "A",
+        "benchmark_build": "comparison_a"
+      },
+      {
+        "study": "previous-pr-mc-only",
+        "model": "b2-ptq1",
+        "arm": "B",
+        "benchmark_build": "current"
+      },
+      {
+        "study": "m1-no-stage-prefill",
+        "model": "b2-ptq1",
+        "arm": "A",
+        "benchmark_build": "comparison_a"
+      }
+    ],
+    "build": "current",
+    "bin": "/Users/jasontitus/Documents/Codex/2026-09-23/referenced-chatgpt-conversation-this-is-an-2/work/build-tuning/bin"
+  },
+  {
+    "name": "ptq1_0-config-673987648873-MUL_MAT",
+    "passed": 101,
+    "counts": [
+      [
+        "101",
+        "101"
+      ]
+    ],
+    "command": [
+      "/Users/jasontitus/Documents/Codex/2026-09-23/referenced-chatgpt-conversation-this-is-an-2/work/build-tuning/bin/test-backend-ops",
+      "test",
+      "-b",
+      "MTL0",
+      "-o",
+      "MUL_MAT",
+      "-p",
+      "ptq1_0"
+    ],
+    "flags": {
+      "GGML_METAL_PTQ1_MULTICOL": "1"
+    },
+    "config_label": "config-673987648873",
+    "uses": [
+      {
+        "study": "previous-pr-mc-only",
+        "model": "b2-ptq1",
+        "arm": "A",
+        "benchmark_build": "comparison_a"
+      },
+      {
+        "study": "previous-pr-mc-only",
+        "model": "b2-ptq1",
+        "arm": "B",
+        "benchmark_build": "current"
+      },
+      {
+        "study": "m1-no-stage-prefill",
+        "model": "b2-ptq1",
+        "arm": "A",
+        "benchmark_build": "comparison_a"
+      }
+    ],
+    "build": "current",
+    "bin": "/Users/jasontitus/Documents/Codex/2026-09-23/referenced-chatgpt-conversation-this-is-an-2/work/build-tuning/bin"
+  },
+  {
+    "name": "ptq1_0-config-673987648873-MUL_MAT_VEC_FUSION",
+    "passed": 44,
+    "counts": [
+      [
+        "44",
+        "44"
+      ]
+    ],
+    "command": [
+      "/Users/jasontitus/Documents/Codex/2026-09-23/referenced-chatgpt-conversation-this-is-an-2/work/build-tuning/bin/test-backend-ops",
+      "test",
+      "-b",
+      "MTL0",
+      "-o",
+      "MUL_MAT_VEC_FUSION",
+      "-p",
+      "ptq1_0"
+    ],
+    "flags": {
+      "GGML_METAL_PTQ1_MULTICOL": "1"
+    },
+    "config_label": "config-673987648873",
+    "uses": [
+      {
+        "study": "previous-pr-mc-only",
+        "model": "b2-ptq1",
+        "arm": "A",
+        "benchmark_build": "comparison_a"
+      },
+      {
+        "study": "previous-pr-mc-only",
+        "model": "b2-ptq1",
+        "arm": "B",
+        "benchmark_build": "current"
+      },
+      {
+        "study": "m1-no-stage-prefill",
+        "model": "b2-ptq1",
+        "arm": "A",
+        "benchmark_build": "comparison_a"
+      }
+    ],
+    "build": "current",
+    "bin": "/Users/jasontitus/Documents/Codex/2026-09-23/referenced-chatgpt-conversation-this-is-an-2/work/build-tuning/bin"
+  },
+  {
+    "name": "ptq1_0-config-5511616bb3e0-strict",
+    "passed": 52,
+    "counts": [],
+    "command": [
+      "/Users/jasontitus/Documents/Codex/2026-09-23/referenced-chatgpt-conversation-this-is-an-2/work/build-tuning/bin/check-numerical-m5"
+    ],
+    "flags": {
+      "GGML_METAL_PTQ1_MULTICOL": "1",
+      "GGML_METAL_PTQ1_MULTICOL_MAX": "8",
+      "GGML_METAL_PTQ1_GLU": "1",
+      "GGML_METAL_PTQ1_STAGE": "0",
+      "GGML_GDN_ROWS_PLAIN": "1",
+      "GGML_METAL_SMALLM_MM": "1"
+    },
+    "config_label": "config-5511616bb3e0",
+    "uses": [
+      {
+        "study": "m1-no-stage-prefill",
+        "model": "b2-ptq1",
+        "arm": "B",
+        "benchmark_build": "current"
+      }
+    ],
+    "build": "current",
+    "bin": "/Users/jasontitus/Documents/Codex/2026-09-23/referenced-chatgpt-conversation-this-is-an-2/work/build-tuning/bin"
+  },
+  {
+    "name": "ptq1_0-config-5511616bb3e0-MUL_MAT",
+    "passed": 101,
+    "counts": [
+      [
+        "101",
+        "101"
+      ]
+    ],
+    "command": [
+      "/Users/jasontitus/Documents/Codex/2026-09-23/referenced-chatgpt-conversation-this-is-an-2/work/build-tuning/bin/test-backend-ops",
+      "test",
+      "-b",
+      "MTL0",
+      "-o",
+      "MUL_MAT",
+      "-p",
+      "ptq1_0"
+    ],
+    "flags": {
+      "GGML_METAL_PTQ1_MULTICOL": "1",
+      "GGML_METAL_PTQ1_MULTICOL_MAX": "8",
+      "GGML_METAL_PTQ1_GLU": "1",
+      "GGML_METAL_PTQ1_STAGE": "0",
+      "GGML_GDN_ROWS_PLAIN": "1",
+      "GGML_METAL_SMALLM_MM": "1"
+    },
+    "config_label": "config-5511616bb3e0",
+    "uses": [
+      {
+        "study": "m1-no-stage-prefill",
+        "model": "b2-ptq1",
+        "arm": "B",
+        "benchmark_build": "current"
+      }
+    ],
+    "build": "current",
+    "bin": "/Users/jasontitus/Documents/Codex/2026-09-23/referenced-chatgpt-conversation-this-is-an-2/work/build-tuning/bin"
+  },
+  {
+    "name": "ptq1_0-config-5511616bb3e0-MUL_MAT_VEC_FUSION",
+    "passed": 44,
+    "counts": [
+      [
+        "44",
+        "44"
+      ]
+    ],
+    "command": [
+      "/Users/jasontitus/Documents/Codex/2026-09-23/referenced-chatgpt-conversation-this-is-an-2/work/build-tuning/bin/test-backend-ops",
+      "test",
+      "-b",
+      "MTL0",
+      "-o",
+      "MUL_MAT_VEC_FUSION",
+      "-p",
+      "ptq1_0"
+    ],
+    "flags": {
+      "GGML_METAL_PTQ1_MULTICOL": "1",
+      "GGML_METAL_PTQ1_MULTICOL_MAX": "8",
+      "GGML_METAL_PTQ1_GLU": "1",
+      "GGML_METAL_PTQ1_STAGE": "0",
+      "GGML_GDN_ROWS_PLAIN": "1",
+      "GGML_METAL_SMALLM_MM": "1"
+    },
+    "config_label": "config-5511616bb3e0",
+    "uses": [
+      {
+        "study": "m1-no-stage-prefill",
+        "model": "b2-ptq1",
+        "arm": "B",
+        "benchmark_build": "current"
+      }
+    ],
+    "build": "current",
+    "bin": "/Users/jasontitus/Documents/Codex/2026-09-23/referenced-chatgpt-conversation-this-is-an-2/work/build-tuning/bin"
+  }
+]

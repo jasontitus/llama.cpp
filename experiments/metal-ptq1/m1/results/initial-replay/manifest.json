@@ -1,0 +1,143 @@
+{
+  "started": 1790262523.5817568,
+  "source": "7ff43583b29278b44d770220fc1c60ff9c47c78e",
+  "source_diff_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+  "hardware": {
+    "hw.model": "Mac13,2",
+    "hw.memsize": "137438953472",
+    "hw.ncpu": "20",
+    "machdep.cpu.brand_string": "Apple M1 Ultra"
+  },
+  "os": "ProductName:\t\tmacOS\nProductVersion:\t\t26.7\nBuildVersion:\t\t25G229",
+  "compiler": "Apple clang version 21.0.0 (clang-2100.3.34.2)\nTarget: arm64-apple-darwin25.6.0\nThread model: posix\nInstalledDir: /Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin",
+  "models": [
+    {
+      "key": "b2-ptq1",
+      "repo": "prism-ml/Ternary-Bonsai-2-27B-gguf",
+      "revision": "6ed5e12bf84b7a63069882c91dd9e9218647d17b",
+      "file": "Ternary-Bonsai-2-27B-PTQ1_0.gguf",
+      "sha256": "53107f530aa52eb00912263ab1ee29bd199261c87cd7b4ad4ca1318c1fe33ee3",
+      "size": 5946648928,
+      "architecture": "qwen35",
+      "tensor_types": {
+        "PTQ1_0": 402,
+        "F32": 353,
+        "BF16": 96
+      },
+      "nextn": 0,
+      "merged_mtp": {
+        "file": "Ternary-Bonsai-2-27B-PTQ1_0-mtp.gguf",
+        "sha256": "83a396ee218c36e5ed88205eccb940a71549d9a72a3d020cc2713f94a78f70f0",
+        "size": 7012820512
+      }
+    },
+    {
+      "key": "b2-pq2",
+      "repo": "prism-ml/Ternary-Bonsai-2-27B-gguf",
+      "revision": "6ed5e12bf84b7a63069882c91dd9e9218647d17b",
+      "file": "Ternary-Bonsai-2-27B-PQ2_0.gguf",
+      "sha256": "3907dc1658db1f78a9826bf8d5bcb8dc65db0d466388937af57f2294fae62ec1",
+      "size": 7206168928,
+      "architecture": "qwen35",
+      "tensor_types": {
+        "PQ2_0": 402,
+        "F32": 353,
+        "BF16": 96
+      },
+      "nextn": 0,
+      "merged_mtp": {
+        "file": "Ternary-Bonsai-2-27B-PQ2_0-mtp.gguf",
+        "sha256": "753d4620b99f77d9d9515a8900c026f431c656c1070bdd41f026f35e8b8d53b3",
+        "size": 8272340512
+      }
+    },
+    {
+      "key": "b1-ternary",
+      "repo": "prism-ml/Ternary-Bonsai-27B-gguf",
+      "revision": "86e89f34c93201c3dfd5e5880fedb0022fc7e34d",
+      "file": "Ternary-Bonsai-27B-PQ2_0.gguf",
+      "sha256": "e4781999f1997ef97ce0c58d05750835acc999d18d83ee6489ba7ac7b14cb5f6",
+      "size": 7165121600,
+      "architecture": "qwen35",
+      "tensor_types": {
+        "PQ2_0": 498,
+        "F32": 353
+      },
+      "nextn": 0
+    },
+    {
+      "key": "b1-binary",
+      "repo": "prism-ml/Bonsai-27B-gguf",
+      "revision": "f10afb355f104535e3e3e98cf7ab7795c72bd292",
+      "file": "Bonsai-27B-Q1_0.gguf",
+      "sha256": "17ef842e47450caeb8eaa3ebfbbab5d2f2278b62b79be107985fb69a2f819aa0",
+      "size": 3803452480,
+      "architecture": "qwen35",
+      "tensor_types": {
+        "Q1_0": 498,
+        "F32": 353
+      },
+      "nextn": 0
+    }
+  ],
+  "binaries": {
+    "libllama.0.dylib": "7108bccf2e50c708735e22db25de7caa0a9ad4a3a4faf58cda074f94a8a778ee",
+    "libmtmd.0.dylib": "9180414231357ebf473917c54cd689eb9b9550a5980867cb339d1f9a4ee66369",
+    "libggml.dylib": "c50bcd88494cb5612d28202e4df7e3e043fd029835490b5ec78c4c440ee2fc57",
+    "libggml-base.0.21.0.dylib": "463c5a2f67902e8e9185a4fae1d5b1ca2c7cb8a510f4eb27767793a8431a91ca",
+    "libggml.0.dylib": "c50bcd88494cb5612d28202e4df7e3e043fd029835490b5ec78c4c440ee2fc57",
+    "libmtmd.dylib": "9180414231357ebf473917c54cd689eb9b9550a5980867cb339d1f9a4ee66369",
+    "libllama-server-impl.dylib": "bdaa8161b98e18803a102f010d54fd7db6c25a6d47e26ac07ec06a91a04caa23",
+    "libggml-base.dylib": "463c5a2f67902e8e9185a4fae1d5b1ca2c7cb8a510f4eb27767793a8431a91ca",
+    "libggml-blas.dylib": "8437cae4b33589c8700c16e2431fa2c7f7812587118bb7de95a8d01ae3bbf58b",
+    "libggml-metal.0.dylib": "42b66916262ac717b641635fbfbdd4023138b88fc7ffe26fa12a657c0538666e",
+    "libllama-bench-impl.dylib": "55389328338b23920566dcb82f9115a3393a6a3f55f8983b3bb476cc1469a0fc",
+    "libllama-common.0.dylib": "02df52aeda27179bfc66f89a62ecfef8867a98c432c4ea315e96e59de4aaf9c9",
+    "libllama.dylib": "7108bccf2e50c708735e22db25de7caa0a9ad4a3a4faf58cda074f94a8a778ee",
+    "libggml-cpu.dylib": "f5377e332937849f6ca34a87182da1660c92458ae4d6b74660214b0645584b98",
+    "libggml-metal.dylib": "42b66916262ac717b641635fbfbdd4023138b88fc7ffe26fa12a657c0538666e",
+    "llama-bench": "f1d648dfb2bfc7da5996e24608138a70cf3145c76779c76b5965af6fd0e5259d",
+    "llama-server": "8e5467fa083cdb775357c22f1506a5c5be066bf8fa2ca9c73459d45677f65c96",
+    "libllama-common.dylib": "02df52aeda27179bfc66f89a62ecfef8867a98c432c4ea315e96e59de4aaf9c9",
+    "libggml-blas.0.21.0.dylib": "8437cae4b33589c8700c16e2431fa2c7f7812587118bb7de95a8d01ae3bbf58b",
+    "libggml.0.21.0.dylib": "c50bcd88494cb5612d28202e4df7e3e043fd029835490b5ec78c4c440ee2fc57",
+    "libmtmd.0.2.0.dylib": "9180414231357ebf473917c54cd689eb9b9550a5980867cb339d1f9a4ee66369",
+    "libggml-base.0.dylib": "463c5a2f67902e8e9185a4fae1d5b1ca2c7cb8a510f4eb27767793a8431a91ca",
+    "libllama.0.2.0.dylib": "7108bccf2e50c708735e22db25de7caa0a9ad4a3a4faf58cda074f94a8a778ee",
+    "libllama-common.0.2.0.dylib": "02df52aeda27179bfc66f89a62ecfef8867a98c432c4ea315e96e59de4aaf9c9",
+    "libggml-blas.0.dylib": "8437cae4b33589c8700c16e2431fa2c7f7812587118bb7de95a8d01ae3bbf58b",
+    "libggml-cpu.0.21.0.dylib": "f5377e332937849f6ca34a87182da1660c92458ae4d6b74660214b0645584b98",
+    "libggml-cpu.0.dylib": "f5377e332937849f6ca34a87182da1660c92458ae4d6b74660214b0645584b98",
+    "libggml-metal.0.21.0.dylib": "42b66916262ac717b641635fbfbdd4023138b88fc7ffe26fa12a657c0538666e"
+  },
+  "telemetry_note": "Codex remains open. Device GPU counters and process CPU activity are sampled; per-process GPU attribution unavailable because sudo is not authenticated. Thermal state: 0 nominal, 1 fair, 2 serious, 3 critical.",
+  "protocol": {
+    "cycles": 3,
+    "cooldown_seconds": 8,
+    "spread_limit": 1.2,
+    "attempts": 3,
+    "tokens": 128
+  },
+  "flags": {
+    "ptq1": {
+      "GGML_METAL_PTQ1_MULTICOL": "1",
+      "GGML_METAL_PTQ1_MULTICOL_MAX": "8",
+      "GGML_METAL_PTQ1_GLU": "1",
+      "GGML_METAL_PTQ1_STAGE": "1",
+      "GGML_GDN_ROWS_PLAIN": "1",
+      "GGML_METAL_SMALLM_MM": "1"
+    },
+    "pq2": {
+      "GGML_METAL_PQ2_MULTICOL": "1",
+      "GGML_METAL_PQ2_GLU": "1",
+      "GGML_GDN_ROWS_PLAIN": "1",
+      "GGML_METAL_SMALLM": "1",
+      "GGML_METAL_SMALLM_MM": "1"
+    },
+    "q1": {
+      "GGML_GDN_ROWS_PLAIN": "1",
+      "GGML_METAL_SMALLM": "1",
+      "GGML_METAL_SMALLM_MM": "1"
+    }
+  }
+}

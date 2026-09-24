@@ -1,42 +1,56 @@
-# Bonsai on Apple silicon: faster Metal decoding with identical output
+# Bonsai on Apple silicon: Metal decoding experiments and results
 
 Downstream research on PrismML's llama.cpp fork (base `0324c66`). It ports the CUDA small-batch work from
 [PrismML PR #218](https://github.com/PrismML-Eng/llama.cpp/pull/218) to Metal, plus findings from tuning
-on Apple silicon. **Every change is an opt-in environment flag**; with no flags set, behaviour is upstream's.
+on Apple silicon. Research kernels remain opt-in. Flags-off kernel dispatch and arithmetic are retained, but safety fixes also affect scratch reservation and flag-cache handling.
 
 | Device | Status |
 |---|---|
 | Apple M5 Max (40-core GPU, Apple10) | **Measured**: results below |
-| Apple M1 Ultra (64-core GPU, Apple7) | In progress (the portable flags; no tensor units on Apple7) |
+| Apple M1 Ultra (64-core GPU, Apple7) | **Measured**: 64 GPU cores, 128 GB, macOS 26.7; [M1 results and profile](../m1/README.md) |
 | iPhone 17 Pro Max (A19 Pro, Apple10, 12 GB, iOS 27) | First results, from the [`BonsaiBench`](../ios/BonsaiBench) app |
 
-All devices use the same flags, the same paired A-B-B-A protocol and the same tools (see
-"Reproduce on your Mac" below), so results are comparable as paired speedups. Absolute tokens/s
-differ by device.
+Desktop columns use the same model-specific flags and paired A-B-B-A procedure. The M1 column below uses the M5 flag set, including PTQ1 staging; the preferred M1 single-user profile disables staging and is reported separately. The iPhone uses an adapted in-app protocol, not the desktop tools. Compare paired gains within each study; absolute rates also reflect device, software revision, and run conditions.
 
 ## Results by device
 
-Paired speedup vs upstream PrismML **on the same device** (geometric mean of three A-B-B-A quartets),
-with upstream -> flags tokens/s in parentheses. Server rows: llama-server, 128 greedy tokens, short prompt;
+Paired speedup against the flags-off research build **on the same device**, based on PrismML `0324c66`, not current PrismML HEAD. Desktop values are geometric means of three A-B-B-A quartets, with flags-off -> enabled tokens/s in parentheses. Server rates include prompt/request overhead and are aggregate rates for concurrent requests. Server rows: llama-server, 128 greedy tokens, short prompt;
 generated text was identical between arms unless noted. Flags per model are listed under "Recommended
-flags" below; the bit-identical row uses `GGML_GDN_ROWS_PLAIN=1` only.
+flags" below; the bit-identical row uses `GGML_GDN_ROWS_PLAIN=1` only. The bit-identical label follows historical M5 numerical checks; the M1 GDN-only timing study checks generated tokens, not whole-model bitwise logits. M1 batch-invariant-mode validation is recorded separately.
 
 | Result | Apple M5 Max | Apple M1 Ultra | iPhone 17 Pro Max |
 |---|---|---|---|
-| PTQ1: upstream plain -> flags + MTP (server, 1 request) | **1.34x** (41.4 -> 55.5) | _pending_ | n/a (no MTP in app) |
-| PQ2: upstream plain -> flags + MTP (server, 1 request) | **1.22x** (42.9 -> 52.5) | _pending_ | n/a (no MTP in app) |
-| PTQ1 plain decoding (server, 1 request) | 1.10x (41.3 -> 45.7) | _pending_ | n/a |
-| PTQ1 plain decoding, bit-identical subset (server, 1 request) | 1.07x (41.2 -> 44.3) | _pending_ | n/a |
-| PTQ1 tg128 | 1.08x (43.4 -> 47.0) | _pending_ | _pending_ |
-| PTQ1 MTP -> MTP (server, 1 request) | 3.34x (16.6 -> 55.4) | _pending_ | n/a |
-| PTQ1 2 requests (server) | **3.43x** (17.9 -> 62.2) | _pending_ | n/a |
-| PTQ1 pp2 / pp4 / pp8 | **3.85x / 2.12x / 2.29x** (20.6 -> 79.3, 37.0 -> 78.4, 40.5 -> 92.8) | _pending_ | preliminary, 2 quartets each: **4.19x / 2.44x / 2.35x** (2.9 -> 11.9, 4.8 -> 11.7, 5.0 -> 11.7) |
-| PQ2 tg128 | 1.11x (45.5 -> 50.4) | _pending_ | _pending_ |
-| PQ2 2 requests (server) | 1.33x (48.1 -> 64.1) | _pending_ | n/a |
-| Bonsai 1 ternary tg128 | 1.12x (48.0 -> 53.6) | _pending_ | _pending_ |
-| Bonsai 1 ternary 2 requests (server) | 1.33x (50.1 -> 66.6) | _pending_ | n/a |
-| Bonsai 1 binary tg128 | 1.14x (66.7 -> 75.7) | _pending_ | **1.18x** (10.9 -> 12.8) |
-| Bonsai 1 binary 2 requests (server) | 1.17x (79.8 -> 93.2) | _pending_ | n/a |
+| PTQ1: upstream plain -> flags + MTP (server, 1 request) | **1.34x** (41.4 -> 55.5) | 1.28x (27.1 -> 34.7) | n/a (no MTP in app) |
+| PQ2: upstream plain -> flags + MTP (server, 1 request) | **1.22x** (42.9 -> 52.5) | 0.90x (30.0 -> 27.1) | n/a (no MTP in app) |
+| PTQ1 plain decoding (server, 1 request) | 1.10x (41.3 -> 45.7) | 1.09x (27.0 -> 29.6) | n/a |
+| PTQ1 plain decoding, bit-identical subset (server, 1 request) | 1.07x (41.2 -> 44.3) | 1.08x (26.9 -> 29.0) | n/a |
+| PTQ1 tg128 | 1.08x (43.4 -> 47.0) | 1.09x (29.7 -> 32.3) | _pending_ |
+| PTQ1 MTP -> MTP (server, 1 request) | 3.34x (16.6 -> 55.4) | 2.61x (13.3 -> 34.6) | n/a |
+| PTQ1 2 requests (server) | **3.43x** (17.9 -> 62.2) | 2.73x (15.3 -> 41.7) | n/a |
+| PTQ1 pp2 / pp4 / pp8 | **3.85x / 2.12x / 2.29x** (20.6 -> 79.3, 37.0 -> 78.4, 40.5 -> 92.8) | 2.97x / 1.51x / 1.46x (16.3 -> 48.4, 26.1 -> 39.5, 30.0 -> 43.7) | preliminary, 2 quartets each: **4.19x / 2.44x / 2.35x** (2.9 -> 11.9, 4.8 -> 11.7, 5.0 -> 11.7) |
+| PQ2 tg128 | 1.11x (45.5 -> 50.4) | 1.12x (32.1 -> 36.0) | _pending_ |
+| PQ2 2 requests (server) | 1.33x (48.1 -> 64.1) | 1.05x (31.3 -> 32.9) | n/a |
+| Bonsai 1 ternary tg128 | 1.12x (48.0 -> 53.6) | 1.13x (34.9 -> 39.4) | _pending_ |
+| Bonsai 1 ternary 2 requests (server) | 1.33x (50.1 -> 66.6) | 1.12x (32.6 -> 36.5) | n/a |
+| Bonsai 1 binary tg128 | 1.14x (66.7 -> 75.7) | 1.12x (39.1 -> 43.9) | **1.18x** (10.9 -> 12.8) |
+| Bonsai 1 binary 2 requests (server) | 1.17x (79.8 -> 93.2) | 1.16x (45.3 -> 52.6) | n/a |
+
+### M1 Ultra: single-user generation rates
+
+Native generation tok/s, excluding prompt/request overhead. Plain and MTP are separate randomized cells; the final percentage is the descriptive ratio of their displayed optimized means, not a paired ABBA gain. MTP uses one draft token and the pinned grafted head. Bonsai 1 has no MTP head in this study.
+
+| Model | Original plain | Original MTP | Optimized plain | Optimized MTP | MTP vs optimized plain |
+|---|---:|---:|---:|---:|---:|
+| Bonsai 2 PTQ1 (M1 profile) | 29.33 | 13.69 | 31.91 | 38.63 | +21.1% |
+| Bonsai 2 PQ2 | 31.97 | unmeasured | 35.81 | 28.73 | -19.8% |
+| Bonsai 1 ternary | 34.44 | n/a | 39.18 | n/a | n/a |
+| Bonsai 1 one-bit | 38.79 | n/a | 43.69 | n/a | n/a |
+
+For PTQ1 on this M1 Ultra, use the listed PTQ1 flags with `GGML_METAL_PTQ1_STAGE=0`. The direct prior-PR comparison measured native plain 29.28 -> 31.87 tok/s and MTP 38.65 -> 39.16, with paired full-request gains of 8.3% and 1.3%, respectively. This restores MTP while improving plain decoding. The separate same-mode means in the table above retain their own measured values. For PQ2, optimized plain is faster on this measured workload; do not inherit the M5 MTP recommendation.
+
+The direct baseline-plain -> M1-profile-MTP comparison improves full-request throughput by 30.5% (27.08 -> 35.39 tok/s). PQ2's corresponding paired result loses 9.6% (29.98 -> 27.14); the loss is consistent with its weaker two-token speedup failing to offset speculative overhead, but exact per-operation costs were not profiled. Draft acceptance matches PTQ1 on the tested prompts, so lower acceptance is not the explanation for the format difference. No historical PQ2 MTP regression is established by these cells.
+
+See [M1 results](../m1/results/final-device/RESULTS.md) and [experiment log](../m1/EXPERIMENTS.md) for prior-PR controls, numerical checks, source/binary hashes, raw observations, and limitations. Codex remained open; thermal samples were nominal, but per-process GPU attribution was unavailable. Ordinary optimized logits are not claimed bitwise equal to baseline.
 
 ### Filling in a device column
 
@@ -56,7 +70,9 @@ The iPhone column comes from the BonsaiBench app's exported JSON (tg128 and ppK 
 server or MTP), saved in [`../ios/results`](../ios/results).
 - The app's tg128 is measured like llama-bench's (128 single-token decodes from an empty context, no
   sampling), with 1 repetition per observation instead of 3.
-- It used a 40 s cooldown so that the phone stayed at a nominal thermal state.
+- Phone observations reuse one app/model with fresh contexts, 1024 context, and thermal-gated cooldowns (40 s for Q1; 50-60 s in the reported PTQ1 studies). Desktop observations use fresh processes and an 8 s cooldown.
+- The preliminary phone PTQ1 row combines two incomplete studies, each with one accepted quartet. It is not a completed desktop-style three-quartet result. The Q1 tg128 result has three completed quartets.
+- Rebuild `llama.xcframework` after pulling core changes before collecting new phone results; existing phone archives retain their original measured revision.
 
 ## Apple M5 Max: headline (paired against upstream on the same machine)
 
@@ -73,6 +89,8 @@ verification falls back to a generic kernel; the fast multi-column kernels are w
 
 ### Pick your guarantee
 
+The following modes and numerical evidence describe the historical M5 snapshots. They are not new quality or bitwise guarantees for the final merged M1 code.
+
 | Guarantee | Flags | Single-request speedup vs upstream |
 |---|---|---|
 | **Bit-identical to upstream** | `GGML_GDN_ROWS_PLAIN=1` | plain decoding +7-9% (PTQ1 1.07-1.08x, PQ2 1.09x); Bonsai 1 binary +14% with `GGML_METAL_SMALLM=1` |
@@ -84,6 +102,8 @@ differed. Logits differ from upstream in the last bits (NMSE ~1e-10), as with an
 upstream itself is not bitwise stable across batch sizes.
 
 ### Recommended flags per model
+
+These are the measured M5 selections. Use the separate M1 single-user guidance above on M1 Ultra.
 
 | Model | Flags | Measured vs upstream |
 |---|---|---|
@@ -127,11 +147,12 @@ perplexity, but its int8 activations change greedy text under concurrency.
 - Apple M5 Max (40-core GPU), 128 GB, macOS 26.6.2, AC power, High Power mode.
 - A-B-B-A quartets, 3 per cell, reproducibly shuffled order, 8 s cooldown, fresh process per observation,
   one GPU process at a time, 20% within-arm spread gate; rejected quartets kept (none in the final studies).
-- Every timing run used a frozen snapshot build; the committed code is byte-identical to the snapshot
-  behind the headline (`snapshots/snap-final.diff`, SHA-256 4f0e4599...).
+- Historical M5 timing runs used frozen snapshots, including `snapshots/snap-final.diff` (SHA-256 4f0e4599...) for the headline. The added M5 pp2/4/8 and concurrency results use `9f7a364` with an empty patch. M1 final results use production code at `8a1bdf7`; subsequent merged app/documentation changes do not change that code. The merged branch is not byte-identical to the historical M5/phone snapshots. Revalidate the M1 kernel/safety changes on M5 before claiming preserved M5 performance.
 - Short prompts (~30 tokens) and 128 generated tokens. Long-context throughput is not claimed.
 
 ## Correctness evidence
+
+This section records the historical M5 snapshots and their quality runs. Final M1 checks are listed in [the M1 experiment log](../m1/EXPERIMENTS.md); no new M1 quality-benchmark suite is claimed.
 
 - Strict checker (NMSE <= 1e-8 vs a double-precision reference, plus batch invariance) for PTQ1_0, PQ2_0 and
   Q1_0, including 4163-row tails, n = 1..8 and K = 33024; test-backend-ops MUL_MAT, fusion and flash
@@ -171,7 +192,7 @@ perplexity, but its int8 activations change greedy text under concurrency.
 
 On Apple7/8/9 GPUs (M1-M4), `GGML_METAL_PTQ1_TENSOR` has no effect (no tensor units); everything else is
 portable. Tuned defaults (rows per simdgroup, tile widths, the PQ2 width limit) were chosen on the M5 Max
-and may not be optimal elsewhere; the paired study will show it.
+and may not be optimal elsewhere. M1 measurements select STAGE=0 for PTQ1 single-user operation; enabled staging uses the measured family7 R4 fallback. Other family7 devices remain unmeasured. M5/A19/A20 need device-specific correctness, memory and ABBA gates before promoting defaults.
 
 ## Files
 

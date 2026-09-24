@@ -2,7 +2,7 @@ import Foundation
 import llama
 
 /// Research flags understood by the patched Metal backend. They are environment variables that the
-/// backend re-reads whenever a new context is created, so each observation sets them, then creates
+/// backend re-reads after all prior Metal contexts are freed, so each observation sets them, then creates
 /// a fresh context.
 let researchFlagNames: [String] = [
     "GGML_METAL_PTQ1_MULTICOL", "GGML_METAL_PTQ1_MULTICOL_MAX", "GGML_METAL_PTQ1_GLU", "GGML_METAL_PTQ1_STAGE",

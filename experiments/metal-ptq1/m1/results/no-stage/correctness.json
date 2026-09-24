@@ -1,0 +1,359 @@
+[
+  {
+    "name": "ptq1_0-off-strict",
+    "passed": 52,
+    "counts": [],
+    "command": [
+      "/Users/jasontitus/Documents/Codex/2026-09-23/referenced-chatgpt-conversation-this-is-an-2/work/build-tuning/bin/check-numerical-m5"
+    ],
+    "flags": {}
+  },
+  {
+    "name": "ptq1_0-off-MUL_MAT",
+    "passed": 101,
+    "counts": [
+      [
+        "101",
+        "101"
+      ]
+    ],
+    "command": [
+      "/Users/jasontitus/Documents/Codex/2026-09-23/referenced-chatgpt-conversation-this-is-an-2/work/build-tuning/bin/test-backend-ops",
+      "test",
+      "-b",
+      "MTL0",
+      "-o",
+      "MUL_MAT",
+      "-p",
+      "ptq1_0"
+    ],
+    "flags": {}
+  },
+  {
+    "name": "ptq1_0-off-MUL_MAT_VEC_FUSION",
+    "passed": 44,
+    "counts": [
+      [
+        "44",
+        "44"
+      ]
+    ],
+    "command": [
+      "/Users/jasontitus/Documents/Codex/2026-09-23/referenced-chatgpt-conversation-this-is-an-2/work/build-tuning/bin/test-backend-ops",
+      "test",
+      "-b",
+      "MTL0",
+      "-o",
+      "MUL_MAT_VEC_FUSION",
+      "-p",
+      "ptq1_0"
+    ],
+    "flags": {}
+  },
+  {
+    "name": "ptq1_0-on-strict",
+    "passed": 52,
+    "counts": [],
+    "command": [
+      "/Users/jasontitus/Documents/Codex/2026-09-23/referenced-chatgpt-conversation-this-is-an-2/work/build-tuning/bin/check-numerical-m5"
+    ],
+    "flags": {
+      "GGML_METAL_PTQ1_MULTICOL": "1",
+      "GGML_METAL_PTQ1_MULTICOL_MAX": "8",
+      "GGML_METAL_PTQ1_GLU": "1",
+      "GGML_METAL_PTQ1_STAGE": "1",
+      "GGML_GDN_ROWS_PLAIN": "1",
+      "GGML_METAL_SMALLM_MM": "1"
+    }
+  },
+  {
+    "name": "ptq1_0-on-MUL_MAT",
+    "passed": 101,
+    "counts": [
+      [
+        "101",
+        "101"
+      ]
+    ],
+    "command": [
+      "/Users/jasontitus/Documents/Codex/2026-09-23/referenced-chatgpt-conversation-this-is-an-2/work/build-tuning/bin/test-backend-ops",
+      "test",
+      "-b",
+      "MTL0",
+      "-o",
+      "MUL_MAT",
+      "-p",
+      "ptq1_0"
+    ],
+    "flags": {
+      "GGML_METAL_PTQ1_MULTICOL": "1",
+      "GGML_METAL_PTQ1_MULTICOL_MAX": "8",
+      "GGML_METAL_PTQ1_GLU": "1",
+      "GGML_METAL_PTQ1_STAGE": "1",
+      "GGML_GDN_ROWS_PLAIN": "1",
+      "GGML_METAL_SMALLM_MM": "1"
+    }
+  },
+  {
+    "name": "ptq1_0-on-MUL_MAT_VEC_FUSION",
+    "passed": 44,
+    "counts": [
+      [
+        "44",
+        "44"
+      ]
+    ],
+    "command": [
+      "/Users/jasontitus/Documents/Codex/2026-09-23/referenced-chatgpt-conversation-this-is-an-2/work/build-tuning/bin/test-backend-ops",
+      "test",
+      "-b",
+      "MTL0",
+      "-o",
+      "MUL_MAT_VEC_FUSION",
+      "-p",
+      "ptq1_0"
+    ],
+    "flags": {
+      "GGML_METAL_PTQ1_MULTICOL": "1",
+      "GGML_METAL_PTQ1_MULTICOL_MAX": "8",
+      "GGML_METAL_PTQ1_GLU": "1",
+      "GGML_METAL_PTQ1_STAGE": "1",
+      "GGML_GDN_ROWS_PLAIN": "1",
+      "GGML_METAL_SMALLM_MM": "1"
+    }
+  },
+  {
+    "name": "pq2_0-off-strict",
+    "passed": 54,
+    "counts": [],
+    "command": [
+      "/Users/jasontitus/Documents/Codex/2026-09-23/referenced-chatgpt-conversation-this-is-an-2/work/build-tuning/bin/check-numerical-pq2"
+    ],
+    "flags": {}
+  },
+  {
+    "name": "pq2_0-off-MUL_MAT",
+    "passed": 100,
+    "counts": [
+      [
+        "100",
+        "100"
+      ]
+    ],
+    "command": [
+      "/Users/jasontitus/Documents/Codex/2026-09-23/referenced-chatgpt-conversation-this-is-an-2/work/build-tuning/bin/test-backend-ops",
+      "test",
+      "-b",
+      "MTL0",
+      "-o",
+      "MUL_MAT",
+      "-p",
+      "pq2_0"
+    ],
+    "flags": {}
+  },
+  {
+    "name": "pq2_0-off-MUL_MAT_VEC_FUSION",
+    "passed": 48,
+    "counts": [
+      [
+        "48",
+        "48"
+      ]
+    ],
+    "command": [
+      "/Users/jasontitus/Documents/Codex/2026-09-23/referenced-chatgpt-conversation-this-is-an-2/work/build-tuning/bin/test-backend-ops",
+      "test",
+      "-b",
+      "MTL0",
+      "-o",
+      "MUL_MAT_VEC_FUSION",
+      "-p",
+      "pq2_0"
+    ],
+    "flags": {}
+  },
+  {
+    "name": "pq2_0-on-strict",
+    "passed": 54,
+    "counts": [],
+    "command": [
+      "/Users/jasontitus/Documents/Codex/2026-09-23/referenced-chatgpt-conversation-this-is-an-2/work/build-tuning/bin/check-numerical-pq2"
+    ],
+    "flags": {
+      "GGML_METAL_PQ2_MULTICOL": "1",
+      "GGML_METAL_PQ2_GLU": "1",
+      "GGML_GDN_ROWS_PLAIN": "1",
+      "GGML_METAL_SMALLM": "1",
+      "GGML_METAL_SMALLM_MM": "1"
+    }
+  },
+  {
+    "name": "pq2_0-on-MUL_MAT",
+    "passed": 100,
+    "counts": [
+      [
+        "100",
+        "100"
+      ]
+    ],
+    "command": [
+      "/Users/jasontitus/Documents/Codex/2026-09-23/referenced-chatgpt-conversation-this-is-an-2/work/build-tuning/bin/test-backend-ops",
+      "test",
+      "-b",
+      "MTL0",
+      "-o",
+      "MUL_MAT",
+      "-p",
+      "pq2_0"
+    ],
+    "flags": {
+      "GGML_METAL_PQ2_MULTICOL": "1",
+      "GGML_METAL_PQ2_GLU": "1",
+      "GGML_GDN_ROWS_PLAIN": "1",
+      "GGML_METAL_SMALLM": "1",
+      "GGML_METAL_SMALLM_MM": "1"
+    }
+  },
+  {
+    "name": "pq2_0-on-MUL_MAT_VEC_FUSION",
+    "passed": 48,
+    "counts": [
+      [
+        "48",
+        "48"
+      ]
+    ],
+    "command": [
+      "/Users/jasontitus/Documents/Codex/2026-09-23/referenced-chatgpt-conversation-this-is-an-2/work/build-tuning/bin/test-backend-ops",
+      "test",
+      "-b",
+      "MTL0",
+      "-o",
+      "MUL_MAT_VEC_FUSION",
+      "-p",
+      "pq2_0"
+    ],
+    "flags": {
+      "GGML_METAL_PQ2_MULTICOL": "1",
+      "GGML_METAL_PQ2_GLU": "1",
+      "GGML_GDN_ROWS_PLAIN": "1",
+      "GGML_METAL_SMALLM": "1",
+      "GGML_METAL_SMALLM_MM": "1"
+    }
+  },
+  {
+    "name": "q1_0-off-strict",
+    "passed": 52,
+    "counts": [],
+    "command": [
+      "/Users/jasontitus/Documents/Codex/2026-09-23/referenced-chatgpt-conversation-this-is-an-2/work/build-tuning/bin/check-numerical-q1"
+    ],
+    "flags": {}
+  },
+  {
+    "name": "q1_0-off-MUL_MAT",
+    "passed": 157,
+    "counts": [
+      [
+        "157",
+        "157"
+      ]
+    ],
+    "command": [
+      "/Users/jasontitus/Documents/Codex/2026-09-23/referenced-chatgpt-conversation-this-is-an-2/work/build-tuning/bin/test-backend-ops",
+      "test",
+      "-b",
+      "MTL0",
+      "-o",
+      "MUL_MAT",
+      "-p",
+      "q1_0"
+    ],
+    "flags": {}
+  },
+  {
+    "name": "q1_0-off-MUL_MAT_VEC_FUSION",
+    "passed": 88,
+    "counts": [
+      [
+        "88",
+        "88"
+      ]
+    ],
+    "command": [
+      "/Users/jasontitus/Documents/Codex/2026-09-23/referenced-chatgpt-conversation-this-is-an-2/work/build-tuning/bin/test-backend-ops",
+      "test",
+      "-b",
+      "MTL0",
+      "-o",
+      "MUL_MAT_VEC_FUSION",
+      "-p",
+      "q1_0"
+    ],
+    "flags": {}
+  },
+  {
+    "name": "q1_0-on-strict",
+    "passed": 52,
+    "counts": [],
+    "command": [
+      "/Users/jasontitus/Documents/Codex/2026-09-23/referenced-chatgpt-conversation-this-is-an-2/work/build-tuning/bin/check-numerical-q1"
+    ],
+    "flags": {
+      "GGML_GDN_ROWS_PLAIN": "1",
+      "GGML_METAL_SMALLM": "1",
+      "GGML_METAL_SMALLM_MM": "1"
+    }
+  },
+  {
+    "name": "q1_0-on-MUL_MAT",
+    "passed": 157,
+    "counts": [
+      [
+        "157",
+        "157"
+      ]
+    ],
+    "command": [
+      "/Users/jasontitus/Documents/Codex/2026-09-23/referenced-chatgpt-conversation-this-is-an-2/work/build-tuning/bin/test-backend-ops",
+      "test",
+      "-b",
+      "MTL0",
+      "-o",
+      "MUL_MAT",
+      "-p",
+      "q1_0"
+    ],
+    "flags": {
+      "GGML_GDN_ROWS_PLAIN": "1",
+      "GGML_METAL_SMALLM": "1",
+      "GGML_METAL_SMALLM_MM": "1"
+    }
+  },
+  {
+    "name": "q1_0-on-MUL_MAT_VEC_FUSION",
+    "passed": 88,
+    "counts": [
+      [
+        "88",
+        "88"
+      ]
+    ],
+    "command": [
+      "/Users/jasontitus/Documents/Codex/2026-09-23/referenced-chatgpt-conversation-this-is-an-2/work/build-tuning/bin/test-backend-ops",
+      "test",
+      "-b",
+      "MTL0",
+      "-o",
+      "MUL_MAT_VEC_FUSION",
+      "-p",
+      "q1_0"
+    ],
+    "flags": {
+      "GGML_GDN_ROWS_PLAIN": "1",
+      "GGML_METAL_SMALLM": "1",
+      "GGML_METAL_SMALLM_MM": "1"
+    }
+  }
+]

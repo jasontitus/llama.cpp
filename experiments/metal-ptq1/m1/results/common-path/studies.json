@@ -1,0 +1,41 @@
+[
+  [
+    "previous-pr-mc-only",
+    "b2-ptq1",
+    {
+      "GGML_METAL_PTQ1_MULTICOL": "1"
+    },
+    {
+      "GGML_METAL_PTQ1_MULTICOL": "1"
+    },
+    [
+      "pp2",
+      "pp3"
+    ],
+    [
+      "s1c1"
+    ],
+    null
+  ],
+  [
+    "m1-no-stage-prefill",
+    "b2-ptq1",
+    {
+      "GGML_METAL_PTQ1_MULTICOL": "1"
+    },
+    {
+      "GGML_METAL_PTQ1_MULTICOL": "1",
+      "GGML_METAL_PTQ1_MULTICOL_MAX": "8",
+      "GGML_METAL_PTQ1_GLU": "1",
+      "GGML_METAL_PTQ1_STAGE": "0",
+      "GGML_GDN_ROWS_PLAIN": "1",
+      "GGML_METAL_SMALLM_MM": "1"
+    },
+    [
+      "pp2",
+      "pp3"
+    ],
+    [],
+    null
+  ]
+]

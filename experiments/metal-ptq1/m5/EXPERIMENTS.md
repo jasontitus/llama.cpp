@@ -421,3 +421,7 @@ Upstream's PTQ1_0 multi-token path is slower than its own single-token decode. T
 total 17.9 tok/s, less than half of one request (41); the multi-column kernels are what fix it. The
 generated text was identical in every slot. The iPhone 17 Pro Max shows the same pattern: 4.19x / 2.44x /
 2.35x at pp2 / pp4 / pp8, preliminary, 2 quartets.
+
+## M1 regression repair and final device study
+
+The M1 Ultra investigation restored the MTP performance lost with M5-selected staged geometry, specialized complete PTQ1 tiles, and fixed scratch alignment and research-profile lifetime hazards. See [the M1 experiment log](../m1/EXPERIMENTS.md) for controlled/rejected candidates and [the final 30-cell results](../m1/results/final-device/RESULTS.md). The shared chart preserves historical M5 and preliminary phone evidence and adds the M1 column; its separate M1 profile uses STAGE=0. The final merged kernels/safety fixes still require M5/phone revalidation before their historical gains can be attributed to this revision.

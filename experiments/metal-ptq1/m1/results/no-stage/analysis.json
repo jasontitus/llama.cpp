@@ -1,0 +1,21 @@
+[
+  {
+    "study": "previous-pr-no-stage",
+    "model": "b2-ptq1",
+    "cell": "s1c1",
+    "quartets": 3,
+    "timing_complete": true,
+    "output_match": true,
+    "accepted": true,
+    "within_arm_token_mismatches": 0,
+    "A_tps": 35.60461383220273,
+    "B_tps": 35.28642692385129,
+    "speedup": 0.9907701905484745,
+    "min_ratio": 0.9853631330403932,
+    "max_ratio": 0.9998632731988152,
+    "cross_arm_token_mismatches": 0,
+    "rejected": 0,
+    "A_gen_tps": 39.03748340106291,
+    "B_gen_tps": 38.694760138853496
+  }
+]

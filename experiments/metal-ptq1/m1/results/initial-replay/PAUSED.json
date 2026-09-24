@@ -1,0 +1,11 @@
+{
+  "time": 1790264092.754442,
+  "reason": "User requested isolation and repair of M1 MTP regression; broad suite stopped, accepted quartets retained; incomplete observation is not a measurement.",
+  "terminated_process_groups": [
+    13569,
+    14728
+  ],
+  "server_pids": [
+    16791
+  ]
+}
