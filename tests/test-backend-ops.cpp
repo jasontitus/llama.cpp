@@ -60,9 +60,12 @@ static void init_tensor_uniform(ggml_tensor * tensor, float min = -1.0f, float m
 
         auto init_thread = [&](size_t start, size_t end) {
             thread_local std::default_random_engine gen(std::random_device{}());
+            const char * seed_env = std::getenv("GGML_TEST_SEED");
+            std::default_random_engine seeded(seed_env ? std::strtoul(seed_env, nullptr, 10) + start + tensor->type : 0);
+            auto & rng = seed_env ? seeded : gen;
             std::uniform_real_distribution<float> distribution(min, max);
             for (size_t i = start; i < end; i++) {
-                data[i] = distribution(gen);
+                data[i] = distribution(rng);
             }
         };
 
