@@ -82,6 +82,9 @@ struct ggml_metal {
 };
 
 ggml_metal_t ggml_metal_init(ggml_metal_device_t dev) {
+    // research flags take the environment as of this context's creation
+    ggml_metal_research_reload();
+
     GGML_LOG_INFO("%s: allocating\n", __func__);
 
 #if TARGET_OS_OSX && !GGML_METAL_NDEBUG

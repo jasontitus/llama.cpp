@@ -6,6 +6,12 @@
 extern "C" {
 #endif
 
+// research flags (GGML_METAL_PTQ1_*, GGML_METAL_PQ2_*, ...) are environment variables re-read once per
+// Metal context: every flag site caches its value per generation, and creating a context bumps the
+// generation. A process can therefore compare flag settings by creating a new context (the iOS bench app)
+int  ggml_metal_research_generation(void);
+void ggml_metal_research_reload(void);
+
 bool ggml_metal_ptq1_multicol_enabled(const struct ggml_tensor * op);
 int  ggml_metal_ptq1_multicol_max(void);
 bool ggml_metal_batch_invariant(void);
@@ -364,4 +370,22 @@ struct ggml_metal_buffer_id ggml_metal_buffer_get_id(ggml_metal_buffer_t buf, co
 
 #ifdef __cplusplus
 }
+
+#include <cstdlib>
+
+// value of an integer environment flag, re-read when the research generation changes
+#define GGML_METAL_ENV_INT(name, def) ([]() -> int {                                     \
+        static int gen_ = -1;                                                           \
+        static int val_ = 0;                                                            \
+        const int g_ = ggml_metal_research_generation();                                \
+        if (gen_ != g_) { const char * e_ = getenv(name); val_ = e_ ? atoi(e_) : (def); gen_ = g_; } \
+        return val_; }())
+
+// whether an environment flag is set at all (the presence-style flags), re-read per generation
+#define GGML_METAL_ENV_SET(name) ([]() -> bool {                                          \
+        static int gen_ = -1;                                                           \
+        static bool val_ = false;                                                       \
+        const int g_ = ggml_metal_research_generation();                                \
+        if (gen_ != g_) { val_ = getenv(name) != nullptr; gen_ = g_; }                  \
+        return val_; }())
 #endif

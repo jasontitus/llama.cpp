@@ -2644,7 +2644,7 @@ int ggml_metal_op_pool_2d(ggml_metal_op_t ctx, int idx) {
 // the encoder must take this path exactly when the allocator reserved for it. Both
 // call this predicate rather than repeating the shape test.
 static bool ggml_metal_op_mul_mat_q1_0_pc_supported(const ggml_tensor * op) {
-    static const bool q1_0_pc = getenv("GGML_METAL_Q1_0_POPCNT") != nullptr;
+    const bool q1_0_pc = GGML_METAL_ENV_SET("GGML_METAL_Q1_0_POPCNT");
 
     if (!q1_0_pc || !op->src[0] || !op->src[1]) {
         return false;
@@ -2678,7 +2678,7 @@ static size_t ggml_metal_ptq1_stage_bytes(const ggml_tensor * op) {
 // off in batch-invariant mode: single columns are not staged, so staged 2..4-column coefficients would
 // come from a different kernel than the single-column ones
 static bool ggml_metal_ptq1_stage_enabled(void) {
-    static const bool enabled = getenv("GGML_METAL_PTQ1_STAGE") && atoi(getenv("GGML_METAL_PTQ1_STAGE")) == 1;
+    const bool enabled = GGML_METAL_ENV_INT("GGML_METAL_PTQ1_STAGE", 0) == 1;
     return enabled && !ggml_metal_batch_invariant();
 }
 
@@ -2782,12 +2782,12 @@ static bool ggml_metal_tensors_overlap(const ggml_tensor * a, const ggml_tensor 
 // M5 ABBA: 0.78x at 5 columns, 0.83x at 6, 1.02x at 7, 1.04x at 8 (MTP C4 verify 1.09x): the tensor
 // kernel's cost is flat in the column count while the scalar 3+3 tiles are cheap, so default to 8
 static int ggml_metal_ptq1_tensor_min(void) {
-    static const int n = getenv("GGML_METAL_PTQ1_TENSOR_MIN") ? atoi(getenv("GGML_METAL_PTQ1_TENSOR_MIN")) : 8;
+    const int n = GGML_METAL_ENV_INT("GGML_METAL_PTQ1_TENSOR_MIN", 8);
     return n >= 2 && n <= 8 ? n : 8;
 }
 
 static bool ggml_metal_op_mul_mat_ptq1_tensor_shape(const ggml_tensor * op) {
-    static const bool enabled = getenv("GGML_METAL_PTQ1_TENSOR") && atoi(getenv("GGML_METAL_PTQ1_TENSOR")) == 1;
+    const bool enabled = GGML_METAL_ENV_INT("GGML_METAL_PTQ1_TENSOR", 0) == 1;
     // off in batch-invariant mode: its arithmetic differs from the scalar multi-column template
     if (!enabled || ggml_metal_batch_invariant() || op->op != GGML_OP_MUL_MAT) {
         return false;
@@ -2873,16 +2873,16 @@ static int ggml_metal_op_mul_mat_ptq1_tmv(ggml_metal_op_t ctx, int idx) {
 // competitive from 3 columns up (2-bit decode is cheap). M5, Bonsai 2 PQ2 per-op profile: whole
 // decode graph -15% at n=2 but +6..10% at n=3 (GGML_METAL_PQ2_MC_MAX, 2..8)
 static int ggml_metal_pq2_mc_max(void) {
-    static const int n = getenv("GGML_METAL_PQ2_MC_MAX") ? atoi(getenv("GGML_METAL_PQ2_MC_MAX")) : 2;
+    const int n = GGML_METAL_ENV_INT("GGML_METAL_PQ2_MC_MAX", 2);
     return n >= 2 && n <= 8 ? n : 2;
 }
 
 // PTQ1_0 FFN gate/up/SWIGLU triple, either projection order (research flag GGML_METAL_PTQ1_GLU=1).
 // Returns the GLU node when the three can run as one fused kernel, else nullptr.
 static const ggml_tensor * ggml_metal_op_ptq1_glu_fusable(ggml_metal_op_t ctx, int idx) {
-    static const bool en_ptq1 = getenv("GGML_METAL_PTQ1_GLU") && atoi(getenv("GGML_METAL_PTQ1_GLU")) == 1;
-    static const bool en_pq2  = getenv("GGML_METAL_PQ2_GLU")  && atoi(getenv("GGML_METAL_PQ2_GLU"))  == 1;
-    static const bool en_q1   = getenv("GGML_METAL_Q1_GLU")   && atoi(getenv("GGML_METAL_Q1_GLU"))   == 1;
+    const bool en_ptq1 = GGML_METAL_ENV_INT("GGML_METAL_PTQ1_GLU", 0) == 1;
+    const bool en_pq2 = GGML_METAL_ENV_INT("GGML_METAL_PQ2_GLU", 0) == 1;
+    const bool en_q1 = GGML_METAL_ENV_INT("GGML_METAL_Q1_GLU", 0) == 1;
     if (!(en_ptq1 || en_pq2 || en_q1) || !ctx->use_fusion || idx + 2 >= ctx->n_nodes()) {
         return nullptr;
     }
@@ -2919,7 +2919,7 @@ static const ggml_tensor * ggml_metal_op_ptq1_glu_fusable(ggml_metal_op_t ctx, i
                          (w->type == GGML_TYPE_Q1_0 && en_q1);
     // Q1_0: M5 decode graph -3.3% at n=1, -6.0% at n=2, -6.8% at n=3, +4.5% at n=4 against PrismMLs multi-column
     // kernels (GGML_METAL_Q1_GLU_MAX, 1..4)
-    static const int q1_max = getenv("GGML_METAL_Q1_GLU_MAX") ? std::min(4, std::max(1, atoi(getenv("GGML_METAL_Q1_GLU_MAX")))) : 3;
+    const int q1_max = std::min(4, std::max(1, GGML_METAL_ENV_INT("GGML_METAL_Q1_GLU_MAX", 3)));
     const int  max_n   = w->type == GGML_TYPE_PTQ1_0 ? ggml_metal_ptq1_multicol_max() :
                          w->type == GGML_TYPE_PQ2_0  ? ggml_metal_pq2_mc_max() : q1_max;
 
@@ -3003,7 +3003,7 @@ static int ggml_metal_op_mul_mat_ptq1_glu(ggml_metal_op_t ctx, int idx, const gg
 // PQ2_0 multi-column products and fused gate/up/SWIGLU (research flags GGML_METAL_PQ2_MULTICOL /
 // GGML_METAL_PQ2_GLU), plain 2D, 2..max columns (1..max when fused)
 static bool ggml_metal_op_mul_mat_pq2_mc(const ggml_tensor * op) {
-    static const bool enabled = getenv("GGML_METAL_PQ2_MULTICOL") && atoi(getenv("GGML_METAL_PQ2_MULTICOL")) == 1;
+    const bool enabled = GGML_METAL_ENV_INT("GGML_METAL_PQ2_MULTICOL", 0) == 1;
     const ggml_tensor * w = op->src[0];
     const ggml_tensor * x = op->src[1];
     return enabled && w->type == GGML_TYPE_PQ2_0 && x->type == GGML_TYPE_F32 && x->nb[0] == sizeof(float) &&
@@ -3063,7 +3063,7 @@ static int ggml_metal_op_mul_mat_pq2(ggml_metal_op_t ctx, int idx, const ggml_te
 // (M5: BF16 48x5120 at 9 tokens 148 -> 6 µs). Only types whose mat-vec kernel takes any column
 // count. Research flag GGML_METAL_SMALLM_MM=1.
 static bool ggml_metal_op_mul_mat_small_rows(const ggml_tensor * op) {
-    static const bool enabled = getenv("GGML_METAL_SMALLM_MM") && atoi(getenv("GGML_METAL_SMALLM_MM")) == 1;
+    const bool enabled = GGML_METAL_ENV_INT("GGML_METAL_SMALLM_MM", 0) == 1;
     const ggml_type t = op->src[0]->type;
     return enabled && op->src[0]->ne[1] <= 64 && op->src[0]->ne[0] >= 1024 && op->src[1]->type == GGML_TYPE_F32 &&
            op->src[0]->ne[2] == 1 && op->src[0]->ne[3] == 1 &&

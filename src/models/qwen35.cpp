@@ -484,7 +484,8 @@ ggml_tensor * llama_model_qwen35::graph::build_layer_attn_linear(
     // relocation in build_rs_cache_view runs before the GDN read and, after a cell reorder, can
     // overwrite a row another sequence reads (the gathered path reads first). Graph reuse compares
     // the s_copy_extra size, so a batch with extra cells rebuilds and takes the gathered path.
-    static const bool gdn_rows_plain = getenv("GGML_GDN_ROWS_PLAIN") && atoi(getenv("GGML_GDN_ROWS_PLAIN")) == 1;
+    // read at every graph build (cheap), so a process can switch it between contexts
+    const bool gdn_rows_plain = getenv("GGML_GDN_ROWS_PLAIN") && atoi(getenv("GGML_GDN_ROWS_PLAIN")) == 1;
 
     const bool gdn_rows_plain_ok = gdn_rows_plain && mctx_cur->get_n_rs() == (uint32_t) n_seqs;
 
