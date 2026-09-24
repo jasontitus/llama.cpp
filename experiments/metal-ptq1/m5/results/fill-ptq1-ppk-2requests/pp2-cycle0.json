@@ -1,0 +1,129 @@
+{
+ "cell": "pp2",
+ "cycle": 0,
+ "attempt": 1,
+ "obs": [
+  {
+   "tps": 20.590535,
+   "samples_ts": [
+    20.6131,
+    20.5828,
+    20.5757
+   ],
+   "command": [
+    "../build-dev/bin/llama-bench",
+    "-m",
+    "../../workspace/work/models/Ternary-Bonsai-2-27B-PTQ1_0.gguf",
+    "-ngl",
+    "99",
+    "-fa",
+    "on",
+    "-t",
+    "16",
+    "-r",
+    "3",
+    "-o",
+    "json",
+    "-p",
+    "2",
+    "-n",
+    "0"
+   ],
+   "arm": "A",
+   "pos": 0,
+   "started": 1790272867.5710888
+  },
+  {
+   "tps": 80.788611,
+   "samples_ts": [
+    80.8244,
+    80.816,
+    80.7255
+   ],
+   "command": [
+    "../build-dev/bin/llama-bench",
+    "-m",
+    "../../workspace/work/models/Ternary-Bonsai-2-27B-PTQ1_0.gguf",
+    "-ngl",
+    "99",
+    "-fa",
+    "on",
+    "-t",
+    "16",
+    "-r",
+    "3",
+    "-o",
+    "json",
+    "-p",
+    "2",
+    "-n",
+    "0"
+   ],
+   "arm": "B",
+   "pos": 1,
+   "started": 1790272876.4020102
+  },
+  {
+   "tps": 78.702796,
+   "samples_ts": [
+    77.4382,
+    81.1559,
+    77.5142
+   ],
+   "command": [
+    "../build-dev/bin/llama-bench",
+    "-m",
+    "../../workspace/work/models/Ternary-Bonsai-2-27B-PTQ1_0.gguf",
+    "-ngl",
+    "99",
+    "-fa",
+    "on",
+    "-t",
+    "16",
+    "-r",
+    "3",
+    "-o",
+    "json",
+    "-p",
+    "2",
+    "-n",
+    "0"
+   ],
+   "arm": "B",
+   "pos": 2,
+   "started": 1790272884.937802
+  },
+  {
+   "tps": 20.577066,
+   "samples_ts": [
+    20.5819,
+    20.5808,
+    20.5685
+   ],
+   "command": [
+    "../build-dev/bin/llama-bench",
+    "-m",
+    "../../workspace/work/models/Ternary-Bonsai-2-27B-PTQ1_0.gguf",
+    "-ngl",
+    "99",
+    "-fa",
+    "on",
+    "-t",
+    "16",
+    "-r",
+    "3",
+    "-o",
+    "json",
+    "-p",
+    "2",
+    "-n",
+    "0"
+   ],
+   "arm": "A",
+   "pos": 3,
+   "started": 1790272893.4794838
+  }
+ ],
+ "spread": 1.026502425657152,
+ "ratio": 3.874197260122105
+}

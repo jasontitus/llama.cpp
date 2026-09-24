@@ -8,7 +8,7 @@ on Apple silicon. **Every change is an opt-in environment flag**; with no flags 
 |---|---|
 | Apple M5 Max (40-core GPU, Apple10) | **Measured**: results below |
 | Apple M1 Ultra (64-core GPU, Apple7) | In progress (the portable flags; no tensor units on Apple7) |
-| iPhone 17 Pro Max (A19 Pro, Apple10) | Benchmark app built: [`../ios/BonsaiBench`](../ios/BonsaiBench); results to come |
+| iPhone 17 Pro Max (A19 Pro, Apple10, 12 GB, iOS 27) | First results, from the [`BonsaiBench`](../ios/BonsaiBench) app |
 
 All devices use the same flags, the same paired A-B-B-A protocol and the same tools (see
 "Reproduce on your Mac" below), so results are comparable as paired speedups. Absolute tokens/s
@@ -29,13 +29,13 @@ flags" below; the bit-identical row uses `GGML_GDN_ROWS_PLAIN=1` only.
 | PTQ1 plain decoding, bit-identical subset (server, 1 request) | 1.07x (41.2 -> 44.3) | _pending_ | n/a |
 | PTQ1 tg128 | 1.08x (43.4 -> 47.0) | _pending_ | _pending_ |
 | PTQ1 MTP -> MTP (server, 1 request) | 3.34x (16.6 -> 55.4) | _pending_ | n/a |
-| PTQ1 2 requests (server) | _pending_ | _pending_ | n/a |
-| PTQ1 pp2 / pp4 / pp8 | _pending_ | _pending_ | _pending_ |
+| PTQ1 2 requests (server) | **3.43x** (17.9 -> 62.2) | _pending_ | n/a |
+| PTQ1 pp2 / pp4 / pp8 | **3.85x / 2.12x / 2.29x** (20.6 -> 79.3, 37.0 -> 78.4, 40.5 -> 92.8) | _pending_ | preliminary, 2 quartets each: **4.19x / 2.44x / 2.35x** (2.9 -> 11.9, 4.8 -> 11.7, 5.0 -> 11.7) |
 | PQ2 tg128 | 1.11x (45.5 -> 50.4) | _pending_ | _pending_ |
 | PQ2 2 requests (server) | 1.33x (48.1 -> 64.1) | _pending_ | n/a |
 | Bonsai 1 ternary tg128 | 1.12x (48.0 -> 53.6) | _pending_ | _pending_ |
 | Bonsai 1 ternary 2 requests (server) | 1.33x (50.1 -> 66.6) | _pending_ | n/a |
-| Bonsai 1 binary tg128 | 1.14x (66.7 -> 75.7) | _pending_ | _pending_ |
+| Bonsai 1 binary tg128 | 1.14x (66.7 -> 75.7) | _pending_ | **1.18x** (10.9 -> 12.8) |
 | Bonsai 1 binary 2 requests (server) | 1.17x (79.8 -> 93.2) | _pending_ | n/a |
 
 ### Filling in a device column
@@ -50,8 +50,13 @@ python3 experiments/metal-ptq1/m5/tools/device-table.py out-<device>
 The first command runs every study behind the table (about 1.5 hours; nothing else on the GPU, AC
 power). The second prints one line per row; paste the values into that device's column, add the
 device's details (chip, GPU cores, memory, macOS) to the device list above, copy `out-<device>/*/summary.json`
-into `results/<device>/`, and commit. The iPhone column comes from the BonsaiBench app's exported JSON
-(tg128 and ppK cells; the app has no server/MTP).
+into `results/<device>/`, and commit.
+
+The iPhone column comes from the BonsaiBench app's exported JSON (tg128 and ppK cells; the app has no
+server or MTP), saved in [`../ios/results`](../ios/results).
+- The app's tg128 is measured like llama-bench's (128 single-token decodes from an empty context, no
+  sampling), with 1 repetition per observation instead of 3.
+- It used a 40 s cooldown so that the phone stayed at a nominal thermal state.
 
 ## Apple M5 Max: headline (paired against upstream on the same machine)
 
@@ -95,9 +100,10 @@ MTP: `llama-server --spec-type draft-mtp --spec-draft-n-max 1` with a model that
 [sudoingX/bonsai2-small-gpu](https://github.com/sudoingX/bonsai2-small-gpu/tree/eb52d9d7363cda2d910146f4e37f4b8c64c30c46/graft)).
 One draft token is best on M5; 2 and 3 drafts measured 0.90x and 0.75x.
 
-Optional, changes output: `GGML_METAL_Q1_0_POPCNT=1` (PrismML's existing Q1_0 bit-plane path) gives Bonsai 1
-binary +17-28% on 4-8-token batches and +14% at 4 concurrent requests with unchanged perplexity, but
-int8 activations change greedy text under concurrency.
+Not ours, for context: `GGML_METAL_Q1_0_POPCNT=1` is PrismML's own Q1_0 bit-plane option (in their code, off
+by default), not part of these changes and not counted in any speedup above. Measured on top of our flags
+it gave Bonsai 1 binary +17-28% on 4-8-token batches and +14% at 4 concurrent requests, with unchanged
+perplexity, but its int8 activations change greedy text under concurrency.
 
 ## What changed and why (M5 findings)
 
@@ -136,7 +142,21 @@ int8 activations change greedy text under concurrency.
 - Batch invariance: 64/64 positions bitwise identical at batch sizes 2/3/4, also across 1134- and
   2011-token contexts.
 - Three adversarial code reviews; all findings fixed (see EXPERIMENTS.md).
-- Quality benchmarks (KL divergence on WikiText-2 at batch 1 and 2/4, HellaSwag, Winogrande): **pending**.
+- Standard quality benchmarks, every model with all of its flags on (PTQ1_0 including the tensor path)
+  against upstream (logs in `results/quality/`, script `tools/run-quality.sh`):
+
+  | Model | PPL ratio (WikiText-2, 20 x 512) | Mean KLD (max) | Same top token | HellaSwag 400 | Winogrande 1267 |
+  |---|---|---|---|---|---|
+  | Bonsai 2 PTQ1_0, batch 1 / 4 | 1.00006 +/- 0.00006 | 0.000000 (5.5e-5) | 100% | 75.25 = 75.25 | 73.32 = 73.32 |
+  | Bonsai 2 PQ2_0, batch 1 / 2 | 1.00006 +/- 0.00006 | 0.000000 (5.6e-5) | 100% | 75.25 = 75.25 | 73.32 = 73.32 |
+  | Bonsai 1 ternary PQ2_0, batch 1 / 2 | 1.00048 +/- 0.00038 | 0.000000 (5.7e-5) | 100% | 74.50 = 74.50 | 71.67 = 71.67 |
+  | Bonsai 1 binary Q1_0, batch 1 / 4 | 0.999999 | 0.000000 (6.4e-5) | 100% | 67.50 = 67.50 | 68.90 = 68.90 |
+
+  Every accuracy score is identical, and every perplexity ratio is within its error of 1. The largest
+  per-token KL divergence is at the level of float rounding.
+  - For context, not ours: PrismML's popcount option on Q1_0 gives a PPL ratio of 1.00037 +/- 0.00046,
+    mean KLD 0.00040 (max 0.034) and the same top token 99.06% of the time, with identical HellaSwag and
+    Winogrande.
 
 ## Reproduce on your Mac
 

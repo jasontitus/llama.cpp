@@ -1,18 +1,19 @@
 name: BonsaiBench
 options:
-  bundleIdPrefix: dev.bonsaibench
   deploymentTarget:
     iOS: "17.0"
 settings:
   base:
     SWIFT_VERSION: "5.0"
-    DEVELOPMENT_TEAM: ""          # set your team in Xcode (Signing & Capabilities) to install on a device
     CODE_SIGN_STYLE: Automatic
     TARGETED_DEVICE_FAMILY: "1,2"
 targets:
   BonsaiBench:
     type: application
     platform: iOS
+    configFiles:                  # team and bundle id; your own go in the gitignored Config/Local.xcconfig
+      Debug: Config/Signing.xcconfig
+      Release: Config/Signing.xcconfig
     sources:
       - BonsaiBench
     dependencies:
@@ -32,8 +33,35 @@ targets:
         UILaunchScreen: {}
         UIApplicationSupportsIndirectInputEvents: true
         UISupportedInterfaceOrientations: [UIInterfaceOrientationPortrait]
+    postBuildScripts:
+      # Record what was built in BuildStamp.plist inside the app; every result JSON carries it (BuildInfo).
+      - name: Stamp build
+        basedOnDependencyAnalysis: false
+        script: |
+          ROOT="$SRCROOT/../../../.."
+          OUT="$TARGET_BUILD_DIR/$UNLOCALIZED_RESOURCES_FOLDER_PATH/BuildStamp.plist"
+          REV=$(git -C "$ROOT" rev-parse HEAD 2>/dev/null || echo unknown)
+          DIRTY=$(git -C "$ROOT" status --porcelain -- ggml src include 2>/dev/null | wc -l | tr -d ' ')
+          FW=$(shasum -a 256 "$ROOT/build-apple/llama.xcframework/ios-arm64/llama.framework/llama" | cut -d' ' -f1)
+          rm -f "$OUT"
+          /usr/libexec/PlistBuddy -c "Add :BBSourceRevision string $REV" -c "Add :BBSourceDirtyFiles string $DIRTY" \
+            -c "Add :BBFrameworkSHA256 string $FW" "$OUT"
     settings:
       base:
-        PRODUCT_BUNDLE_IDENTIFIER: dev.bonsaibench.app
+        ENABLE_USER_SCRIPT_SANDBOXING: NO
         MARKETING_VERSION: "1.0"
         CURRENT_PROJECT_VERSION: "1"
+schemes:
+  BonsaiBench:
+    build:
+      targets:
+        BonsaiBench: all
+    # Benchmarks must not run under the debugger, Metal API validation or frame capture: build Release,
+    # install, and launch from the home screen (or with devicectl).
+    run:
+      config: Release
+      debugEnabled: false
+      enableGPUFrameCaptureMode: disabled
+      enableGPUValidationMode: disabled
+    archive:
+      config: Release

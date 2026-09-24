@@ -371,3 +371,53 @@ bitwise identical to upstream (NMSE 0 on all four models).
 
 Most of the single-request plain-decoding gain is bit-exact; the kernel changes add ~3 points there and
 matter mainly for MTP (1.34x / 1.22x total) and concurrency.
+
+## Quality benchmarks (M5 Max): upstream vs every model's full flag set
+
+`tools/run-quality.sh`; logs in `results/quality/`.
+
+- **KL divergence and perplexity:** WikiText-2 test, 20 chunks of 512 tokens, against the baseline's own
+  logits (`--kl-divergence-base`). Run at batch 1 (decode kernels) and at batch 4 (PTQ1_0, Q1_0) or 2 (PQ2_0
+  models), for the multi-column kernels.
+- **Task accuracy:** HellaSwag (first 400 tasks) and Winogrande (1267, debiased) at default batching.
+- **Flag sets:**
+  - PTQ1_0 ran the maximum configuration, including the tensor path (`GGML_METAL_PTQ1_TENSOR=1`).
+  - The PQ2_0 models ran the PQ2 stack.
+  - Q1_0 ran its stack, plus PrismML's popcount option as a separate arm for context.
+
+| Model | ub | PPL(Q)/PPL(base) | Mean KLD | Max KLD | Same top p | HellaSwag base / opt | Winogrande base / opt |
+|---|---|---|---|---|---|---|---|
+| Bonsai 2 PTQ1_0 | 1 | 1.000060 +/- 0.000060 | 0.000000 | 0.000052 | 100.000% | 75.25 / 75.25 | 73.32 / 73.32 |
+| Bonsai 2 PTQ1_0 | 4 | 1.000059 +/- 0.000060 | 0.000000 | 0.000055 | 100.000% | | |
+| Bonsai 2 PQ2_0 | 1 | 1.000060 +/- 0.000060 | 0.000000 | 0.000055 | 100.000% | 75.25 / 75.25 | 73.32 / 73.32 |
+| Bonsai 2 PQ2_0 | 2 | 1.000061 +/- 0.000060 | 0.000000 | 0.000056 | 100.000% | | |
+| Bonsai 1 ternary PQ2_0 | 1 | 1.000480 +/- 0.000383 | 0.000000 | 0.000057 | 100.000% | 74.50 / 74.50 | 71.67 / 71.67 |
+| Bonsai 1 ternary PQ2_0 | 2 | 1.000480 +/- 0.000383 | 0.000000 | 0.000054 | 100.000% | | |
+| Bonsai 1 binary Q1_0 | 1 | 0.999999 | 0.000000 | 0.000064 | 100.000% | 67.50 / 67.50 | 68.90 / 68.90 |
+| Bonsai 1 binary Q1_0 | 4 | 0.999999 | 0.000000 | 0.000064 | 100.000% | | |
+| *Q1_0 + PrismML popcount (theirs)* | 4 | *1.000374 +/- 0.000462* | *0.000403* | *0.033525* | *99.059%* | *67.50* | *68.90* |
+
+- The same top token in 100% of positions on every model and batch size, and identical task scores: the
+  flags do not change what the models compute beyond float rounding.
+- The PPL(base) of the two Bonsai 2 files agrees to 4 decimals (9.4936 / 9.4935): PTQ1_0 and PQ2_0 are the
+  same ternary weights in two packings.
+- The Bonsai 1 ternary ratio (1.00048 +/- 0.00038) is within 1.3 standard errors of 1.
+
+
+## PTQ1 small batches and 2 requests vs upstream (M5 Max)
+
+Upstream (no flags) vs the recommended PTQ1 flags, same protocol as the headline (3 A-B-B-A quartets, 8 s
+cooldown, AC power, no thermal warnings), revision `9f7a364` with a clean library tree. Results are in
+`results/fill-ptq1-ppk-2requests/`. Every quartet was accepted on the first attempt.
+
+| Cell | Upstream | Flags | Paired | Range |
+|---|---:|---:|---:|---|
+| pp2 | 20.6 | 79.3 | 3.85x | 3.83-3.87 |
+| pp4 | 37.0 | 78.4 | 2.12x | 2.12-2.13 |
+| pp8 | 40.5 | 92.8 | 2.29x | 2.29-2.29 |
+| llama-server, 2 concurrent requests | 17.9 | 62.2 | 3.43x | 2.94-3.71 |
+
+Upstream's PTQ1_0 multi-token path is slower than its own single-token decode. Two concurrent requests
+total 17.9 tok/s, less than half of one request (41); the multi-column kernels are what fix it. The
+generated text was identical in every slot. The iPhone 17 Pro Max shows the same pattern: 4.19x / 2.44x /
+2.35x at pp2 / pp4 / pp8, preliminary, 2 quartets.

@@ -1,0 +1,238 @@
+{
+  "armA" : {
+    "flags" : {
+
+    },
+    "name" : "upstream"
+  },
+  "armB" : {
+    "flags" : {
+      "GGML_GDN_ROWS_PLAIN" : "1",
+      "GGML_METAL_SMALLM" : "1",
+      "GGML_METAL_SMALLM_MM" : "1"
+    },
+    "name" : "M5 stack (Q1)"
+  },
+  "build" : {
+    "frameworkSHA256" : "713a90c8d197f80d838c62df70616d5c80d73bf4a8583e83c1d8d5e9e827d698",
+    "sourceDirtyFiles" : "0",
+    "sourceRevision" : "1b8d5930ac4519b44cfe1fa98fcb2d74f16ec928"
+  },
+  "cancelled" : false,
+  "cooldownSeconds" : 40,
+  "cycles" : 3,
+  "device" : {
+    "appAvailableMemoryBytes" : 6300265872,
+    "gpuName" : "Apple A19 Pro GPU",
+    "highestAppleFamily" : 10,
+    "lowPowerMode" : false,
+    "machine" : "iPhone18,2",
+    "physicalMemoryBytes" : 12263424000,
+    "systemVersion" : "Version 27.0 (Build 24A437)",
+    "thermalState" : "nominal"
+  },
+  "finished" : "2026-09-24T16:41:39Z",
+  "launchEnvironment" : {
+
+  },
+  "minAvailableBytes" : 6020689032,
+  "model" : "Bonsai-27B-Q1_0.gguf",
+  "modelBytes" : 3803452480,
+  "modelDescription" : "qwen35 27B Q1_0",
+  "modelSHA256Verified" : "17ef842e47450caeb8eaa3ebfbbab5d2f2278b62b79be107985fb69a2f819aa0",
+  "peakFootprintBytes" : 421761912,
+  "prompt" : "<|im_start|>user\nWrite a Python function that merges two sorted lists into one sorted list, with a docstring.<|im_end|>\n<|im_start|>assistant\n<think>\n\n<\/think>\n\n",
+  "quartets" : [
+    {
+      "accepted" : true,
+      "attempt" : 1,
+      "cell" : "tg128",
+      "cycle" : 0,
+      "observations" : [
+        {
+          "arm" : "upstream",
+          "availableBytes" : 6020689032,
+          "footprintBytes" : 421761912,
+          "interrupted" : false,
+          "position" : 0,
+          "startedAt" : "2026-09-24T16:31:50Z",
+          "thermalAfter" : "nominal",
+          "thermalBefore" : "nominal",
+          "thermalWaitSeconds" : 2.0265579223632812e-06,
+          "tokensPerSecond" : 11.197499855544816
+        },
+        {
+          "arm" : "M5 stack (Q1)",
+          "availableBytes" : 6025931912,
+          "footprintBytes" : 416519032,
+          "interrupted" : false,
+          "position" : 1,
+          "startedAt" : "2026-09-24T16:32:43Z",
+          "thermalAfter" : "nominal",
+          "thermalBefore" : "nominal",
+          "thermalWaitSeconds" : 1.9073486328125e-06,
+          "tokensPerSecond" : 12.613598138745344
+        },
+        {
+          "arm" : "M5 stack (Q1)",
+          "availableBytes" : 6026013832,
+          "footprintBytes" : 416437112,
+          "interrupted" : false,
+          "position" : 2,
+          "startedAt" : "2026-09-24T16:33:35Z",
+          "thermalAfter" : "nominal",
+          "thermalBefore" : "nominal",
+          "thermalWaitSeconds" : 2.0265579223632812e-06,
+          "tokensPerSecond" : 13.10768689289425
+        },
+        {
+          "arm" : "upstream",
+          "availableBytes" : 6026210440,
+          "footprintBytes" : 416240504,
+          "interrupted" : false,
+          "position" : 3,
+          "startedAt" : "2026-09-24T16:34:26Z",
+          "thermalAfter" : "nominal",
+          "thermalBefore" : "nominal",
+          "thermalWaitSeconds" : 1.9073486328125e-06,
+          "tokensPerSecond" : 11.02667204019597
+        }
+      ],
+      "ratio" : 1.157356285413227,
+      "spread" : 1.0391711190347193
+    },
+    {
+      "accepted" : true,
+      "attempt" : 1,
+      "cell" : "tg128",
+      "cycle" : 1,
+      "observations" : [
+        {
+          "arm" : "upstream",
+          "availableBytes" : 6021229704,
+          "footprintBytes" : 421221240,
+          "interrupted" : false,
+          "position" : 0,
+          "startedAt" : "2026-09-24T16:35:19Z",
+          "thermalAfter" : "nominal",
+          "thermalBefore" : "nominal",
+          "thermalWaitSeconds" : 2.9802322387695312e-06,
+          "tokensPerSecond" : 10.427588351968337
+        },
+        {
+          "arm" : "M5 stack (Q1)",
+          "availableBytes" : 6021311624,
+          "footprintBytes" : 421139320,
+          "interrupted" : false,
+          "position" : 1,
+          "startedAt" : "2026-09-24T16:36:13Z",
+          "thermalAfter" : "nominal",
+          "thermalBefore" : "nominal",
+          "thermalWaitSeconds" : 0,
+          "tokensPerSecond" : 12.847247841615314
+        },
+        {
+          "arm" : "M5 stack (Q1)",
+          "availableBytes" : 6025997448,
+          "footprintBytes" : 416453496,
+          "interrupted" : false,
+          "position" : 2,
+          "startedAt" : "2026-09-24T16:37:04Z",
+          "thermalAfter" : "nominal",
+          "thermalBefore" : "nominal",
+          "thermalWaitSeconds" : 2.0265579223632812e-06,
+          "tokensPerSecond" : 12.652640234716362
+        },
+        {
+          "arm" : "upstream",
+          "availableBytes" : 6021688456,
+          "footprintBytes" : 420762488,
+          "interrupted" : false,
+          "position" : 3,
+          "startedAt" : "2026-09-24T16:37:56Z",
+          "thermalAfter" : "nominal",
+          "thermalBefore" : "nominal",
+          "thermalWaitSeconds" : 9.5367431640625e-07,
+          "tokensPerSecond" : 11.036189245556509
+        }
+      ],
+      "ratio" : 1.188042876444651,
+      "spread" : 1.0583644916778183
+    },
+    {
+      "accepted" : true,
+      "attempt" : 1,
+      "cell" : "tg128",
+      "cycle" : 2,
+      "observations" : [
+        {
+          "arm" : "upstream",
+          "availableBytes" : 6026128520,
+          "footprintBytes" : 416322424,
+          "interrupted" : false,
+          "position" : 0,
+          "startedAt" : "2026-09-24T16:38:49Z",
+          "thermalAfter" : "nominal",
+          "thermalBefore" : "nominal",
+          "thermalWaitSeconds" : 1.0728836059570312e-06,
+          "tokensPerSecond" : 10.771851401558916
+        },
+        {
+          "arm" : "M5 stack (Q1)",
+          "availableBytes" : 6026013832,
+          "footprintBytes" : 416437112,
+          "interrupted" : false,
+          "position" : 1,
+          "startedAt" : "2026-09-24T16:39:43Z",
+          "thermalAfter" : "nominal",
+          "thermalBefore" : "nominal",
+          "thermalWaitSeconds" : 0,
+          "tokensPerSecond" : 12.879575436773733
+        },
+        {
+          "arm" : "M5 stack (Q1)",
+          "availableBytes" : 6025997448,
+          "footprintBytes" : 416453496,
+          "interrupted" : false,
+          "position" : 2,
+          "startedAt" : "2026-09-24T16:40:34Z",
+          "thermalAfter" : "nominal",
+          "thermalBefore" : "nominal",
+          "thermalWaitSeconds" : 1.9073486328125e-06,
+          "tokensPerSecond" : 12.774387831437512
+        },
+        {
+          "arm" : "upstream",
+          "availableBytes" : 6026210440,
+          "footprintBytes" : 416240504,
+          "interrupted" : false,
+          "position" : 3,
+          "startedAt" : "2026-09-24T16:41:25Z",
+          "thermalAfter" : "nominal",
+          "thermalBefore" : "nominal",
+          "thermalWaitSeconds" : 1.9073486328125e-06,
+          "tokensPerSecond" : 10.912701284234881
+        }
+      ],
+      "ratio" : 1.183052453971897,
+      "spread" : 1.01307573576958
+    }
+  ],
+  "spreadGate" : 1.2,
+  "started" : "2026-09-24T16:31:10Z",
+  "summaries" : [
+    {
+      "aMean" : 10.89541702984324,
+      "acceptedQuartets" : 3,
+      "bMean" : 12.812522729363751,
+      "cell" : "tg128",
+      "complete" : true,
+      "rejectedQuartets" : 0,
+      "speedupGeomean" : 1.1760733167699347,
+      "speedupMax" : 1.188042876444651,
+      "speedupMin" : 1.157356285413227,
+      "tokenMismatchQuartets" : 0
+    }
+  ],
+  "tool" : "BonsaiBench 2"
+}

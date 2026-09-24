@@ -3,6 +3,8 @@ import UniformTypeIdentifiers
 
 struct ContentView: View {
     @StateObject private var state = BenchState()
+    @ObservedObject private var downloads = Downloader.shared
+    @Environment(\.scenePhase) private var scenePhase
     @State private var importing = false
 
     var body: some View {
@@ -16,29 +18,75 @@ struct ContentView: View {
                 }
 
                 Section {
-                    ForEach(state.models, id: \.self) { url in
-                        let need = estimatedNeedBytes(modelFileBytes: state.size(url))
-                        let avail = state.device.appAvailableMemoryBytes
-                        Button {
-                            state.load(url)
-                        } label: {
-                            VStack(alignment: .leading) {
-                                Text(url.lastPathComponent).font(.body)
-                                Text("\(gb(state.size(url))) file, ~\(gb(need)) needed" + (avail > 0 ? (need < avail ? "  ✓ likely fits" : "  ✗ likely too large") : ""))
-                                    .font(.caption).foregroundStyle(avail > 0 && need >= avail ? .red : .secondary)
+                    if let url = state.selected {
+                        HStack(alignment: .top, spacing: 12) {
+                            if state.loading {
+                                ProgressView()
+                            } else if state.engine != nil {
+                                Image(systemName: "checkmark.circle.fill").foregroundStyle(.green).font(.title2)
+                            } else {
+                                Image(systemName: "exclamationmark.triangle.fill").foregroundStyle(.orange).font(.title2)
+                            }
+                            VStack(alignment: .leading, spacing: 3) {
+                                Text(modelTitle(url.lastPathComponent)).font(.headline)
+                                Text(url.lastPathComponent).font(.caption.monospaced()).foregroundStyle(.secondary)
+                                if state.loading {
+                                    Text("Loading…").font(.caption)
+                                } else if let e = state.engine {
+                                    Text("\(e.weightType) · \(gb(state.size(url))) · " +
+                                         (VerifiedMark.get(url) != nil ? "SHA-256 verified" : "not checked against the published hash"))
+                                        .font(.caption).foregroundStyle(.secondary)
+                                } else {
+                                    Text("Not loaded (see the message below)").font(.caption).foregroundStyle(.orange)
+                                }
                             }
                         }
-                        .disabled(state.running)
+                    } else {
+                        Text("No model loaded. Pick one below.").foregroundStyle(.secondary)
                     }
-                    Button("Import a .gguf…") { importing = true }.disabled(state.running)
                 } header: {
-                    Text("Models")
+                    Text("Model under test")
                 } footer: {
                     Text(state.status)
                 }
 
+                Section {
+                    ForEach(state.models, id: \.self) { url in
+                        let need = estimatedNeedBytes(modelFileBytes: state.size(url))
+                        let avail = state.device.appAvailableMemoryBytes
+                        let isSelected = state.selected?.lastPathComponent == url.lastPathComponent
+                        Button {
+                            state.load(url)
+                        } label: {
+                            HStack {
+                                VStack(alignment: .leading, spacing: 2) {
+                                    Text(modelTitle(url.lastPathComponent)).foregroundStyle(.primary)
+                                    Text(url.lastPathComponent).font(.caption2.monospaced()).foregroundStyle(.secondary)
+                                    Text("\(gb(state.size(url))) file, ~\(gb(need)) needed" + (avail > 0 ? (need < avail ? " · likely fits" : " · likely too large") : ""))
+                                        .font(.caption).foregroundStyle(avail > 0 && need >= avail ? .red : .secondary)
+                                }
+                                Spacer()
+                                if isSelected && state.loading {
+                                    ProgressView()
+                                } else if isSelected && state.engine != nil {
+                                    Label("Loaded", systemImage: "checkmark.circle.fill").font(.callout).foregroundStyle(.green)
+                                } else {
+                                    Text("Load").font(.callout).foregroundStyle(Color.accentColor)
+                                }
+                            }
+                        }
+                        .disabled(state.running || state.loading || (isSelected && state.engine != nil))
+                    }
+                    Button("Import a .gguf…") { importing = true }.disabled(state.running || state.loading)
+                } header: {
+                    Text("Choose a model")
+                } footer: {
+                    Text(state.models.isEmpty ? "No models yet: download one at the bottom of this page."
+                         : "Tap a model to load it; the loaded one is marked. Loading replaces the previous model.")
+                }
+
                 if let engine = state.engine {
-                    Section("Arms (\(engine.weightType))") {
+                    Section("Arms for \(modelTitle(state.selected?.lastPathComponent ?? ""))") {
                         Picker("A", selection: $state.armA) {
                             ForEach(Presets.all(for: engine.weightType)) { Text($0.name).tag($0) }
                         }
@@ -46,6 +94,7 @@ struct ContentView: View {
                             ForEach(Presets.all(for: engine.weightType)) { Text($0.name).tag($0) }
                         }
                     }
+                    .disabled(state.running)
                     Section("Protocol") {
                         ForEach(defaultCells) { cell in
                             Toggle(cell.name, isOn: Binding(
@@ -53,32 +102,53 @@ struct ContentView: View {
                                 set: { on in if on { state.cells.insert(cell.name) } else { state.cells.remove(cell.name) } }))
                         }
                         Stepper("Quartets per cell: \(state.cycles)", value: $state.cycles, in: 1...6)
-                        Stepper(String(format: "Cooldown: %.0f s", state.cooldown), value: $state.cooldown, in: 0...60, step: 2)
+                        Stepper(String(format: "Cooldown: %.0f s", state.cooldown), value: $state.cooldown, in: 0...120, step: 2)
+                        Toggle("Start quartets only when nominal", isOn: $state.waitForNominal)
+                        Picker("Prompt micro-batch (pp cells)", selection: $state.promptUbatch) {
+                            Text("512 (as on the Mac)").tag(512)
+                            Text("256").tag(256)
+                            Text("128").tag(128)
+                        }
                         Stepper(String(format: "Spread gate: %.2f", state.gate), value: $state.gate, in: 1.05...2.0, step: 0.05)
                     }
+                    .disabled(state.running)
                     Section {
                         if state.running {
-                            Button("Stop after this observation", role: .destructive) { state.stop() }
+                            if !state.progress.isEmpty {
+                                Text(state.progress).font(.callout.monospacedDigit())
+                            }
+                            Button("Stop", role: .destructive) { state.stop() }
                         } else {
-                            Button("Run A-B-B-A") { state.start() }.disabled(state.cells.isEmpty)
+                            Button("Run A-B-B-A on \(modelTitle(state.selected?.lastPathComponent ?? ""))") { state.start() }
+                                .disabled(state.cells.isEmpty || downloads.busy || state.loading)
                         }
                     } footer: {
-                        Text("Keep the app in the foreground and the phone on a stable surface; thermal state is recorded with every observation.")
+                        Text(downloads.busy ? "Wait for downloads and checks to finish (or cancel them): they would skew the timings."
+                             : "Keep the app in the foreground and the phone on a stable surface; thermal state is recorded with every observation.")
                     }
                 }
 
                 if let r = state.result {
-                    Section("Results (B vs A)") {
+                    Section {
                         ForEach(r.summaries, id: \.cell) { s in
                             VStack(alignment: .leading) {
-                                Text(String(format: "%@  %.2f → %.2f tok/s   ×%.3f", s.cell, s.aMean, s.bMean, s.speedupGeomean)).font(.body.monospaced())
-                                Text(String(format: "range %.3f–%.3f · %d accepted, %d rejected%@", s.speedupMin, s.speedupMax,
-                                            s.acceptedQuartets, s.rejectedQuartets, s.tokenMismatchQuartets > 0 ? " · tokens differ" : ""))
-                                    .font(.caption).foregroundStyle(.secondary)
+                                if let geo = s.speedupGeomean, let a = s.aMean, let b = s.bMean {
+                                    Text(String(format: "%@  %.2f → %.2f tok/s   ×%.3f", s.cell, a, b, geo)).font(.body.monospaced())
+                                } else {
+                                    Text("\(s.cell)  no accepted quartet").font(.body.monospaced())
+                                }
+                                Text(String(format: "range %.3f–%.3f · %d accepted, %d rejected%@%@", s.speedupMin ?? 0, s.speedupMax ?? 0,
+                                            s.acceptedQuartets, s.rejectedQuartets, s.complete ? "" : " · incomplete",
+                                            s.tokenMismatchQuartets > 0 ? " · tokens differ" : ""))
+                                    .font(.caption).foregroundStyle(s.complete ? Color.secondary : Color.orange)
                             }
                         }
                         LabeledContent("Peak footprint", value: gb(r.peakFootprintBytes))
                         if let url = state.resultURL { ShareLink("Share JSON", item: url) }
+                    } header: {
+                        Text("Results · \(modelTitle(r.model))")
+                    } footer: {
+                        Text("B = \(r.armB.name), A = \(r.armA.name); ×speedup is B/A.")
                     }
                 }
 
@@ -89,8 +159,27 @@ struct ContentView: View {
                         }
                     }
                 }
+
+                Section {
+                    ForEach(Catalog.models) { m in
+                        let url = state.documents.appendingPathComponent(m.file)
+                        // compare names: the listing and `documents` can differ in form (/var vs /private/var)
+                        let installed = state.models.contains { $0.lastPathComponent == m.file }
+                        DownloadRow(model: m, installed: installed, verified: installed && VerifiedMark.get(url) == m.sha256,
+                                    available: state.device.appAvailableMemoryBytes, busy: state.running, downloads: downloads)
+                    }
+                    Toggle("Use cellular data", isOn: $downloads.allowCellular)
+                } header: {
+                    Text("Download from Hugging Face")
+                } footer: {
+                    VStack(alignment: .leading, spacing: 4) {
+                        if !downloads.message.isEmpty { Text(downloads.message).foregroundStyle(.green) }
+                        Text("PrismML's files at the revisions the Mac studies used. A download is installed only if its size and SHA-256 match; \"Verify\" checks a model you copied in. Downloads continue while the phone is locked. Free space: \(gb(downloads.freeSpace)).")
+                    }
+                }
             }
             .navigationTitle("BonsaiBench")
+            .onChange(of: scenePhase) { _, phase in AppActivity.shared.set(active: phase == .active) }
             .onAppear { state.refresh() }
             .refreshable { state.refresh() }
             .fileImporter(isPresented: $importing, allowedContentTypes: [.data]) { res in
@@ -98,4 +187,63 @@ struct ContentView: View {
             }
         }
     }
+}
+
+struct DownloadRow: View {
+    let model: CatalogModel
+    let installed: Bool
+    let verified: Bool
+    let available: UInt64
+    let busy: Bool
+    @ObservedObject var downloads: Downloader
+
+    var body: some View {
+        let need = estimatedNeedBytes(modelFileBytes: model.bytes)
+        let fit = available > 0 ? (need < available ? " · likely fits" : " · likely too large") : ""
+        VStack(alignment: .leading, spacing: 4) {
+            HStack(alignment: .firstTextBaseline) {
+                VStack(alignment: .leading, spacing: 2) {
+                    Text(model.title)
+                    Text("\(gb(model.bytes)) · ~\(gb(need)) needed\(fit)")
+                        .font(.caption).foregroundStyle(available > 0 && need >= available ? .red : .secondary)
+                }
+                Spacer()
+                switch downloads.phase[model.file] {
+                case .downloading?:
+                    Button("Cancel", role: .destructive) { downloads.cancel(model.file) }.buttonStyle(.borderless)
+                case .verifying?:
+                    ProgressView()
+                case .failed?:
+                    Button("Retry") { downloads.start(model) }.buttonStyle(.borderless).disabled(busy)
+                case nil:
+                    if verified {
+                        Label("Verified", systemImage: "checkmark.seal.fill").foregroundStyle(.green).font(.callout)
+                    } else if installed {
+                        Button("Verify") { downloads.verifyInstalled(model) }.buttonStyle(.borderless).disabled(busy)
+                    } else {
+                        Button("Get") { downloads.start(model) }.buttonStyle(.borderless).disabled(busy)
+                    }
+                }
+            }
+            switch downloads.phase[model.file] {
+            case .downloading(let f)?:
+                ProgressView(value: f)
+                Text(String(format: "%.1f%% of %@", f * 100, gb(model.bytes)))
+                    .font(.caption2.monospacedDigit()).foregroundStyle(.secondary)
+            case .verifying?:
+                Text("Checking size and SHA-256…").font(.caption2).foregroundStyle(.secondary)
+            case .failed(let msg)?:
+                Text(msg).font(.caption2).foregroundStyle(.red)
+            case nil:
+                if installed && !verified {
+                    Text("In the app but not checked against the published SHA-256.").font(.caption2).foregroundStyle(.secondary)
+                }
+            }
+        }
+    }
+}
+
+/// "Bonsai 2 ternary (PTQ1_0)" for a catalog file, else the file name without its extension.
+func modelTitle(_ file: String) -> String {
+    Catalog.models.first { $0.file == file }?.title ?? (file as NSString).deletingPathExtension
 }
