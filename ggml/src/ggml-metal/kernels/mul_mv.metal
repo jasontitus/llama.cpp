@@ -262,6 +262,7 @@ constant short FC_mul_mv_nxpsg [[function_constant(FC_MUL_MV + 1)]];
 constant short FC_mul_mv_ne12  [[function_constant(FC_MUL_MV + 2)]];
 constant short FC_mul_mv_r2    [[function_constant(FC_MUL_MV + 3)]];
 constant short FC_mul_mv_r3    [[function_constant(FC_MUL_MV + 4)]];
+constant bool  FC_mul_mv_ptq1_full_cols [[function_constant(FC_MUL_MV + 5)]];
 
 template<typename block_q_type, short NR0, typename args_t>
 void mul_vec_q_n_f32_impl(
@@ -1163,7 +1164,7 @@ kernel void kernel_mul_mv_ptq1_0_multicol(
     const int im = tgpig.z;
 
     // columns of this tile that exist: nr1 except in a partial last tile (5..8 columns)
-    const short ncols = (short) min(nr1, args.ne11 - r1);
+    const short ncols = FC_mul_mv_ptq1_full_cols ? nr1 : (short) min(nr1, args.ne11 - r1);
 
     const int first_row = (r0 * NSG + sgitg) * nr0;
 
@@ -1204,7 +1205,8 @@ kernel void kernel_mul_mv_ptq1_0_multicol(
         float sumy[nr1] = {};
         FOR_UNROLL (short col = 0; col < nr1; ++col) {
             // a partial last column tile re-reads its final valid column; that result is not written
-            device const float * yc = (device const float *) ((device const char *) yb + min(col, (short) (ncols - 1))*args.nb11);
+            const short yc_col = FC_mul_mv_ptq1_full_cols ? col : min(col, (short) (ncols - 1));
+            device const float * yc = (device const float *) ((device const char *) yb + yc_col*args.nb11);
 
             FOR_UNROLL (short k = 0; k < 2; ++k) {
                 const short m = 2*it + k;
@@ -1248,7 +1250,7 @@ kernel void kernel_mul_mv_ptq1_0_multicol(
     for (int row = 0; row < nr0; ++row) {
         FOR_UNROLL (short col = 0; col < nr1; ++col) {
             const float tot = simd_sum(sumf[row][col]);
-            if (tiisg == 0 && first_row + row < args.ne01 && col < ncols) {
+            if (tiisg == 0 && first_row + row < args.ne01 && (FC_mul_mv_ptq1_full_cols || col < ncols)) {
                 dst_f32[(uint64_t) col*args.ne0 + first_row + row] = tot;
             }
         }
