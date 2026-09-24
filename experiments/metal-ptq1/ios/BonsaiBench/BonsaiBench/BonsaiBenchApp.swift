@@ -188,6 +188,7 @@ final class BenchState: ObservableObject {
                           catch { saveError = error.localizedDescription }
                       })
         study = s
+        log.append("\(modelTitle(engine.path.split(separator: "/").last.map(String.init) ?? "")) · A = \(armA.name) · B = \(armB.name)")
         // A dedicated thread at user-initiated priority: CPU-side graph encoding stays on performance cores.
         let t = Thread {
             s.run()
