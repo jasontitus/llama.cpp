@@ -33,10 +33,29 @@ final class BenchState: ObservableObject {
     @Published var device = DeviceInfo.capture()
     private var study: Study?
 
+    // Suite: the studies run in order; `suiteStep` is the one running (nil when no suite runs).
+    let suite = Suites.phone
+    @Published var suiteIncluded: Set<Int> = Set(Suites.phone.indices)
+    @Published var suiteStep: Int?
+    @Published var suiteDone: Set<Int> = []
+    @Published var suiteResumeAt: Int?          // offered after the app was killed during a suite
+    @Published var suiteNotes: [String] = []    // skipped or failed studies (each study clears the log)
+    private var suiteStopped = false
+
     init() {
         _ = launchEnvironment   // capture before any arm changes the environment
         Downloader.shared.onFinished = { [weak self] in self?.refresh() }
         Downloader.shared.restore(autostart: true)
+        // A suite that was running when the app died: offer to resume it. If the app died while loading a
+        // model, that study's model does not fit, so resume after it.
+        let killedWhileLoading = UserDefaults.standard.string(forKey: "loadingModel") != nil
+        if let step = UserDefaults.standard.object(forKey: "suiteStep") as? Int {
+            let included = (UserDefaults.standard.array(forKey: "suiteIncluded") as? [Int]).map(Set.init) ?? suiteIncluded
+            suiteIncluded = included
+            let next = (killedWhileLoading ? step + 1 : step)
+            suiteResumeAt = included.filter { $0 >= next }.min()
+            UserDefaults.standard.removeObject(forKey: "suiteStep")
+        }
         // iOS kills an app that exceeds its memory limit without a crash report; say so on the next launch.
         if let m = UserDefaults.standard.string(forKey: "loadingModel") {
             status = "The app was stopped while loading \(m), most likely out of memory: it does not fit on this phone."
@@ -53,11 +72,20 @@ final class BenchState: ObservableObject {
     ///     dev.bonsaibench.app
     /// Arms are preset names as shown in the app; cells may include any tgN/chatN/ppK; cycles and cooldown are
     /// optional. The phone must stay unlocked with the app in front. The result is written to Documents.
+    ///
+    /// The whole suite: '{"BONSAIBENCH_AUTORUN":"{\"suite\":true}"}' (optionally \"from\": <study index>).
     private func autorun() {
         guard let spec = ProcessInfo.processInfo.environment["BONSAIBENCH_AUTORUN"] else { return }
-        guard let o = (try? JSONSerialization.jsonObject(with: Data(spec.utf8))) as? [String: Any],
-              let model = o["model"] as? String else {
-            status = "BONSAIBENCH_AUTORUN is not valid JSON with a \"model\""
+        guard let o = (try? JSONSerialization.jsonObject(with: Data(spec.utf8))) as? [String: Any] else {
+            status = "BONSAIBENCH_AUTORUN is not valid JSON"
+            return
+        }
+        if o["suite"] as? Bool == true {
+            startSuite(from: o["from"] as? Int ?? 0)
+            return
+        }
+        guard let model = o["model"] as? String else {
+            status = "BONSAIBENCH_AUTORUN needs a \"model\" (or \"suite\": true)"
             return
         }
         load(documents.appendingPathComponent(model)) { [weak self] engine in
@@ -167,7 +195,8 @@ final class BenchState: ObservableObject {
         }
     }
 
-    func start() {
+    /// Start a study with the current settings; `then` runs on the main queue when it has finished.
+    func start(then: ((RunResult) -> Void)? = nil) {
         guard let engine, !running, !Downloader.shared.busy else { return }
         running = true
         log = []
@@ -205,6 +234,7 @@ final class BenchState: ObservableObject {
                 UIApplication.shared.isIdleTimerDisabled = false
                 let what = s.result.error.map { "Stopped by an error: \($0)." } ?? (s.result.cancelled ? "Stopped." : "Done.")
                 self.status = what + (saveError.map { " Could not save the results: \($0)" } ?? " Results saved to Documents/\(url.lastPathComponent).")
+                then?(s.result)
             }
         }
         t.qualityOfService = .userInitiated
@@ -212,7 +242,76 @@ final class BenchState: ObservableObject {
         t.start()
     }
 
-    func stop() { study?.cancelled = true }
+    func stop() {
+        suiteStopped = true
+        study?.cancelled = true
+    }
+
+    // MARK: suite
+
+    func startSuite(from first: Int = 0) {
+        guard !running, !loading, suiteStep == nil, !Downloader.shared.busy else { return }
+        suiteStopped = false
+        suiteResumeAt = nil
+        suiteDone = []
+        suiteNotes = []
+        UserDefaults.standard.set(Array(suiteIncluded), forKey: "suiteIncluded")
+        suiteNext(first)
+    }
+
+    /// Run study `i` (or the next included one), then the rest. Each study loads its model if another one
+    /// is loaded, sets the arms and protocol, and saves its own result file.
+    private func suiteNext(_ from: Int) {
+        guard !suiteStopped, let i = suite.indices.filter({ $0 >= from && suiteIncluded.contains($0) }).min() else {
+            suiteFinished()
+            return
+        }
+        suiteStep = i
+        UserDefaults.standard.set(i, forKey: "suiteStep")
+        UIApplication.shared.isIdleTimerDisabled = true
+        let spec = suite[i]
+        let skip = { (why: String) in
+            self.suiteNotes.append("Skipped \"\(spec.title)\": \(why)")
+            // next runloop turn, so nothing from this step still holds the engine
+            DispatchQueue.main.async { self.suiteNext(i + 1) }
+        }
+        let url = documents.appendingPathComponent(spec.model)
+        guard FileManager.default.fileExists(atPath: url.path) else { return skip("\(spec.model) is not in the app") }
+        let go = { (engine: Engine) in
+            guard !self.suiteStopped else { return self.suiteFinished() }
+            let arms = Presets.all(for: engine.weightType)
+            guard let a = arms.first(where: { $0.name == spec.a }), let b = arms.first(where: { $0.name == spec.b }) else {
+                return skip("no arm \"\(spec.a)\" or \"\(spec.b)\" for \(engine.weightType)")
+            }
+            self.armA = a
+            self.armB = b
+            self.cells = Set(spec.cells)
+            self.cycles = spec.cycles
+            self.cooldown = spec.cooldown
+            self.promptUbatch = spec.ubatch
+            self.start { r in
+                if let e = r.error { self.suiteNotes.append("\"\(spec.title)\" stopped by an error: \(e)") }
+                if !r.cancelled && r.error == nil { self.suiteDone.insert(i) }
+                DispatchQueue.main.async { self.suiteNext(i + 1) }
+            }
+            if !self.running { skip("the study could not start") }
+        }
+        if let e = engine, selected?.lastPathComponent == spec.model {
+            go(e)
+        } else {
+            load(url) { e in
+                if let e { go(e) } else { skip("the model did not load") }
+            }
+        }
+    }
+
+    private func suiteFinished() {
+        let stopped = suiteStopped
+        suiteStep = nil
+        UserDefaults.standard.removeObject(forKey: "suiteStep")
+        UIApplication.shared.isIdleTimerDisabled = false
+        status = (stopped ? "Suite stopped" : "Suite finished") + ": \(suiteDone.count) of \(suiteIncluded.count) studies done; each study's results are in Documents."
+    }
 }
 
 extension JSONEncoder {

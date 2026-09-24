@@ -14,6 +14,7 @@
 		45B9A324E7DC5F666074B6FA /* DeviceInfo.swift in Sources */ = {isa = PBXBuildFile; fileRef = B7D2A595F3381EF1776992A6 /* DeviceInfo.swift */; };
 		5437452C52E55A4EBED0BE79 /* Bench.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7131E03FDDC3743959F19494 /* Bench.swift */; };
 		5836F629AA44E2E22CB8B345 /* Engine.swift in Sources */ = {isa = PBXBuildFile; fileRef = 84662EE001062C38068950F6 /* Engine.swift */; };
+		5AFCDAF568C869B512253B9C /* Suite.swift in Sources */ = {isa = PBXBuildFile; fileRef = D07035F5287518D4179FFFE1 /* Suite.swift */; };
 		A19113653643E61358BAF794 /* BonsaiBenchApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8E9177C2A28F303E12F6EA4F /* BonsaiBenchApp.swift */; };
 /* End PBXBuildFile section */
 
@@ -42,6 +43,7 @@
 		9B83716EB2D0D3EAACC4D4EE /* BonsaiBench.entitlements */ = {isa = PBXFileReference; lastKnownFileType = text.plist.entitlements; path = BonsaiBench.entitlements; sourceTree = "<group>"; };
 		B7D2A595F3381EF1776992A6 /* DeviceInfo.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DeviceInfo.swift; sourceTree = "<group>"; };
 		C6D58FA8A8908E0C17D5857C /* llama.xcframework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.xcframework; name = llama.xcframework; path = "../../../../build-apple/llama.xcframework"; sourceTree = "<group>"; };
+		D07035F5287518D4179FFFE1 /* Suite.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Suite.swift; sourceTree = "<group>"; };
 		EC892D783CB72DE085265E82 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist; path = Info.plist; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
@@ -94,6 +96,7 @@
 				0B98262F7A8E003534A325F9 /* Downloads.swift */,
 				84662EE001062C38068950F6 /* Engine.swift */,
 				EC892D783CB72DE085265E82 /* Info.plist */,
+				D07035F5287518D4179FFFE1 /* Suite.swift */,
 			);
 			path = BonsaiBench;
 			sourceTree = "<group>";
@@ -196,6 +199,7 @@
 				45B9A324E7DC5F666074B6FA /* DeviceInfo.swift in Sources */,
 				29820508D09BFC2918878273 /* Downloads.swift in Sources */,
 				5836F629AA44E2E22CB8B345 /* Engine.swift in Sources */,
+				5AFCDAF568C869B512253B9C /* Suite.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};

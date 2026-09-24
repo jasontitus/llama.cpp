@@ -75,14 +75,62 @@ struct ContentView: View {
                                 }
                             }
                         }
-                        .disabled(state.running || state.loading || (isSelected && state.engine != nil))
+                        .disabled(state.running || state.loading || state.suiteStep != nil || (isSelected && state.engine != nil))
                     }
-                    Button("Import a .gguf…") { importing = true }.disabled(state.running || state.loading)
+                    Button("Import a .gguf…") { importing = true }.disabled(state.running || state.loading || state.suiteStep != nil)
                 } header: {
                     Text("Choose a model")
                 } footer: {
                     Text(state.models.isEmpty ? "No models yet: download one at the bottom of this page."
                          : "Tap a model to load it; the loaded one is marked. Loading replaces the previous model.")
+                }
+
+                Section {
+                    ForEach(Array(state.suite.enumerated()), id: \.offset) { i, spec in
+                        let have = state.models.contains { $0.lastPathComponent == spec.model }
+                        HStack(alignment: .top, spacing: 10) {
+                            Group {
+                                if state.suiteStep == i {
+                                    ProgressView()
+                                } else if state.suiteDone.contains(i) {
+                                    Image(systemName: "checkmark.circle.fill").foregroundStyle(.green)
+                                } else if !have {
+                                    Image(systemName: "exclamationmark.triangle").foregroundStyle(.orange)
+                                } else {
+                                    Image(systemName: state.suiteIncluded.contains(i) ? "circle" : "minus.circle").foregroundStyle(.secondary)
+                                }
+                            }
+                            .frame(width: 22)
+                            VStack(alignment: .leading, spacing: 2) {
+                                Text("\(i + 1). \(spec.title)")
+                                Text("B = \(spec.b) vs A = \(spec.a) · \(spec.cells.joined(separator: ", ")) · \(spec.cycles) quartets, \(Int(spec.cooldown)) s cooldown\(spec.ubatch != 512 ? " · micro-batch \(spec.ubatch)" : "") · ~\(durationText(spec.estimatedSeconds))" + (have ? "" : " · model not in the app"))
+                                    .font(.caption).foregroundStyle(.secondary)
+                            }
+                            Spacer()
+                            Toggle("", isOn: Binding(
+                                get: { state.suiteIncluded.contains(i) },
+                                set: { on in if on { state.suiteIncluded.insert(i) } else { state.suiteIncluded.remove(i) } }))
+                                .labelsHidden()
+                                .disabled(state.suiteStep != nil)
+                        }
+                    }
+                    if state.suiteStep != nil {
+                        if !state.progress.isEmpty { Text(state.progress).font(.callout.monospacedDigit()) }
+                        Button("Stop the suite", role: .destructive) { state.stop() }
+                    } else {
+                        let total = state.suite.indices.filter { state.suiteIncluded.contains($0) }.reduce(0.0) { $0 + state.suite[$1].estimatedSeconds }
+                        Button("Run the suite (~\(durationText(total)) plus thermal waits)") { state.startSuite() }
+                            .disabled(state.running || state.loading || downloads.busy || state.suiteIncluded.isEmpty)
+                        if let r = state.suiteResumeAt {
+                            Button("Resume the suite at study \(r + 1)") { state.startSuite(from: r) }
+                                .disabled(state.running || state.loading || downloads.busy)
+                        }
+                    }
+                    ForEach(state.suiteNotes, id: \.self) { Text($0).font(.caption).foregroundStyle(.orange) }
+                } header: {
+                    Text("Phone suite")
+                } footer: {
+                    Text("Runs the included studies in order, loading each model, and saves one result file per study. The screen stays on; keep the app in front and the phone plugged in. If iOS stops the app (a model that does not fit), reopen it and resume.")
                 }
 
                 if let engine = state.engine {
@@ -120,7 +168,7 @@ struct ContentView: View {
                             Button("Stop", role: .destructive) { state.stop() }
                         } else {
                             Button("Run A-B-B-A on \(modelTitle(state.selected?.lastPathComponent ?? ""))") { state.start() }
-                                .disabled(state.cells.isEmpty || downloads.busy || state.loading)
+                                .disabled(state.cells.isEmpty || downloads.busy || state.loading || state.suiteStep != nil)
                         }
                     } footer: {
                         Text(downloads.busy ? "Wait for downloads and checks to finish (or cancel them): they would skew the timings."
