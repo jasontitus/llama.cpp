@@ -1,0 +1,48 @@
+{
+  "created": 1790223167.365551,
+  "env_a": {
+    "GGML_METAL_PTQ1_MULTICOL": "1"
+  },
+  "env_b": {
+    "GGML_METAL_PTQ1_MULTICOL": "1",
+    "GGML_METAL_PTQ1_MULTICOL_MAX": "8",
+    "GGML_METAL_PTQ1_GLU": "1",
+    "GGML_METAL_PTQ1_STAGE": "1",
+    "GGML_GDN_ROWS_PLAIN": "1"
+  },
+  "args": {
+    "output": "abba1-m1cand-vs-m5stack",
+    "bin": "../build-abba1/bin",
+    "src": "../snap-abba1",
+    "model": "~/Bonsai-M5-v2/bonsai-m5-max-handoff/workspace/work/models/Ternary-Bonsai-2-27B-PTQ1_0.gguf",
+    "mtp_model": "~/Bonsai-M5-v2/bonsai-m5-max-handoff/workspace/work/mtp/Ternary-Bonsai-2-27B-PTQ1_0-mtp.gguf",
+    "env_a": "{\"GGML_METAL_PTQ1_MULTICOL\":\"1\"}",
+    "env_b": "{\"GGML_METAL_PTQ1_MULTICOL\":\"1\",\"GGML_METAL_PTQ1_MULTICOL_MAX\":\"8\",\"GGML_METAL_PTQ1_GLU\":\"1\",\"GGML_METAL_PTQ1_STAGE\":\"1\",\"GGML_GDN_ROWS_PLAIN\":\"1\"}",
+    "bench": "['tg128', 'pp2', 'pp3', 'pp4', 'pp8', 'pp512']",
+    "server": "['s0c1', 's1c1', 's0c2', 's1c2', 's0c4', 's1c4']",
+    "cycles": "3",
+    "attempts": "3",
+    "cooldown": "8.0",
+    "tokens": "128",
+    "spread": "1.2"
+  },
+  "binaries": {
+    "libggml-base.0.21.0.dylib": "dca6b16c1498ff056785dcf3bdd99001295f13a1ab31db993bab544a94291ef1",
+    "libggml-blas.0.21.0.dylib": "f10377425859d442c55f7bc2b57c6fe4ec7480fad3d13c4a444ebccc3fca4567",
+    "libggml-cpu.0.21.0.dylib": "c176324e6c5a509999cc8079682bc4c7741bae5319b0846e0db0ef242eeff9c6",
+    "libggml-metal.0.21.0.dylib": "6152da3d0e7c8814a9b6923c93a1d40fe58346aa3c060ff28112a2320dd843e3",
+    "libggml.0.21.0.dylib": "96fd63a5f9a83f779b4530791cd1c4da88a8e6bb098b67cc01b487e9faafa41a",
+    "libllama-bench-impl.dylib": "d6f6bdfe619a11549352817389698502e0a54556f3562141ac74b8de59e2924b",
+    "libllama-common.0.2.0.dylib": "457a143e4b329aa679262b9f682145887f222ba4a1cb5293c39ff68321b3f804",
+    "libllama-server-impl.dylib": "1700cdf82a11fb948bb1c1ec168d018e6db9e9bfb525a9b2d844412ce3c4e611",
+    "libllama.0.2.0.dylib": "be1fa7648f2d5f801a6f7bd0744b6c1ba4abe6c50c1c8c87c3a89cfb5aaa341e",
+    "libmtmd.0.2.0.dylib": "a01d0d0f9bbb65b19bcd5ee60f8dfcd74ca1ec91f6952634a84bfc1dab9c058f",
+    "llama-bench": "9a8fdd94cb3c2f6eb9a3268f4c0d11fae8e455637117ee05f564bbfc406a99d8",
+    "llama-server": "5f8eccd2a5d3916adf9da9e0946f09af9aad41367d0434ee4c2919b1ef34ada4"
+  },
+  "revision": "0324c66521960d67aa7da8687fb1453a79a6565c",
+  "src": "../snap-abba1",
+  "diff_sha256": "2515cc65b41534a69718768f8191a7ce773a6d2ed494820feeb8f6f247f4b431",
+  "thermal": "Note: No thermal warning level has been recorded\nNote: No performance warning level has been recorded\nNote: No CPU power status has been recorded\n",
+  "power": "Now drawing from 'AC Power'\n -InternalBattery-0 (id=23855203)\t79%; charging; 1:14 remaining present: true\n"
+}

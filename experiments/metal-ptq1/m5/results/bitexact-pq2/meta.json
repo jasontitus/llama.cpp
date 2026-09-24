@@ -1,0 +1,42 @@
+{
+  "created": 1790261002.806255,
+  "env_a": {},
+  "env_b": {
+    "GGML_GDN_ROWS_PLAIN": "1"
+  },
+  "args": {
+    "output": "bitexact-pq2",
+    "bin": "../build-final/bin",
+    "src": "../snap-final",
+    "model": "../../workspace/work/models/Ternary-Bonsai-2-27B-PQ2_0.gguf",
+    "mtp_model": "../../workspace/work/mtp/Ternary-Bonsai-2-27B-PQ2_0-mtp.gguf",
+    "env_a": "{}",
+    "env_b": "{\"GGML_GDN_ROWS_PLAIN\":\"1\"}",
+    "bench": "['tg128']",
+    "server": "['s0c1']",
+    "cycles": "3",
+    "attempts": "3",
+    "cooldown": "8.0",
+    "tokens": "128",
+    "spread": "1.2"
+  },
+  "binaries": {
+    "libggml-base.0.21.0.dylib": "3540002521b7f55ed45fa7099c8aab5029becf1059d22b0448d9e19d160b9d67",
+    "libggml-blas.0.21.0.dylib": "95339326d31881b6668523bb94db96dee49c4f451a56b5ff099d3b6887843bca",
+    "libggml-cpu.0.21.0.dylib": "a28a599acc8410b0e71799437c3fa020bc4280b6a106ad951b70060293fbb63d",
+    "libggml-metal.0.21.0.dylib": "86a39674c4f2457fca6b7eeec8a89ab55cff10825064bcf50def8f192a3c77cc",
+    "libggml.0.21.0.dylib": "206eb66939f4d0da5137fc9f7a2463370f98924b5759f5706d1d53d96bfc1c31",
+    "libllama-bench-impl.dylib": "62e7a66a3910047a9ada11538d1d2f67d315eac4d2711816a4dcabd776c4d5ea",
+    "libllama-common.0.2.0.dylib": "dd601f9f5b9270dfead9d35634e77b8febe199b8123bfb2212f6a9c67d1fb648",
+    "libllama-server-impl.dylib": "36b8b29e7e20f3e6069be344e4d243dfa32f02d51ed5bd1d0515d9f7018dd818",
+    "libllama.0.2.0.dylib": "b12d7f0a57f7ba74f828c58744fd3a1f78a010a944b030d34c1f38b4ddcbf879",
+    "libmtmd.0.2.0.dylib": "7b435c558772c7e2fa8efe9fee5c46c0520d72610f2b520c6ca5f265308eec04",
+    "llama-bench": "1cef2a67fba438fafa20b66f08145e7f669f3f51c0f86a2e6aeed320bd1d1541",
+    "llama-server": "2af20016c75cf2aaf015f571665d75ffeecff4dfdba218aa5603c766a92e2567"
+  },
+  "revision": "0324c66521960d67aa7da8687fb1453a79a6565c",
+  "src": "../snap-final",
+  "diff_sha256": "4f0e45990cf09d3a2e14aa6b01e0f40241605f46bb407e67faba5ca807e9b338",
+  "thermal": "Note: No thermal warning level has been recorded\nNote: No performance warning level has been recorded\nNote: No CPU power status has been recorded\n",
+  "power": "Now drawing from 'AC Power'\n -InternalBattery-0 (id=23855203)\t79%; charging; (no estimate) present: true\n"
+}

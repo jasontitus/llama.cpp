@@ -1,0 +1,55 @@
+{
+  "created": 1790234268.617715,
+  "env_a": {
+    "GGML_METAL_PTQ1_MULTICOL": "1",
+    "GGML_METAL_PTQ1_MULTICOL_MAX": "8",
+    "GGML_METAL_PTQ1_GLU": "1",
+    "GGML_METAL_PTQ1_STAGE": "1",
+    "GGML_GDN_ROWS_PLAIN": "1",
+    "GGML_METAL_SMALLM_MM": "1"
+  },
+  "env_b": {
+    "GGML_METAL_PTQ1_MULTICOL": "1",
+    "GGML_METAL_PTQ1_MULTICOL_MAX": "8",
+    "GGML_METAL_PTQ1_GLU": "1",
+    "GGML_METAL_PTQ1_STAGE": "1",
+    "GGML_GDN_ROWS_PLAIN": "1",
+    "GGML_METAL_SMALLM_MM": "1",
+    "GGML_METAL_BATCH_INVARIANT": "1"
+  },
+  "args": {
+    "output": "abba5-invariant-cost",
+    "bin": "../build-abba5/bin",
+    "src": "../snap-abba5",
+    "model": "../../workspace/work/models/Ternary-Bonsai-2-27B-PTQ1_0.gguf",
+    "mtp_model": "../../workspace/work/mtp/Ternary-Bonsai-2-27B-PTQ1_0-mtp.gguf",
+    "env_a": "{\"GGML_METAL_PTQ1_MULTICOL\":\"1\",\"GGML_METAL_PTQ1_MULTICOL_MAX\":\"8\",\"GGML_METAL_PTQ1_GLU\":\"1\",\"GGML_METAL_PTQ1_STAGE\":\"1\",\"GGML_GDN_ROWS_PLAIN\":\"1\",\"GGML_METAL_SMALLM_MM\":\"1\"}",
+    "env_b": "{\"GGML_METAL_PTQ1_MULTICOL\":\"1\",\"GGML_METAL_PTQ1_MULTICOL_MAX\":\"8\",\"GGML_METAL_PTQ1_GLU\":\"1\",\"GGML_METAL_PTQ1_STAGE\":\"1\",\"GGML_GDN_ROWS_PLAIN\":\"1\",\"GGML_METAL_SMALLM_MM\":\"1\",\"GGML_METAL_BATCH_INVARIANT\":\"1\"}",
+    "bench": "['tg128', 'pp2', 'pp4', 'pp8']",
+    "server": "['s0c1', 's1c1', 's1c2']",
+    "cycles": "3",
+    "attempts": "3",
+    "cooldown": "8.0",
+    "tokens": "128",
+    "spread": "1.2"
+  },
+  "binaries": {
+    "libggml-base.0.21.0.dylib": "759c784e22db8c4f51fc0131c0b6017fc000691af775ce6027396e030a9577c2",
+    "libggml-blas.0.21.0.dylib": "5f09d23a7bc8bbc79b84166b7902413f5ce6436eef4c81715cb9861837c0ccfa",
+    "libggml-cpu.0.21.0.dylib": "f18fc311fd06c6c00885c9ffb8f30b1b255d7e58ed657f4bd152867f2a1527ef",
+    "libggml-metal.0.21.0.dylib": "402a6321dcf48d6d12e55f2fee6e0931b50f62eb3b82fd1c2a5ee0e96bedb16d",
+    "libggml.0.21.0.dylib": "a8bcf2a77ecdada2b65e8ff76382e61b5e17ce789e8ea13ad0fe4cbbde1d0d12",
+    "libllama-bench-impl.dylib": "4152811679337798e5d0761f402ffa12182d5864f3146c221faa938708e8f77a",
+    "libllama-common.0.2.0.dylib": "b5ef4a2c25d605c3ca478af96ce9b80be0a2ca193d441e5f65fc6de8112b0bed",
+    "libllama-server-impl.dylib": "7151896ef6fc0288facaf6281294e7c5e173b8437737e8302c5f2209ea30ca59",
+    "libllama.0.2.0.dylib": "55ffaae1f0abb33dd03be6d7323f5773e2d33ddab272b624a2db363f488a09ed",
+    "libmtmd.0.2.0.dylib": "8401c723436e870969631ea3237fde938bbc1f3831566df34b70a284b96e6752",
+    "llama-bench": "b6c7eda31e086bb895979afc0be2bb5384fd3832fbb52a263ccfe10f198dd218",
+    "llama-server": "ef221cf5d47d222dcc12947c9a41dc474e156019e98e57e5e5a684ca2e9c3a3b"
+  },
+  "revision": "0324c66521960d67aa7da8687fb1453a79a6565c",
+  "src": "../snap-abba5",
+  "diff_sha256": "627128238626bcf54d50710d7b263711a953f280b63f2114d9d6c8b36754819b",
+  "thermal": "Note: No thermal warning level has been recorded\nNote: No performance warning level has been recorded\nNote: No CPU power status has been recorded\n",
+  "power": "Now drawing from 'AC Power'\n -InternalBattery-0 (id=23855203)\t80%; AC attached; not charging present: true\n"
+}
