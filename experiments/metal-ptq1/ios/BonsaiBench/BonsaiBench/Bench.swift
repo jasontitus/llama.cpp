@@ -197,8 +197,8 @@ final class AppActivity {
 
 /// A-B-B-A study: every cell gets `cycles` quartets in a reproducibly shuffled order, a cooldown before
 /// each observation, a fresh context per observation, and the spread gate (larger/smaller of the two A
-/// runs, and of the two B runs, must each be <= gate). A quartet is also rejected if the thermal state
-/// changed during it or the app left the foreground. A rejected quartet is kept and repeated, at most
+/// runs, and of the two B runs, must each be <= gate). A quartet is also rejected if its runs started in
+/// different thermal states, if any run reached serious/critical, or if the app left the foreground. A rejected quartet is kept and repeated, at most
 /// `attempts` times, never the fastest chosen; a cell without an accepted quartet for every cycle is
 /// marked incomplete. The result is saved after every quartet.
 final class Study {
@@ -335,12 +335,16 @@ final class Study {
         if cell.kind == "chat", let t0 = obs[0].generatedTokens {
             identical = obs.allSatisfy { $0.generatedTokens == t0 }
         }
-        let thermal = Set(obs.flatMap { [$0.thermalBefore, $0.thermalAfter] })
+        // Every run must start in the same thermal state (a run may warm the phone while it runs: a PTQ1 run
+        // takes it from nominal to fair), and no run may touch serious/critical.
+        let starts = Set(obs.map(\.thermalBefore))
+        let hot = obs.contains { Self.thermalRank($0.thermalBefore) >= 2 || Self.thermalRank($0.thermalAfter) >= 2 }
         let reason: String? =
             obs.contains(where: \.interrupted) ? "app left the foreground" :
             obs.contains(where: { $0.error != nil }) ? "an observation failed" :
             !valid ? "no valid rate" :
-            thermal.count > 1 ? "thermal state changed (\(thermal.sorted().joined(separator: ", ")))" :
+            hot ? "the phone reached serious/critical" :
+            starts.count > 1 ? "runs started in different thermal states (\(starts.sorted().joined(separator: ", ")))" :
             spread > result.spreadGate ? String(format: "spread %.3f over the gate", spread) : nil
         return Quartet(cell: cell.name, cycle: cycle, attempt: attempt, observations: obs, spread: spread, ratio: ratio,
                        tokensIdentical: identical, accepted: reason == nil, rejectReason: reason)

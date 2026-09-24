@@ -21,12 +21,15 @@ For each cell, per cycle:
 
 1. An A-B-B-A quartet.
 2. Before every observation:
-   - wait (up to 5 min) while the phone is `serious`/`critical`;
+   - wait (up to 5 min) for the thermal gate: the first run of a quartet until the phone is nominal or fair
+     (nominal with "Start quartets only when nominal"), each later run until it is no hotter than when
+     the first run started;
    - a cooldown (default 8 s);
    - pause while the app is not in the foreground.
 3. The quartet is rejected if any of these hold:
    - the two A runs, or the two B runs, differ by more than the spread gate (default 1.20x);
-   - the thermal state changed during the quartet;
+   - its runs started in different thermal states, or any run reached serious/critical (a run may warm the
+     phone while it runs: one PTQ1_0 generation takes it from nominal to fair);
    - the app left the foreground;
    - an observation failed (a Metal command buffer error, a context that could not be created).
 4. A rejected quartet is kept and repeated, at most 3 times; the fastest is never chosen.
