@@ -56,7 +56,8 @@ Arms:
 - **bit-exact (rows mode):** the in-place delta-net state only.
 - **The recommended stack** for the model's weight type, read from the GGUF.
 - **The stack plus batch-invariant mode.**
-- **Per type:** the tensor path (PTQ1_0) or PrismML's popcount kernel (Q1_0).
+- **Per type:** the tensor path (PTQ1_0). For Q1_0, PrismML's own popcount option alone and with our
+  stack, for context; it is their flag, not one of our changes.
 - **"only X":** each flag of the stack on its own, to find which one causes a difference.
 
 MTP is not included. The framework exposes the MTP context type, but speculative decoding (the draft and
@@ -170,34 +171,44 @@ BonsaiBench, and send or save the `bonsaibench-*.json` files (e.g. to iCloud Dri
 Three partial studies of Bonsai 1 binary (Q1_0), one quartet per cell, so early signals. Raw JSON in
 [`../results`](../results).
 
-| Cell | Upstream | Q1_0 stack | Stack + popcount |
+**Our changes** (the Q1_0 stack: in-place delta-net state, small-row routing), against default upstream:
+
+| Cell | Upstream | Our Q1_0 stack | Speedup |
 |---|---:|---:|---:|
-| pp2 | 15.8 tok/s | 18.4 (1.16x) | 22.8 (**1.46x**) |
-| pp4 | 17.5 | 18.8 (1.07x) | 26.1 (**1.49x**) |
-| pp8 | 18.2 | 18.8 (1.03x) | not reached |
-| chat128 (greedy decode) | ~9.6 | | ~10.5 (quartets rejected, see below) |
-| pp512 | 78.9 | 81.7 / 82.3 (a first run: 54.0, then a command buffer failed) | 82.3 / 80.2 (0.99x vs the stack) |
+| pp2 | 15.8 tok/s | 18.4 | 1.16x |
+| pp4 | 17.5 | 18.8 | 1.07x |
+| pp8 | 18.2 | 18.8 | 1.03x |
+| pp512 | 78.9 | 81.7 / 82.3 | not paired (different studies): no loss, see below |
+
+**PrismML's popcount option, for context only.** `GGML_METAL_Q1_0_POPCNT` is PrismML's own bit-plane path,
+off by default in their code. It is not one of our changes and is not counted in our speedups.
+
+- With our stack it measured 22.8 tok/s at pp2 and 26.1 at pp4, against default upstream. That combination
+  mixes their option with ours.
+- Two comparisons still need measuring, with the "PrismML popcount (their option)" arm:
+  - upstream against popcount alone;
+  - popcount alone against our stack plus popcount, which is what our changes add when their option is on.
+- Popcount is not bit-exact (M5: mean KLD 0.00037, 99.07% same top token), and greedy output can diverge
+  under concurrency. On the phone, single-stream greedy output matched upstream in all 8 chat128 runs.
+- At pp512 it has no effect (0.99x): it only covers batches of up to 16 columns.
+
+**Observations:**
 
 - **The Q1_0 kernels are compute-bound on the phone GPU.** Throughput barely grows from 2 to 8 tokens
-  per call, while on the M5 Max it grows strongly. This is why PrismML's popcount path (int8 bit-plane
-  activations, less arithmetic) is worth far more here: on the M5 Max it is neutral at pp2 and 1.17x at pp4.
-  - Popcount is not bit-exact (M5: mean KLD 0.00037, 99.07% same top token), and greedy output can
-    diverge under concurrency.
-  - On the phone, single-stream greedy output was identical to upstream in all 8 chat128 runs
-    (128 tokens each).
-- **Heat biases a compute-bound comparison.** In both chat128 quartets the last upstream run was 16-18%
-  slower than the first (the phone went from nominal to fair), while the stack runs held. A drift like that
-  is not linear, so A-B-B-A cannot cancel it, and it favours the arm that needs fewer ALU cycles. The spread
-  gate and the thermal-change rule rejected both quartets.
+  per call, while on the M5 Max it grows strongly.
+- **Heat biases a compute-bound comparison.** In the chat128 quartets the last upstream run was 16-18%
+  slower than the first (nominal to fair), while the other arm held.
+  - A drift like that is not linear, so A-B-B-A cannot cancel it, and it favours the arm that needs fewer
+    ALU cycles.
+  - The spread gate and the thermal-change rule rejected those quartets.
   - The app now waits for a nominal thermal state before every observation (toggle in Protocol).
-  - Use a longer cooldown (30-60 s) for the generation cells on a phone.
-- **Memory is not a limit for Q1_0.** The footprint stayed at 0.42 GB: weights are memory-mapped from
+  - Use a 30-60 s cooldown for the generation cells on a phone.
+- **Memory is not a limit for Q1_0.** The footprint stayed at 0.42-0.44 GB: weights are memory-mapped from
   flash and not counted, and iOS allowed 6.0 GB more.
-- **pp512 is not slower with the Q1_0 stack.**
-  - The first study's pp512 (54.0 tok/s, then a failed command buffer) did not reproduce: a later study ran
-    the stack at 81.7 and 82.3 tok/s, with no error.
+- **pp512 is not slower with our stack.**
+  - A first study measured 54.0 tok/s and then a failed command buffer. That did not reproduce: a later
+    study ran the stack at 81.7 and 82.3 tok/s, with no error.
   - The M5 profile agrees. Only two stack changes touch a 512-token batch: the in-place delta-net state
     (neutral) and `SMALLM_MM` (faster).
   - The failed run was probably a transient, for example iOS using the GPU for its own work while
     charging. Failures now record Metal's error text and each call's time.
-  - Popcount does not act at 512 columns (0.99x), as on the M5 (it covers up to 16 columns).

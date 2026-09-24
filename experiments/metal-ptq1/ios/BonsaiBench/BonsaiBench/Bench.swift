@@ -10,6 +10,7 @@ struct Arm: Codable, Hashable, Identifiable {
 enum Presets {
     static let upstream = Arm(name: "upstream", flags: [:])
     static let bitExact = Arm(name: "bit-exact (rows mode)", flags: ["GGML_GDN_ROWS_PLAIN": "1"])
+    static let prismPopcount = Arm(name: "PrismML popcount (their option)", flags: ["GGML_METAL_Q1_0_POPCNT": "1"])
 
     /// The recommended configuration for a weight type (see experiments/metal-ptq1/m5/README.md).
     static func recommended(for weightType: String) -> Arm {
@@ -48,8 +49,11 @@ enum Presets {
         var arms = [upstream, bitExact, recommended(for: weightType), invariant(for: weightType)]
         if weightType == "PTQ1_0" { arms.append(tensor(for: weightType)) }
         if weightType == "Q1_0" {
+            // PrismML's own bit-plane option (off by default in their code). Not one of our changes: compare
+            // "PrismML popcount" with "M5 stack (Q1) + PrismML popcount" for what ours add on top of it.
+            arms.append(prismPopcount)
             var pc = recommended(for: weightType)
-            pc.name += " + popcount"
+            pc.name += " + PrismML popcount"
             pc.flags["GGML_METAL_Q1_0_POPCNT"] = "1"
             arms.append(pc)
         }

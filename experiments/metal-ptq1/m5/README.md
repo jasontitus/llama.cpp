@@ -95,9 +95,10 @@ MTP: `llama-server --spec-type draft-mtp --spec-draft-n-max 1` with a model that
 [sudoingX/bonsai2-small-gpu](https://github.com/sudoingX/bonsai2-small-gpu/tree/eb52d9d7363cda2d910146f4e37f4b8c64c30c46/graft)).
 One draft token is best on M5; 2 and 3 drafts measured 0.90x and 0.75x.
 
-Optional, changes output: `GGML_METAL_Q1_0_POPCNT=1` (PrismML's existing Q1_0 bit-plane path) gives Bonsai 1
-binary +17-28% on 4-8-token batches and +14% at 4 concurrent requests with unchanged perplexity, but
-int8 activations change greedy text under concurrency.
+Not ours, for context: `GGML_METAL_Q1_0_POPCNT=1` is PrismML's own Q1_0 bit-plane option (in their code, off
+by default), not part of these changes and not counted in any speedup above. Measured on top of our flags
+it gave Bonsai 1 binary +17-28% on 4-8-token batches and +14% at 4 concurrent requests, with unchanged
+perplexity, but its int8 activations change greedy text under concurrency.
 
 ## What changed and why (M5 findings)
 
