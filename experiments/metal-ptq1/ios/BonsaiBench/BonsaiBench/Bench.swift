@@ -148,6 +148,7 @@ struct RunResult: Codable {
     var spreadGate: Double
     var prompt: String
     var quartets: [Quartet] = []
+    var unfinishedQuartet: [Observation]? // runs of a quartet the study stopped in (saved after every run)
     var summaries: [CellSummary] = []
     var started = Date()
     var finished: Date?               // nil in a file left by a study that was killed
@@ -206,6 +207,8 @@ final class Study {
     let cells: [Cell]
     let attempts: Int
     let log: (String) -> Void
+    let progress: (String) -> Void    // one line: where the study is and what it is waiting for
+    private var here = ""
     let save: (RunResult) -> Void
     private let lock = NSLock()
     private var _cancelled = false
@@ -215,11 +218,13 @@ final class Study {
     }
 
     init(engine: Engine, armA: Arm, armB: Arm, cells: [Cell], cycles: Int, cooldown: Double, waitForNominal: Bool,
-         promptUbatch: Int = 512, gate: Double, attempts: Int, log: @escaping (String) -> Void, save: @escaping (RunResult) -> Void) {
+         promptUbatch: Int = 512, gate: Double, attempts: Int, log: @escaping (String) -> Void, progress: @escaping (String) -> Void = { _ in },
+         save: @escaping (RunResult) -> Void) {
         self.engine = engine
         self.cells = cells
         self.attempts = attempts
         self.log = log
+        self.progress = progress
         self.save = save
         let url = URL(fileURLWithPath: engine.path)
         let size = (try? url.resourceValues(forKeys: [.fileSizeKey]).fileSize).map { UInt64($0) } ?? 0
@@ -232,11 +237,12 @@ final class Study {
 
     private struct Interrupted: Error {}
 
-    /// Sleep in short steps so Stop stays responsive.
-    private func sleep(_ seconds: Double) throws {
+    /// Sleep in short steps so Stop stays responsive; with a label, show a countdown.
+    private func sleep(_ seconds: Double, _ label: String? = nil) throws {
         let end = Date().addingTimeInterval(seconds)
         while Date() < end {
             if cancelled { throw CancellationError() }
+            if let label { progress(String(format: "%@ · %@ %.0f s", here, label, end.timeIntervalSinceNow.rounded(.up))) }
             Thread.sleep(forTimeInterval: min(0.5, end.timeIntervalSinceNow))
         }
     }
@@ -247,6 +253,10 @@ final class Study {
     private var quartetThermal = 0
 
     private func observe(cell: Cell, arm: Arm, position: Int) throws -> Observation {
+        let quartetHere = here
+        here += " · run \(position + 1)/4 (\(position == 0 || position == 3 ? "A" : "B"): \(arm.name))"
+        defer { here = quartetHere }
+        progress(here)
         while !AppActivity.shared.state.active { try sleep(1) }
         // A warm phone does not recover within a short cooldown, and compute-bound arms lose more to its lower
         // clocks than others (a non-linear drift A-B-B-A cannot cancel): wait (bounded) for the gate state.
@@ -254,10 +264,14 @@ final class Study {
         // what breaks it. The first run waits for nominal (or fair), later runs until no hotter than the first.
         let limit = position == 0 ? (result.waitForNominal ? 0 : 1) : quartetThermal
         let waitStart = Date()
-        while Self.thermalRank(thermalStateName()) > limit && Date().timeIntervalSince(waitStart) < 300 { try sleep(5) }
+        while Self.thermalRank(thermalStateName()) > limit && Date().timeIntervalSince(waitStart) < 300 {
+            progress("\(here) · phone is \(thermalStateName()), waiting for it to cool (up to 5 min)")
+            try sleep(5)
+        }
         if position == 0 { quartetThermal = Self.thermalRank(thermalStateName()) }
         let waited = Date().timeIntervalSince(waitStart)
-        try sleep(result.cooldownSeconds)
+        try sleep(result.cooldownSeconds, "cooldown")
+        progress("\(here) · measuring")
         applyFlags(arm.flags)
         let changes = AppActivity.shared.state.changes
         var obs = Observation(arm: arm.name, position: position, tokensPerSecond: 0, thermalBefore: thermalStateName(),
@@ -308,7 +322,10 @@ final class Study {
         var obs: [Observation] = []
         for (pos, arm) in [result.armA, result.armB, result.armB, result.armA].enumerated() {
             obs.append(try observe(cell: cell, arm: arm, position: pos))
+            result.unfinishedQuartet = obs
+            save(result)
         }
+        result.unfinishedQuartet = nil
         let a = obs.filter { $0.position == 0 || $0.position == 3 }.map(\.tokensPerSecond)
         let b = obs.filter { $0.position == 1 || $0.position == 2 }.map(\.tokensPerSecond)
         let valid = (a + b).allSatisfy { $0.isFinite && $0 > 0 }
@@ -344,6 +361,7 @@ final class Study {
                 for cell in order {
                     var accepted = false
                     for attempt in 1...attempts where !accepted {
+                        here = "\(cell.name) · cycle \(cycle + 1)/\(result.cycles)" + (attempt > 1 ? " · retry \(attempt - 1)" : "")
                         let q = try quartet(cell: cell, cycle: cycle, attempt: attempt)
                         result.quartets.append(q)
                         accepted = q.accepted

@@ -17,6 +17,7 @@ final class BenchState: ObservableObject {
     @Published var engine: Engine?
     @Published var status = "Download a model below, or copy a .gguf into the app's Documents (Finder or Files)."
     @Published var log: [String] = []
+    @Published var progress = ""
     @Published var running = false
     @Published var loading = false
     @Published var armA = Presets.upstream
@@ -184,6 +185,7 @@ final class BenchState: ObservableObject {
                       waitForNominal: waitForNominal, promptUbatch: promptUbatch,
                       gate: gate, attempts: 3,
                       log: { line in Task { @MainActor in self.log.append(line) } },
+                      progress: { p in Task { @MainActor in self.progress = p } },
                       save: { r in
                           // Atomic, after every quartet: a study killed by iOS keeps what it measured.
                           do { try JSONEncoder.pretty.encode(r).write(to: url, options: .atomic); saveError = nil }
@@ -198,6 +200,7 @@ final class BenchState: ObservableObject {
                 self.result = s.result
                 self.resultURL = saveError == nil ? url : nil
                 self.running = false
+                self.progress = ""
                 self.study = nil
                 UIApplication.shared.isIdleTimerDisabled = false
                 let what = s.result.error.map { "Stopped by an error: \($0)." } ?? (s.result.cancelled ? "Stopped." : "Done.")

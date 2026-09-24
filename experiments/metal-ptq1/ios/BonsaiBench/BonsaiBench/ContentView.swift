@@ -114,7 +114,10 @@ struct ContentView: View {
                     .disabled(state.running)
                     Section {
                         if state.running {
-                            Button("Stop after this observation", role: .destructive) { state.stop() }
+                            if !state.progress.isEmpty {
+                                Text(state.progress).font(.callout.monospacedDigit())
+                            }
+                            Button("Stop", role: .destructive) { state.stop() }
                         } else {
                             Button("Run A-B-B-A on \(modelTitle(state.selected?.lastPathComponent ?? ""))") { state.start() }
                                 .disabled(state.cells.isEmpty || downloads.busy || state.loading)
