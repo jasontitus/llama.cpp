@@ -142,7 +142,21 @@ perplexity, but its int8 activations change greedy text under concurrency.
 - Batch invariance: 64/64 positions bitwise identical at batch sizes 2/3/4, also across 1134- and
   2011-token contexts.
 - Three adversarial code reviews; all findings fixed (see EXPERIMENTS.md).
-- Quality benchmarks (KL divergence on WikiText-2 at batch 1 and 2/4, HellaSwag, Winogrande): **pending**.
+- Standard quality benchmarks, every model with all of its flags on (PTQ1_0 including the tensor path)
+  against upstream (logs in `results/quality/`, script `tools/run-quality.sh`):
+
+  | Model | PPL ratio (WikiText-2, 20 x 512) | Mean KLD (max) | Same top token | HellaSwag 400 | Winogrande 1267 |
+  |---|---|---|---|---|---|
+  | Bonsai 2 PTQ1_0, batch 1 / 4 | 1.00006 +/- 0.00006 | 0.000000 (5.5e-5) | 100% | 75.25 = 75.25 | 73.32 = 73.32 |
+  | Bonsai 2 PQ2_0, batch 1 / 2 | 1.00006 +/- 0.00006 | 0.000000 (5.6e-5) | 100% | 75.25 = 75.25 | 73.32 = 73.32 |
+  | Bonsai 1 ternary PQ2_0, batch 1 / 2 | 1.00048 +/- 0.00038 | 0.000000 (5.7e-5) | 100% | 74.50 = 74.50 | 71.67 = 71.67 |
+  | Bonsai 1 binary Q1_0, batch 1 / 4 | 0.999999 | 0.000000 (6.4e-5) | 100% | 67.50 = 67.50 | 68.90 = 68.90 |
+
+  Every accuracy score is identical, and every perplexity ratio is within its error of 1. The largest
+  per-token KL divergence is at the level of float rounding.
+  - For context, not ours: PrismML's popcount option on Q1_0 gives a PPL ratio of 1.00037 +/- 0.00046,
+    mean KLD 0.00040 (max 0.034) and the same top token 99.06% of the time, with identical HellaSwag and
+    Winogrande.
 
 ## Reproduce on your Mac
 

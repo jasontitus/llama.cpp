@@ -103,7 +103,7 @@ struct ContentView: View {
                         }
                         Stepper("Quartets per cell: \(state.cycles)", value: $state.cycles, in: 1...6)
                         Stepper(String(format: "Cooldown: %.0f s", state.cooldown), value: $state.cooldown, in: 0...120, step: 2)
-                        Toggle("Wait for nominal thermal state", isOn: $state.waitForNominal)
+                        Toggle("Start quartets only when nominal", isOn: $state.waitForNominal)
                         Picker("Prompt micro-batch (pp cells)", selection: $state.promptUbatch) {
                             Text("512 (as on the Mac)").tag(512)
                             Text("256").tag(256)

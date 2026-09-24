@@ -24,7 +24,7 @@ final class BenchState: ObservableObject {
     @Published var cells: Set<String> = Set(defaultCells.map(\.name))
     @Published var cycles = 3
     @Published var cooldown = 8.0
-    @Published var waitForNominal = true
+    @Published var waitForNominal = false
     @Published var promptUbatch = 512
     @Published var gate = 1.20
     @Published var result: RunResult?

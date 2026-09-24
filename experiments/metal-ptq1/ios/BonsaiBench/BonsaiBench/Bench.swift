@@ -143,7 +143,7 @@ struct RunResult: Codable {
     var armB: Arm
     var cycles: Int
     var cooldownSeconds: Double
-    var waitForNominal: Bool          // thermal gate: wait for nominal (else only leave serious/critical)
+    var waitForNominal: Bool          // thermal gate for a quartet's first run: nominal (else nominal or fair)
     var promptUbatch: Int             // ubatch for ppK: 512 as on the Mac; smaller splits long GPU submissions
     var spreadGate: Double
     var prompt: String
@@ -241,13 +241,21 @@ final class Study {
         }
     }
 
+    private static func thermalRank(_ s: String) -> Int { ["nominal": 0, "fair": 1, "serious": 2, "critical": 3][s] ?? 3 }
+
+    /// Thermal state the current quartet started in: later runs wait until the phone is no hotter.
+    private var quartetThermal = 0
+
     private func observe(cell: Cell, arm: Arm, position: Int) throws -> Observation {
         while !AppActivity.shared.state.active { try sleep(1) }
         // A warm phone does not recover within a short cooldown, and compute-bound arms lose more to its lower
         // clocks than others (a non-linear drift A-B-B-A cannot cancel): wait (bounded) for the gate state.
-        let allowed = result.waitForNominal ? ["nominal"] : ["nominal", "fair"]
+        // A steady state is fine (a phone running PTQ1 sits at "fair"); a change of state within a quartet is
+        // what breaks it. The first run waits for nominal (or fair), later runs until no hotter than the first.
+        let limit = position == 0 ? (result.waitForNominal ? 0 : 1) : quartetThermal
         let waitStart = Date()
-        while !allowed.contains(thermalStateName()) && Date().timeIntervalSince(waitStart) < 300 { try sleep(5) }
+        while Self.thermalRank(thermalStateName()) > limit && Date().timeIntervalSince(waitStart) < 300 { try sleep(5) }
+        if position == 0 { quartetThermal = Self.thermalRank(thermalStateName()) }
         let waited = Date().timeIntervalSince(waitStart)
         try sleep(result.cooldownSeconds)
         applyFlags(arm.flags)
