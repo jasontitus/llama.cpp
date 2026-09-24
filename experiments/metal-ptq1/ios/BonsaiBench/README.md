@@ -311,6 +311,12 @@ bottleneck. These batch shapes are what MTP verification and concurrent requests
   - Use a 30-60 s cooldown for the generation cells on a phone.
 - **Memory is not a limit for Q1_0.** The footprint stayed at 0.42-0.44 GB: weights are memory-mapped from
   flash and not counted, and iOS allowed 6.0 GB more.
+- **PTQ1_0 pp512 is ~0.70x with the full stack on the phone** (70.9-71.5 vs 47.7-51.8 tok/s; per-call
+  7.0-7.4 s vs 9.0-10.8 s). The M5 gives the opposite: stack 1.046x, rows mode alone 1.043x, `SMALLM_MM`
+  alone 0.999x (llama-bench, 2 interleaved rounds).
+  - On the phone, `SMALLM_MM` alone measured 0.975x (2 quartets), so it is not the main cause.
+  - The PTQ1 multi-column, GLU and staging paths stop at 8 columns and do not act at 512. That leaves rows
+    mode (`GDN_ROWS_PLAIN`) as the suspect; the first quick test checks it.
 - **pp512 can fail on the phone: probably the GPU watchdog.** Both `llama_decode failed (-3)` stops (Q1_0
   first study, PTQ1_0 study) happened in pp512. The seeded cell order puts pp512 fourth in the first cycle,
   and both studies failed on their fourth cell.

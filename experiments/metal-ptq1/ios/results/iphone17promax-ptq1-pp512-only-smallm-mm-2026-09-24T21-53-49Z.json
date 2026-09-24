@@ -1,0 +1,281 @@
+{
+  "armA" : {
+    "draft" : 0,
+    "flags" : {
+
+    },
+    "name" : "upstream"
+  },
+  "armB" : {
+    "draft" : 0,
+    "flags" : {
+      "GGML_METAL_SMALLM_MM" : "1"
+    },
+    "name" : "only SMALLM_MM"
+  },
+  "build" : {
+    "appDirtyFiles" : "1",
+    "frameworkDirtyFiles" : "0",
+    "frameworkRevision" : "625143d68d9f4605f46cc0ab06b3ff280c9de224",
+    "frameworkSHA256" : "664384877867bb3632f2fd21b55295c17c36f8da6383be1006f1c43ffcbf568c",
+    "sourceRevision" : "ccb971395a2d7d16d0142525bf89e4505d228fce"
+  },
+  "cancelled" : false,
+  "cooldownSeconds" : 60,
+  "cycles" : 2,
+  "device" : {
+    "appAvailableMemoryBytes" : 6280685576,
+    "gpuName" : "Apple A19 Pro GPU",
+    "highestAppleFamily" : 10,
+    "lowPowerMode" : false,
+    "machine" : "iPhone18,2",
+    "physicalMemoryBytes" : 12263424000,
+    "systemVersion" : "Version 27.0 (Build 24A437)",
+    "thermalState" : "fair"
+  },
+  "finished" : "2026-09-24T22:10:35Z",
+  "launchEnvironment" : {
+
+  },
+  "minAvailableBytes" : 6013494920,
+  "model" : "Ternary-Bonsai-2-27B-PTQ1_0.gguf",
+  "modelBytes" : 5946648928,
+  "modelDescription" : "qwen35 27B PTQ1_0 - 1.75 bpw ternary (group 128)",
+  "modelSHA256Verified" : "53107f530aa52eb00912263ab1ee29bd199261c87cd7b4ad4ca1318c1fe33ee3",
+  "peakFootprintBytes" : 428956024,
+  "prompt" : "<|im_start|>user\nWrite a Python function that merges two sorted lists into one sorted list, with a docstring.<|im_end|>\n<|im_start|>assistant\n<think>\n\n<\/think>\n\n",
+  "promptUbatch" : 512,
+  "quartets" : [
+    {
+      "accepted" : true,
+      "attempt" : 1,
+      "cell" : "pp512",
+      "cycle" : 0,
+      "observations" : [
+        {
+          "arm" : "upstream",
+          "availableBytes" : 6017181416,
+          "callSeconds" : [
+            6.612581417,
+            6.912084959
+          ],
+          "footprintBytes" : 425269528,
+          "gateReached" : true,
+          "interrupted" : false,
+          "libraryMessages" : [
+
+          ],
+          "position" : 0,
+          "startedAt" : "2026-09-24T21:54:49Z",
+          "thermalAfter" : "fair",
+          "thermalBefore" : "fair",
+          "thermalMax" : "fair",
+          "thermalWaitSeconds" : 0.0030859708786010742,
+          "tokensPerSecond" : 75.71351274269688,
+          "warmupCallSeconds" : [
+            6.372946667
+          ]
+        },
+        {
+          "arm" : "only SMALLM_MM",
+          "availableBytes" : 6023161528,
+          "callSeconds" : [
+            6.832390625,
+            7.206867333
+          ],
+          "footprintBytes" : 419289416,
+          "gateReached" : true,
+          "interrupted" : false,
+          "libraryMessages" : [
+
+          ],
+          "position" : 1,
+          "startedAt" : "2026-09-24T21:56:09Z",
+          "thermalAfter" : "fair",
+          "thermalBefore" : "fair",
+          "thermalMax" : "fair",
+          "thermalWaitSeconds" : 0.004415035247802734,
+          "tokensPerSecond" : 72.93832787056195,
+          "warmupCallSeconds" : [
+            6.467656459
+          ]
+        },
+        {
+          "arm" : "only SMALLM_MM",
+          "availableBytes" : 6018229944,
+          "callSeconds" : [
+            6.915705375,
+            7.261837
+          ],
+          "footprintBytes" : 424221000,
+          "gateReached" : true,
+          "interrupted" : false,
+          "libraryMessages" : [
+
+          ],
+          "position" : 2,
+          "startedAt" : "2026-09-24T21:57:30Z",
+          "thermalAfter" : "fair",
+          "thermalBefore" : "fair",
+          "thermalMax" : "fair",
+          "thermalWaitSeconds" : 0.005066037178039551,
+          "tokensPerSecond" : 72.22690455897862,
+          "warmupCallSeconds" : [
+            6.492620458
+          ]
+        },
+        {
+          "arm" : "upstream",
+          "availableBytes" : 6013494920,
+          "callSeconds" : [
+            6.656000083,
+            6.973527209
+          ],
+          "footprintBytes" : 428956024,
+          "gateReached" : true,
+          "interrupted" : false,
+          "libraryMessages" : [
+
+          ],
+          "position" : 3,
+          "startedAt" : "2026-09-24T22:04:51Z",
+          "thermalAfter" : "fair",
+          "thermalBefore" : "fair",
+          "thermalMax" : "fair",
+          "thermalWaitSeconds" : 300.24014496803284,
+          "tokensPerSecond" : 75.13099890126402,
+          "warmupCallSeconds" : [
+            7.46008375
+          ]
+        }
+      ],
+      "ratio" : 0.9623501103717637,
+      "spread" : 1.0098498380337262
+    },
+    {
+      "accepted" : true,
+      "attempt" : 1,
+      "cell" : "pp512",
+      "cycle" : 1,
+      "observations" : [
+        {
+          "arm" : "upstream",
+          "availableBytes" : 6016280200,
+          "callSeconds" : [
+            6.82228925,
+            7.167364042
+          ],
+          "footprintBytes" : 426170744,
+          "gateReached" : true,
+          "interrupted" : false,
+          "libraryMessages" : [
+
+          ],
+          "position" : 0,
+          "startedAt" : "2026-09-24T22:06:12Z",
+          "thermalAfter" : "fair",
+          "thermalBefore" : "fair",
+          "thermalMax" : "fair",
+          "thermalWaitSeconds" : 0.005021095275878906,
+          "tokensPerSecond" : 73.19695339308913,
+          "warmupCallSeconds" : [
+            6.417010625
+          ]
+        },
+        {
+          "arm" : "only SMALLM_MM",
+          "availableBytes" : 6014248584,
+          "callSeconds" : [
+            6.883326792,
+            7.237799333
+          ],
+          "footprintBytes" : 428202360,
+          "gateReached" : true,
+          "interrupted" : false,
+          "libraryMessages" : [
+
+          ],
+          "position" : 1,
+          "startedAt" : "2026-09-24T22:07:33Z",
+          "thermalAfter" : "fair",
+          "thermalBefore" : "fair",
+          "thermalMax" : "fair",
+          "thermalWaitSeconds" : 0.005023002624511719,
+          "tokensPerSecond" : 72.51546306828274,
+          "warmupCallSeconds" : [
+            6.478299125
+          ]
+        },
+        {
+          "arm" : "only SMALLM_MM",
+          "availableBytes" : 6013625992,
+          "callSeconds" : [
+            6.832073042,
+            7.167056042
+          ],
+          "footprintBytes" : 428824952,
+          "gateReached" : true,
+          "interrupted" : false,
+          "libraryMessages" : [
+
+          ],
+          "position" : 2,
+          "startedAt" : "2026-09-24T22:08:54Z",
+          "thermalAfter" : "fair",
+          "thermalBefore" : "fair",
+          "thermalMax" : "fair",
+          "thermalWaitSeconds" : 0.005033016204833984,
+          "tokensPerSecond" : 73.14740751768326,
+          "warmupCallSeconds" : [
+            6.488402833
+          ]
+        },
+        {
+          "arm" : "upstream",
+          "availableBytes" : 6016657032,
+          "callSeconds" : [
+            6.722560542,
+            7.068154583
+          ],
+          "footprintBytes" : 425793912,
+          "gateReached" : true,
+          "interrupted" : false,
+          "libraryMessages" : [
+
+          ],
+          "position" : 3,
+          "startedAt" : "2026-09-24T22:10:15Z",
+          "thermalAfter" : "fair",
+          "thermalBefore" : "fair",
+          "thermalMax" : "fair",
+          "thermalWaitSeconds" : 0.00032508373260498047,
+          "tokensPerSecond" : 74.25285713745754,
+          "warmupCallSeconds" : [
+            6.386273375
+          ]
+        }
+      ],
+      "ratio" : 0.9878810292251242,
+      "spread" : 1.0144255149349986
+    }
+  ],
+  "spreadGate" : 1.2,
+  "started" : "2026-09-24T21:53:49Z",
+  "summaries" : [
+    {
+      "aMean" : 74.57358054362689,
+      "acceptedQuartets" : 2,
+      "bMean" : 72.70702575387665,
+      "cell" : "pp512",
+      "complete" : true,
+      "mtpTokenDifferenceQuartets" : 0,
+      "rejectedQuartets" : 0,
+      "speedupGeomean" : 0.9750320084535532,
+      "speedupMax" : 0.9878810292251242,
+      "speedupMin" : 0.9623501103717637,
+      "tokenMismatchQuartets" : 0
+    }
+  ],
+  "tool" : "BonsaiBench 3",
+  "waitForNominal" : false
+}

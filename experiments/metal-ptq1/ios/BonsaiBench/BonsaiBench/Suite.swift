@@ -71,6 +71,10 @@ enum Suites {
 extension Suites {
     /// One-tap single studies: each loads its model and sets everything itself.
     static let quick: [StudySpec] = [
+        // SMALLM_MM alone measured 0.975x at pp512 on the phone (2026-09-24), not the stack's ~0.70x; rows
+        // mode is the only other stack flag active at 512 tokens (+4% on M5)
+        StudySpec(title: "Is rows mode what slows 512-token prompts on PTQ1_0?", model: ptq1, a: "upstream",
+                  b: "only GDN_ROWS_PLAIN", cells: ["pp512"], cycles: 2, cooldown: 60),
         StudySpec(title: "Is SMALLM_MM what slows 512-token prompts on PTQ1_0?", model: ptq1, a: "upstream",
                   b: "only SMALLM_MM", cells: ["pp512"], cycles: 2, cooldown: 60),
         StudySpec(title: "PTQ1_0 512-token prompts: our flags vs upstream", model: ptq1, a: "upstream",
