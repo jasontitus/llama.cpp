@@ -8,9 +8,63 @@ on Apple silicon. Research kernels remain opt-in. Flags-off kernel dispatch and 
 |---|---|
 | Apple M5 Max (40-core GPU, Apple10) | **Measured**: results below |
 | Apple M1 Ultra (64-core GPU, Apple7) | **Measured**: 64 GPU cores, 128 GB, macOS 26.7; [M1 results and profile](../m1/README.md) |
-| iPhone 17 Pro Max (A19 Pro, Apple10, 12 GB, iOS 27) | First results, from the [`BonsaiBench`](../ios/BonsaiBench) app |
+| iPhone 17 Pro Max (A19 Pro, Apple10, 12 GB, iOS 27) | **Preliminary** (1-3 quartets per cell), from the [`BonsaiBench`](../ios/BonsaiBench) app; MTP built into the app, not yet run on the phone |
 
 Desktop columns use the same model-specific flags and paired A-B-B-A procedure. The M1 column below uses the M5 flag set, including PTQ1 staging; the preferred M1 single-user profile disables staging and is reported separately. The iPhone uses an adapted in-app protocol, not the desktop tools. Compare paired gains within each study; absolute rates also reflect device, software revision, and run conditions.
+
+## Summary
+
+Every speedup below is ours alone: our flags against the flags-off build of the same code on the same device.
+PrismML's own popcount option is never counted.
+
+**Text generation, one user (Bonsai 2 PTQ1_0 unless noted):**
+
+| | M5 Max | M1 Ultra | iPhone 17 Pro Max |
+|---|---|---|---|
+| Plain decoding | 1.10x | 1.09x | 1.10x (chat128, 1 quartet) |
+| With MTP, 1 draft token (server) | **1.34x** | 1.28x | not yet run on the phone |
+| Plain decoding, other models (tg128) | 1.11-1.14x | 1.12x (PQ2_0) | **1.18x** (Q1_0, complete study) |
+
+- The generated text is identical between the arms in every server comparison.
+- A bit-identical mode (in-place delta-net state only) gives 1.07x on the M5 and 1.08x on the M1.
+
+**Batches of 2-8 tokens** (MTP verification, concurrent users). This is where the CUDA PR #218 port pays
+most: upstream's PTQ1_0 multi-token path is slow on Apple GPUs.
+
+| PTQ1_0 | M5 Max | M1 Ultra | iPhone 17 Pro Max |
+|---|---|---|---|
+| pp2 / pp4 / pp8 | 3.85x / 2.12x / 2.29x | 2.97x / 1.51x / 1.46x | 4.19x / 2.44x / 2.35x (preliminary) |
+| 2 concurrent requests (server) | 3.43x | 2.73x | – |
+| MTP vs upstream's own MTP (server) | 3.34x | 2.61x | – |
+
+Upstream's MTP is slower than its own plain decoding on these GPUs; only with the multi-column kernels
+does MTP pay off.
+
+**Quality is unchanged.** On the M5, all four models with every flag on (PTQ1_0 including the tensor path)
+against upstream:
+
+- the same top token at 100% of positions;
+- mean KL divergence 0;
+- perplexity within its error of upstream;
+- identical HellaSwag and Winogrande scores.
+
+The strict kernel checkers pass. After the M1 changes the correctness matrix is identical and M5 speed is
+within 1.1%, so the M5 numbers stand for the current branch.
+
+**By device:**
+
+- **M5 Max:** the results table is complete.
+- **M1 Ultra:** the same pattern, somewhat smaller. MTP helps PTQ1_0 but not PQ2_0 (0.90x): see the M1
+  profile.
+- **iPhone 17 Pro Max:**
+  - Small-batch gains are the largest of any device, because the phone GPU is compute-bound on these kernels.
+  - Memory is not a limit: weights are memory-mapped, with a 0.4 GB app footprint and about 6 GB still
+    available.
+  - Heat is the main measurement problem, so the app gates on thermal state and uses 40-60 s cooldowns.
+  - **Open issue:** 512-token prompt processing on PTQ1_0 is about 30% slower with the flags on the phone,
+    reproducible (M5: 1.002x). The likely cause is `SMALLM_MM` routing that file's BF16 48-row gate
+    projections to the mat-vec kernel at 512 columns; the Q1_0 file stores them in 1 bit and shows no loss.
+    A phone confirmation run and a width cap are next.
 
 ## Results by device
 
