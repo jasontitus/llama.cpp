@@ -91,7 +91,7 @@ struct Observation: Codable {
     var generatedTokens: [Int32]?
     var thermalBefore: String
     var thermalAfter: String
-    var thermalWaitSeconds: Double    // waited for the phone to leave serious/critical before the cooldown
+    var thermalWaitSeconds: Double    // waited for the thermal gate before the cooldown
     var interrupted: Bool             // the app left the foreground during the observation
     var error: String?                // the observation failed (e.g. a Metal command buffer error)
     var callSeconds: [Double]?        // ppK: each timed decode call, to tell a stall from a uniform slowdown
@@ -139,6 +139,7 @@ struct RunResult: Codable {
     var armB: Arm
     var cycles: Int
     var cooldownSeconds: Double
+    var waitForNominal: Bool          // thermal gate: wait for nominal (else only leave serious/critical)
     var spreadGate: Double
     var prompt: String
     var quartets: [Quartet] = []
@@ -208,8 +209,8 @@ final class Study {
         set { lock.lock(); _cancelled = newValue; lock.unlock() }
     }
 
-    init(engine: Engine, armA: Arm, armB: Arm, cells: [Cell], cycles: Int, cooldown: Double, gate: Double,
-         attempts: Int, log: @escaping (String) -> Void, save: @escaping (RunResult) -> Void) {
+    init(engine: Engine, armA: Arm, armB: Arm, cells: [Cell], cycles: Int, cooldown: Double, waitForNominal: Bool,
+         gate: Double, attempts: Int, log: @escaping (String) -> Void, save: @escaping (RunResult) -> Void) {
         self.engine = engine
         self.cells = cells
         self.attempts = attempts
@@ -220,7 +221,7 @@ final class Study {
         result = RunResult(build: .current, launchEnvironment: launchEnvironment, device: DeviceInfo.capture(),
                            model: url.lastPathComponent, modelDescription: engine.description, modelBytes: size,
                            modelSHA256Verified: VerifiedMark.get(url), armA: armA, armB: armB, cycles: cycles,
-                           cooldownSeconds: cooldown, spreadGate: gate, prompt: benchPrompt)
+                           cooldownSeconds: cooldown, waitForNominal: waitForNominal, spreadGate: gate, prompt: benchPrompt)
     }
 
     private struct Interrupted: Error {}
@@ -236,9 +237,11 @@ final class Study {
 
     private func observe(cell: Cell, arm: Arm, position: Int) throws -> Observation {
         while !AppActivity.shared.state.active { try sleep(1) }
-        // A throttled phone does not recover within a short cooldown; wait (bounded) for it first.
+        // A warm phone does not recover within a short cooldown, and compute-bound arms lose more to its lower
+        // clocks than others (a non-linear drift A-B-B-A cannot cancel): wait (bounded) for the gate state.
+        let allowed = result.waitForNominal ? ["nominal"] : ["nominal", "fair"]
         let waitStart = Date()
-        while ["serious", "critical"].contains(thermalStateName()) && Date().timeIntervalSince(waitStart) < 300 { try sleep(5) }
+        while !allowed.contains(thermalStateName()) && Date().timeIntervalSince(waitStart) < 300 { try sleep(5) }
         let waited = Date().timeIntervalSince(waitStart)
         try sleep(result.cooldownSeconds)
         applyFlags(arm.flags)

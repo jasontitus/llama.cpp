@@ -167,20 +167,36 @@ BonsaiBench, and send or save the `bonsaibench-*.json` files (e.g. to iCloud Dri
 
 ## Findings so far (iPhone 17 Pro Max, A19 Pro, iOS 27)
 
-These are from one partial study (Bonsai 1 binary, Q1_0), one quartet per cell, so they are early signals.
+Two partial studies of Bonsai 1 binary (Q1_0), one accepted quartet per cell, so early signals. Raw JSON in
+[`../results`](../results).
 
-- **Small batches gain.** Stack vs upstream:
-  - pp2 **1.16x** (15.8 → 18.4 tok/s);
-  - pp4 **1.07x** (17.5 → 18.8);
-  - pp8 **1.03x** (18.2 → 18.8).
+| Cell | Upstream | Q1_0 stack | Stack + popcount |
+|---|---:|---:|---:|
+| pp2 | 15.8 tok/s | 18.4 (1.16x) | 22.8 (**1.46x**) |
+| pp4 | 17.5 | 18.8 (1.07x) | 26.1 (**1.49x**) |
+| pp8 | 18.2 | 18.8 (1.03x) | not reached |
+| chat128 (greedy decode) | ~9.6 | | ~10.5 (quartets rejected, see below) |
+| pp512 | 78.9 | 54.0, then a Metal command buffer failed | not run |
+
 - **The Q1_0 kernels are compute-bound on the phone GPU.** Throughput barely grows from 2 to 8 tokens
-  per call. On the M5 Max it grows strongly, so batching and multi-token prediction help less on the phone.
-- **pp512 regressed.** With the Q1_0 stack it dropped from 78.9 to 54.0 tok/s, and then a Metal command
-  buffer failed (`llama_decode` -3). On the M5 Max the same flags give 1.035x at pp512. The only stack
-  changes at a 512-token batch are:
-  - the in-place delta-net state (neutral at pp512 on the M5, where the delta-net op costs the same in both
-    modes);
-  - `SMALLM_MM`, which routes the 48-row gate projections to the mat-vec kernel.
-
-  Diagnosis is pending: the per-flag arms and the Metal error text in this version are there to settle it.
-  Until then, leave pp512 out of phone studies with the Q1_0 stack.
+  per call, while on the M5 Max it grows strongly. This is why PrismML's popcount path (int8 bit-plane
+  activations, less arithmetic) is worth far more here: on the M5 Max it is neutral at pp2 and 1.17x at pp4.
+  - Popcount is not bit-exact (M5: mean KLD 0.00037, 99.07% same top token), and greedy output can
+    diverge under concurrency.
+  - On the phone, single-stream greedy output was identical to upstream in all 8 chat128 runs
+    (128 tokens each).
+- **Heat biases a compute-bound comparison.** In both chat128 quartets the last upstream run was 16-18%
+  slower than the first (the phone went from nominal to fair), while the stack runs held. A drift like that
+  is not linear, so A-B-B-A cannot cancel it, and it favours the arm that needs fewer ALU cycles. The spread
+  gate and the thermal-change rule rejected both quartets.
+  - The app now waits for a nominal thermal state before every observation (toggle in Protocol).
+  - Use a longer cooldown (30-60 s) for the generation cells on a phone.
+- **Memory is not a limit for Q1_0.** The footprint stayed at 0.42 GB: weights are memory-mapped from
+  flash and not counted, and iOS allowed 6.0 GB more.
+- **pp512 with the Q1_0 stack regressed and then failed on the phone.** On the M5 Max the same flags give
+  1.035x.
+  - A per-op profile on the M5 shows that only two stack changes touch a 512-token batch:
+    - the in-place delta-net state (neutral: the delta-net op costs the same in both modes);
+    - `SMALLM_MM`, which routes the 48-row gate projections to the mat-vec kernel.
+  - To settle which one, run the per-flag arms with the Metal error text and per-call times this version
+    records. Until then, leave pp512 out of phone studies with the Q1_0 stack.

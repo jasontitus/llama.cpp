@@ -74,7 +74,8 @@ struct ContentView: View {
                                 set: { on in if on { state.cells.insert(cell.name) } else { state.cells.remove(cell.name) } }))
                         }
                         Stepper("Quartets per cell: \(state.cycles)", value: $state.cycles, in: 1...6)
-                        Stepper(String(format: "Cooldown: %.0f s", state.cooldown), value: $state.cooldown, in: 0...60, step: 2)
+                        Stepper(String(format: "Cooldown: %.0f s", state.cooldown), value: $state.cooldown, in: 0...120, step: 2)
+                        Toggle("Wait for nominal thermal state", isOn: $state.waitForNominal)
                         Stepper(String(format: "Spread gate: %.2f", state.gate), value: $state.gate, in: 1.05...2.0, step: 0.05)
                     }
                     .disabled(state.running)
