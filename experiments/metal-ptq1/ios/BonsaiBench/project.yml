@@ -34,17 +34,23 @@ targets:
         UIApplicationSupportsIndirectInputEvents: true
         UISupportedInterfaceOrientations: [UIInterfaceOrientationPortrait]
     postBuildScripts:
-      # Record what was built in BuildStamp.plist inside the app; every result JSON carries it (BuildInfo).
+      # Record what was built in BuildStamp.plist inside the app; every result JSON carries it (BuildInfo):
+      # the app's source revision and uncommitted app files, the source the framework was built from (written
+      # by build-xcframework.sh), and the SHA-256 of the framework binary before it is signed into the app.
       - name: Stamp build
         basedOnDependencyAnalysis: false
         script: |
           ROOT="$SRCROOT/../../../.."
           OUT="$TARGET_BUILD_DIR/$UNLOCALIZED_RESOURCES_FOLDER_PATH/BuildStamp.plist"
           REV=$(git -C "$ROOT" rev-parse HEAD 2>/dev/null || echo unknown)
-          DIRTY=$(git -C "$ROOT" status --porcelain -- ggml src include 2>/dev/null | wc -l | tr -d ' ')
+          APPDIRTY=$(git -C "$ROOT" status --porcelain -- experiments/metal-ptq1/ios 2>/dev/null | wc -l | tr -d ' ')
+          SRC="$ROOT/build-apple/llama.xcframework.source"
+          FWREV=$(sed -n 's/^revision=//p' "$SRC" 2>/dev/null); FWREV=${FWREV:-unknown}
+          FWDIRTY=$(sed -n 's/^dirty_files=//p' "$SRC" 2>/dev/null); FWDIRTY=${FWDIRTY:-unknown}
           FW=$(shasum -a 256 "$ROOT/build-apple/llama.xcframework/ios-arm64/llama.framework/llama" | cut -d' ' -f1)
           rm -f "$OUT"
-          /usr/libexec/PlistBuddy -c "Add :BBSourceRevision string $REV" -c "Add :BBSourceDirtyFiles string $DIRTY" \
+          /usr/libexec/PlistBuddy -c "Add :BBSourceRevision string $REV" -c "Add :BBAppDirtyFiles string $APPDIRTY" \
+            -c "Add :BBFrameworkRevision string $FWREV" -c "Add :BBFrameworkDirtyFiles string $FWDIRTY" \
             -c "Add :BBFrameworkSHA256 string $FW" "$OUT"
     settings:
       base:

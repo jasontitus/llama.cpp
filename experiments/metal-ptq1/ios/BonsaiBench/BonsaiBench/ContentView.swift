@@ -89,20 +89,25 @@ struct ContentView: View {
                     ForEach(Array(state.suite.enumerated()), id: \.offset) { i, spec in
                         let have = state.models.contains { $0.lastPathComponent == spec.model }
                         HStack(alignment: .top, spacing: 10) {
+                            // static icons only: an animation keeps the GPU compositing during measurements
                             Group {
                                 if state.suiteStep == i {
-                                    ProgressView()
-                                } else if state.suiteDone.contains(i) {
-                                    Image(systemName: "checkmark.circle.fill").foregroundStyle(.green)
-                                } else if !have {
-                                    Image(systemName: "exclamationmark.triangle").foregroundStyle(.orange)
+                                    Image(systemName: "play.circle.fill").foregroundStyle(Color.accentColor)
                                 } else {
-                                    Image(systemName: state.suiteIncluded.contains(i) ? "circle" : "minus.circle").foregroundStyle(.secondary)
+                                    switch state.suiteOutcome[i] {
+                                    case "done": Image(systemName: "checkmark.circle.fill").foregroundStyle(.green)
+                                    case "incomplete": Image(systemName: "exclamationmark.circle.fill").foregroundStyle(.orange)
+                                    case "failed", "did not fit": Image(systemName: "xmark.circle.fill").foregroundStyle(.red)
+                                    case "skipped": Image(systemName: "slash.circle").foregroundStyle(.orange)
+                                    default:
+                                        if !have { Image(systemName: "exclamationmark.triangle").foregroundStyle(.orange) }
+                                        else { Image(systemName: state.suiteIncluded.contains(i) ? "circle" : "minus.circle").foregroundStyle(.secondary) }
+                                    }
                                 }
                             }
                             .frame(width: 22)
                             VStack(alignment: .leading, spacing: 2) {
-                                Text("\(i + 1). \(spec.title)")
+                                Text("\(i + 1). \(spec.title)" + (state.suiteOutcome[i].map { " (\($0))" } ?? ""))
                                 Text("B = \(spec.b) vs A = \(spec.a) · \(spec.cells.joined(separator: ", ")) · \(spec.cycles) quartets, \(Int(spec.cooldown)) s cooldown\(spec.ubatch != 512 ? " · micro-batch \(spec.ubatch)" : "") · ~\(durationText(spec.estimatedSeconds))" + (have ? "" : " · model not in the app"))
                                     .font(.caption).foregroundStyle(.secondary)
                             }
@@ -122,7 +127,7 @@ struct ContentView: View {
                         Button("Run the suite (~\(durationText(total)) plus thermal waits)") { state.startSuite() }
                             .disabled(state.running || state.loading || downloads.busy || state.suiteIncluded.isEmpty)
                         if let r = state.suiteResumeAt {
-                            Button("Resume the suite at study \(r + 1)") { state.startSuite(from: r) }
+                            Button("Resume the suite at study \(r + 1)") { state.startSuite(from: r, resuming: true) }
                                 .disabled(state.running || state.loading || downloads.busy)
                         }
                     }
@@ -161,7 +166,9 @@ struct ContentView: View {
                     }
                     .disabled(state.running)
                     Section {
-                        if state.running {
+                        if state.suiteStep != nil {
+                            Text("The phone suite is running (see above).").foregroundStyle(.secondary)
+                        } else if state.running {
                             if !state.progress.isEmpty {
                                 Text(state.progress).font(.callout.monospacedDigit())
                             }
@@ -214,7 +221,8 @@ struct ContentView: View {
                         // compare names: the listing and `documents` can differ in form (/var vs /private/var)
                         let installed = state.models.contains { $0.lastPathComponent == m.file }
                         DownloadRow(model: m, installed: installed, verified: installed && VerifiedMark.get(url) == m.sha256,
-                                    available: state.device.appAvailableMemoryBytes, busy: state.running, downloads: downloads)
+                                    available: state.device.appAvailableMemoryBytes,
+                                    busy: state.running || state.loading || state.suiteStep != nil, downloads: downloads)
                     }
                     Toggle("Use cellular data", isOn: $downloads.allowCellular)
                 } header: {

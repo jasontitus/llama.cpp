@@ -56,6 +56,14 @@ func availableMemory() -> Int {
     #endif
 }
 
+/// Run one empty command buffer. Metal can hold freed residency-set memory until the next GPU work; this
+/// makes sure a freed model's memory is released before the next one loads.
+func flushGPU() {
+    guard let d = MTLCreateSystemDefaultDevice(), let q = d.makeCommandQueue(), let cb = q.makeCommandBuffer() else { return }
+    cb.commit()
+    cb.waitUntilCompleted()
+}
+
 /// Physical footprint of this process (what jetsam compares against the limit).
 func physicalFootprint() -> UInt64 {
     var info = task_vm_info_data_t()

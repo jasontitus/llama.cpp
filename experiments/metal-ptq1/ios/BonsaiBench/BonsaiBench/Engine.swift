@@ -250,8 +250,14 @@ final class Engine {
     /// "ppK": k tokens per decode call (llama-bench ppK; the step shape of MTP verification and concurrent
     /// requests), on a fresh context. One decode of a small batch is ~0.1 s on a phone, so both the warmup
     /// (which also brings the GPU clocks up) and the measurement run for a minimum time, not a count.
+    /// Each call's time, warmup included, kept by the caller so that it survives a failed call.
+    final class CallTimes {
+        var warmup: [Double] = []
+        var timed: [Double] = []
+    }
+
     func batchRate(k: Int, ubatch: Int = 512, warmupSeconds: Double = 1, minSeconds: Double = 2.5,
-                   minReps: Int = 2) throws -> (rate: Double, probe: Probe, calls: [Double]) {
+                   minReps: Int = 2, calls log: CallTimes = CallTimes()) throws -> (rate: Double, probe: Probe) {
         let ctx = try makeContext(nCtx: UInt32(max(1024, k + 64)), ubatch: UInt32(ubatch))
         defer { llama_free(ctx) }
         let tokens = randomTokens(k + 1)
@@ -263,14 +269,12 @@ final class Engine {
             llama_synchronize(ctx)
             return Double(now() - t0) / 1e9
         }
-        var warm = 0.0
-        repeat { warm += try once() } while warm < warmupSeconds
-        var calls: [Double] = []
-        while calls.count < minReps || calls.reduce(0, +) < minSeconds {
-            calls.append(try once())
+        repeat { log.warmup.append(try once()) } while log.warmup.reduce(0, +) < warmupSeconds
+        while log.timed.count < minReps || log.timed.reduce(0, +) < minSeconds {
+            log.timed.append(try once())
         }
         let probe = Probe.now()
         try checkBackend(ctx, token: tokens[k], pos: Int32(k))
-        return (Double(k * calls.count) / calls.reduce(0, +), probe, calls)
+        return (Double(k * log.timed.count) / log.timed.reduce(0, +), probe)
     }
 }

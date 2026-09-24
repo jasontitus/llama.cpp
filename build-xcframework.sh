@@ -628,3 +628,9 @@ done
 xcrun xcodebuild -create-xcframework \
     "${XCFW_ARGS[@]}" \
     -output "$(pwd)/build-apple/llama.xcframework"
+
+# Record which source the framework was built from (read by apps that stamp their builds, e.g. BonsaiBench).
+{
+    echo "revision=$(git rev-parse HEAD 2>/dev/null || echo unknown)"
+    echo "dirty_files=$(git status --porcelain -- ggml src include 2>/dev/null | wc -l | tr -d ' ')"
+} > "$(pwd)/build-apple/llama.xcframework.source"

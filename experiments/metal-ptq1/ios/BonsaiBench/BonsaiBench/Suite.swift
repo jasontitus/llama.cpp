@@ -10,6 +10,8 @@ struct StudySpec: Hashable {
     var cycles: Int
     var cooldown: Double
     var ubatch = 512
+    var waitForNominal = false
+    var gate = 1.20
 
     /// Rough duration: cycles x 4 runs x (cooldown + run time) per cell, from tokens/s measured on an iPhone
     /// 17 Pro Max. Thermal waits and retried quartets come on top.

@@ -70,7 +70,7 @@ The iPhone column comes from the BonsaiBench app's exported JSON (tg128 and ppK 
 server or MTP), saved in [`../ios/results`](../ios/results).
 - The app's tg128 is measured like llama-bench's (128 single-token decodes from an empty context, no
   sampling), with 1 repetition per observation instead of 3.
-- Phone observations reuse one app/model with fresh contexts, 1024 context, and thermal-gated cooldowns (40 s for Q1; 50-60 s in the reported PTQ1 studies). Desktop observations use fresh processes and an 8 s cooldown.
+- Phone observations reuse one app/model with fresh contexts, 1024 context, and thermal-gated cooldowns (40 s for Q1, which stayed nominal; 50-60 s in the reported PTQ1 studies, which ran mostly at fair). Desktop observations use fresh processes and an 8 s cooldown.
 - The preliminary phone PTQ1 row combines two incomplete studies, each with one accepted quartet. It is not a completed desktop-style three-quartet result. The Q1 tg128 result has three completed quartets.
 - Rebuild `llama.xcframework` after pulling core changes before collecting new phone results; existing phone archives retain their original measured revision.
 

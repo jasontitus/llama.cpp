@@ -60,15 +60,22 @@ enum Presets {
         return arms + diagnostic(for: weightType)
     }
 
-    /// One flag of the recommended stack at a time (a numeric parameter goes with the flag it tunes), to find
-    /// which one is responsible for a difference.
+    /// One flag of the recommended stack at a time, to find which one is responsible for a difference. A flag
+    /// that only acts with another carries it (PTQ1 staging needs the multi-column path; the column limit
+    /// tunes both the multi-column and the fused FFN kernels), and the arm's name says so.
     static func diagnostic(for weightType: String) -> [Arm] {
         let stack = recommended(for: weightType).flags
+        let short = { (n: String) in n.replacingOccurrences(of: "GGML_METAL_", with: "").replacingOccurrences(of: "GGML_", with: "") }
+        let needs: [String: [String]] = [
+            "GGML_METAL_PTQ1_MULTICOL": ["GGML_METAL_PTQ1_MULTICOL_MAX"],
+            "GGML_METAL_PTQ1_GLU": ["GGML_METAL_PTQ1_MULTICOL_MAX"],
+            "GGML_METAL_PTQ1_STAGE": ["GGML_METAL_PTQ1_MULTICOL", "GGML_METAL_PTQ1_MULTICOL_MAX"],
+        ]
         return stack.keys.sorted().filter { $0 != "GGML_METAL_PTQ1_MULTICOL_MAX" }.map { name in
             var flags = [name: stack[name]!]
-            if name == "GGML_METAL_PTQ1_MULTICOL", let m = stack["GGML_METAL_PTQ1_MULTICOL_MAX"] { flags["GGML_METAL_PTQ1_MULTICOL_MAX"] = m }
-            let short = name.replacingOccurrences(of: "GGML_METAL_", with: "").replacingOccurrences(of: "GGML_", with: "")
-            return Arm(name: "only \(short)", flags: flags)
+            for d in needs[name] ?? [] { if let v = stack[d] { flags[d] = v } }
+            let with = (needs[name] ?? []).filter { $0 != "GGML_METAL_PTQ1_MULTICOL_MAX" && stack[$0] != nil }.map(short)
+            return Arm(name: "only \(short(name))" + (with.isEmpty ? "" : " (with \(with.joined(separator: ", ")))"), flags: flags)
         }
     }
 }
@@ -93,12 +100,15 @@ struct Observation: Codable {
     var tokensPerSecond: Double
     var promptTokensPerSecond: Double?
     var generatedTokens: [Int32]?
-    var thermalBefore: String
+    var thermalBefore: String         // when the measurement started (after the gate and cooldown)
     var thermalAfter: String
-    var thermalWaitSeconds: Double    // waited for the thermal gate before the cooldown
+    var thermalMax: String            // the hottest state seen during the run
+    var thermalWaitSeconds: Double    // waited for the thermal gate (cooldowns excluded)
+    var gateReached: Bool             // the thermal gate was met within 5 minutes
     var interrupted: Bool             // the app left the foreground during the observation
     var error: String?                // the observation failed (e.g. a Metal command buffer error)
     var callSeconds: [Double]?        // ppK: each timed decode call, to tell a stall from a uniform slowdown
+    var warmupCallSeconds: [Double]?  // ppK: the warmup calls (a failure often happens there)
     var libraryMessages: [String]     // library warnings/errors during the observation
     var footprintBytes: UInt64        // while the observation's context was alive
     var availableBytes: UInt64
@@ -131,7 +141,7 @@ struct CellSummary: Codable {
 }
 
 struct RunResult: Codable {
-    var tool = "BonsaiBench 2"
+    var tool = "BonsaiBench 3"
     var build: BuildInfo
     var launchEnvironment: [String: String]
     var device: DeviceInfo
@@ -160,15 +170,18 @@ struct RunResult: Codable {
 
 /// What was built: written to BuildStamp.plist by the "Stamp build" script (project.yml).
 struct BuildInfo: Codable {
-    var sourceRevision: String        // git HEAD of the llama.cpp tree when the app was built
-    var sourceDirtyFiles: String      // changed files under ggml/ src/ include/ at that time
-    var frameworkSHA256: String       // the llama.framework binary that was embedded
+    var sourceRevision: String        // git HEAD when the app was built
+    var appDirtyFiles: String         // uncommitted files under experiments/metal-ptq1/ios at that time
+    var frameworkRevision: String     // git HEAD when llama.xcframework was built (build-xcframework.sh)
+    var frameworkDirtyFiles: String   // uncommitted files under ggml/ src/ include/ then
+    var frameworkSHA256: String       // the llama.framework binary, before it is signed into the app
 
     static let current: BuildInfo = {
         let stamp = Bundle.main.url(forResource: "BuildStamp", withExtension: "plist")
             .flatMap { NSDictionary(contentsOf: $0) as? [String: String] } ?? [:]
         func key(_ k: String) -> String { stamp[k] ?? "unknown" }
-        return BuildInfo(sourceRevision: key("BBSourceRevision"), sourceDirtyFiles: key("BBSourceDirtyFiles"),
+        return BuildInfo(sourceRevision: key("BBSourceRevision"), appDirtyFiles: key("BBAppDirtyFiles"),
+                         frameworkRevision: key("BBFrameworkRevision"), frameworkDirtyFiles: key("BBFrameworkDirtyFiles"),
                          frameworkSHA256: key("BBFrameworkSHA256"))
     }()
 }
@@ -247,54 +260,62 @@ final class Study {
         }
     }
 
-    private static func thermalRank(_ s: String) -> Int { ["nominal": 0, "fair": 1, "serious": 2, "critical": 3][s] ?? 3 }
+    private let thermal = ThermalMonitor()
 
-    /// Thermal state the current quartet started in: later runs wait until the phone is no hotter.
-    private var quartetThermal = 0
+    /// Wait until the app is in front and, after the cooldown, the phone is at or below `limit`: the state a run
+    /// starts in is what the quartet is judged by. Thermal waiting is bounded at 5 minutes.
+    private func gate(limit: Int) throws -> (reached: Bool, waited: Double) {
+        let start = Date()
+        var cooled = 0.0
+        while true {
+            while !AppActivity.shared.state.active {
+                progress("\(here) · paused: the app is not in front")
+                try sleep(1)
+            }
+            while thermalRank(thermalStateName()) > limit && Date().timeIntervalSince(start) - cooled < 300 {
+                progress("\(here) · phone is \(thermalStateName()), waiting for it to cool (up to 5 min)")
+                try sleep(5)
+            }
+            try sleep(result.cooldownSeconds, "cooldown")
+            cooled += result.cooldownSeconds
+            let waited = Date().timeIntervalSince(start) - cooled
+            if AppActivity.shared.state.active && thermalRank(thermalStateName()) <= limit { return (true, waited) }
+            if waited >= 300 { return (false, waited) }
+        }
+    }
 
-    private func observe(cell: Cell, arm: Arm, position: Int) throws -> Observation {
+    private func observe(cell: Cell, arm: Arm, position: Int, limit: Int) throws -> Observation {
         let quartetHere = here
         here += " · run \(position + 1)/4 (\(position == 0 || position == 3 ? "A" : "B"): \(arm.name))"
         defer { here = quartetHere }
         progress(here)
-        while !AppActivity.shared.state.active { try sleep(1) }
-        // A warm phone does not recover within a short cooldown, and compute-bound arms lose more to its lower
-        // clocks than others (a non-linear drift A-B-B-A cannot cancel): wait (bounded) for the gate state.
-        // A steady state is fine (a phone running PTQ1 sits at "fair"); a change of state within a quartet is
-        // what breaks it. The first run waits for nominal (or fair), later runs until no hotter than the first.
-        let limit = position == 0 ? (result.waitForNominal ? 0 : 1) : quartetThermal
-        let waitStart = Date()
-        while Self.thermalRank(thermalStateName()) > limit && Date().timeIntervalSince(waitStart) < 300 {
-            progress("\(here) · phone is \(thermalStateName()), waiting for it to cool (up to 5 min)")
-            try sleep(5)
-        }
-        if position == 0 { quartetThermal = Self.thermalRank(thermalStateName()) }
-        let waited = Date().timeIntervalSince(waitStart)
-        try sleep(result.cooldownSeconds, "cooldown")
+        let g = try gate(limit: limit)
         progress("\(here) · measuring")
         applyFlags(arm.flags)
         let changes = AppActivity.shared.state.changes
+        thermal.reset()
         var obs = Observation(arm: arm.name, position: position, tokensPerSecond: 0, thermalBefore: thermalStateName(),
-                              thermalAfter: "", thermalWaitSeconds: waited, interrupted: false, error: nil, callSeconds: nil,
+                              thermalAfter: "", thermalMax: "", thermalWaitSeconds: g.waited, gateReached: g.reached,
+                              interrupted: false, error: nil, callSeconds: nil, warmupCallSeconds: nil,
                               libraryMessages: [], footprintBytes: 0, availableBytes: 0, startedAt: Date())
         _ = LibraryLog.shared.drain()
+        let calls = Engine.CallTimes()
         do {
             let probe: Probe
             switch cell.kind {
             case "chat":
-                let g = try engine.generate(prompt: benchPrompt, n: cell.count)
-                obs.tokensPerSecond = g.tokensPerSecond
-                obs.promptTokensPerSecond = g.promptSeconds > 0 ? Double(g.promptTokens) / g.promptSeconds : nil
-                obs.generatedTokens = g.generated
-                probe = g.probe
+                let r = try engine.generate(prompt: benchPrompt, n: cell.count)
+                obs.tokensPerSecond = r.tokensPerSecond
+                obs.promptTokensPerSecond = r.promptSeconds > 0 ? Double(r.promptTokens) / r.promptSeconds : nil
+                obs.generatedTokens = r.generated
+                probe = r.probe
             case "tg":
                 let r = try engine.generationRate(n: cell.count)
                 obs.tokensPerSecond = r.rate
                 probe = r.probe
             default:
-                let r = try engine.batchRate(k: cell.count, ubatch: result.promptUbatch, minReps: cell.count >= 256 ? 2 : 5)
+                let r = try engine.batchRate(k: cell.count, ubatch: result.promptUbatch, minReps: cell.count >= 256 ? 2 : 5, calls: calls)
                 obs.tokensPerSecond = r.rate
-                obs.callSeconds = r.calls
                 probe = r.probe
             }
             obs.footprintBytes = probe.footprintBytes
@@ -304,48 +325,70 @@ final class Study {
             // result for this configuration: record it, reject the quartet, go on.
             obs.error = e.localizedDescription
         }
+        if cell.kind == "pp" {
+            obs.callSeconds = calls.timed
+            obs.warmupCallSeconds = calls.warmup
+        }
         obs.libraryMessages = LibraryLog.shared.drain()
         obs.interrupted = AppActivity.shared.state.changes != changes
+        thermal.note()
         obs.thermalAfter = thermalStateName()
+        obs.thermalMax = thermalNames[thermal.maxRank]
         result.peakFootprintBytes = max(result.peakFootprintBytes, obs.footprintBytes)
         if obs.availableBytes > 0 { result.minAvailableBytes = min(result.minAvailableBytes ?? .max, obs.availableBytes) }
-        log(String(format: "%@ %@ %d%@ %.2f tok/s  [%@%@]%@", cell.name, arm.name, position + 1,
+        log(String(format: "%@ %@ %d%@ %.2f tok/s  [%@%@]%@%@", cell.name, arm.name, position + 1,
                    position == 0 || position == 3 ? "A" : "B", obs.tokensPerSecond, obs.thermalBefore,
-                   obs.thermalAfter == obs.thermalBefore ? "" : "→" + obs.thermalAfter,
-                   obs.interrupted ? "  INTERRUPTED" : ""))
+                   obs.thermalMax == obs.thermalBefore ? "" : "→" + obs.thermalMax,
+                   obs.gateReached ? "" : "  GATE NOT MET", obs.interrupted ? "  INTERRUPTED" : ""))
         if let e = obs.error { log("  FAILED: \(e)") }
         for m in obs.libraryMessages.prefix(6) { log("  lib: \(m)") }
         return obs
     }
 
+    /// Why a quartet cannot be accepted because of heat, as soon as that is certain.
+    private func thermalReject(_ obs: [Observation]) -> String? {
+        if let o = obs.first(where: { !$0.gateReached }) {
+            return "the phone did not cool to the gate within 5 minutes (it was \(o.thermalBefore))"
+        }
+        if obs.contains(where: { thermalRank($0.thermalMax) >= 2 }) { return "the phone reached serious/critical" }
+        let starts = Set(obs.map(\.thermalBefore))
+        if starts.count > 1 { return "runs started in different thermal states (\(starts.sorted().joined(separator: ", ")))" }
+        return nil
+    }
+
     private func quartet(cell: Cell, cycle: Int, attempt: Int) throws -> Quartet {
         var obs: [Observation] = []
+        var anchor = 1
         for (pos, arm) in [result.armA, result.armB, result.armB, result.armA].enumerated() {
-            obs.append(try observe(cell: cell, arm: arm, position: pos))
+            // The first run starts at nominal or fair (nominal with waitForNominal); later runs no hotter than
+            // it and never above fair.
+            let limit = pos == 0 ? (result.waitForNominal ? 0 : 1) : min(anchor, 1)
+            let o = try observe(cell: cell, arm: arm, position: pos, limit: limit)
+            obs.append(o)
+            if pos == 0 { anchor = thermalRank(o.thermalBefore) }
             result.unfinishedQuartet = obs
             save(result)
+            // Once heat has settled the verdict, more runs would only heat the phone further.
+            if thermalReject(obs) != nil && !obs.contains(where: \.interrupted) { break }
         }
         result.unfinishedQuartet = nil
+        let complete = obs.count == 4
         let a = obs.filter { $0.position == 0 || $0.position == 3 }.map(\.tokensPerSecond)
         let b = obs.filter { $0.position == 1 || $0.position == 2 }.map(\.tokensPerSecond)
-        let valid = (a + b).allSatisfy { $0.isFinite && $0 > 0 }
+        let valid = complete && (a + b).allSatisfy { $0.isFinite && $0 > 0 }
         let spread = valid ? max(a.max()! / a.min()!, b.max()! / b.min()!) : .infinity
         let ratio = valid ? (b.reduce(0, +) / 2) / (a.reduce(0, +) / 2) : .nan
+        // Tokens are compared only between runs that all produced them (a failed run is not a mismatch).
         var identical: Bool? = nil
-        if cell.kind == "chat", let t0 = obs[0].generatedTokens {
-            identical = obs.allSatisfy { $0.generatedTokens == t0 }
+        if cell.kind == "chat", complete, obs.allSatisfy({ $0.error == nil && $0.generatedTokens != nil }) {
+            identical = obs.allSatisfy { $0.generatedTokens == obs[0].generatedTokens }
         }
-        // Every run must start in the same thermal state (a run may warm the phone while it runs: a PTQ1 run
-        // takes it from nominal to fair), and no run may touch serious/critical.
-        let starts = Set(obs.map(\.thermalBefore))
-        let hot = obs.contains { Self.thermalRank($0.thermalBefore) >= 2 || Self.thermalRank($0.thermalAfter) >= 2 }
         let reason: String? =
             obs.contains(where: \.interrupted) ? "app left the foreground" :
-            obs.contains(where: { $0.error != nil }) ? "an observation failed" :
+            thermalReject(obs) ??
+            (obs.contains(where: { $0.error != nil }) ? "an observation failed" :
             !valid ? "no valid rate" :
-            hot ? "the phone reached serious/critical" :
-            starts.count > 1 ? "runs started in different thermal states (\(starts.sorted().joined(separator: ", ")))" :
-            spread > result.spreadGate ? String(format: "spread %.3f over the gate", spread) : nil
+            spread > result.spreadGate ? String(format: "spread %.3f over the gate", spread) : nil)
         return Quartet(cell: cell.name, cycle: cycle, attempt: attempt, observations: obs, spread: spread, ratio: ratio,
                        tokensIdentical: identical, accepted: reason == nil, rejectReason: reason)
     }
@@ -415,4 +458,29 @@ struct SeededGenerator: RandomNumberGenerator {
         z = (z ^ (z >> 27)) &* 0x94D049BB133111EB
         return z ^ (z >> 31)
     }
+}
+
+let thermalNames = ["nominal", "fair", "serious", "critical"]
+
+func thermalRank(_ s: String) -> Int { thermalNames.firstIndex(of: s) ?? 3 }
+
+/// The hottest thermal state since `reset()`, from the system's change notifications, so a run that touches
+/// serious and comes back before it ends is still seen.
+final class ThermalMonitor {
+    private let lock = NSLock()
+    private var hottest = 0
+    private var token: NSObjectProtocol?
+
+    init() {
+        token = NotificationCenter.default.addObserver(forName: ProcessInfo.thermalStateDidChangeNotification,
+                                                       object: nil, queue: nil) { [weak self] _ in self?.note() }
+    }
+
+    deinit { if let token { NotificationCenter.default.removeObserver(token) } }
+
+    func reset() { lock.lock(); hottest = thermalRank(thermalStateName()); lock.unlock() }
+
+    func note() { lock.lock(); hottest = max(hottest, thermalRank(thermalStateName())); lock.unlock() }
+
+    var maxRank: Int { lock.lock(); defer { lock.unlock() }; return min(hottest, 3) }
 }

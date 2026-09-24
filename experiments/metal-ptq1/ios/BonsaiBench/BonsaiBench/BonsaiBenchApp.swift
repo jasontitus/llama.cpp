@@ -33,33 +33,69 @@ final class BenchState: ObservableObject {
     @Published var device = DeviceInfo.capture()
     private var study: Study?
 
-    // Suite: the studies run in order; `suiteStep` is the one running (nil when no suite runs).
+    // Suite: the studies run in order; `suiteStep` is the one running (nil when no suite runs). Its state is
+    // persisted (SuiteRecord) so that a suite the app died in can be resumed with what it had done.
     let suite = Suites.phone
     @Published var suiteIncluded: Set<Int> = Set(Suites.phone.indices)
     @Published var suiteStep: Int?
-    @Published var suiteDone: Set<Int> = []
-    @Published var suiteResumeAt: Int?          // offered after the app was killed during a suite
-    @Published var suiteNotes: [String] = []    // skipped or failed studies (each study clears the log)
+    @Published var suiteOutcome: [Int: String] = [:]   // done, incomplete, failed, skipped, did not fit
+    @Published var suiteResumeAt: Int?                 // offered after the app died during a suite
+    @Published var suiteNotes: [String] = []           // what went wrong, per study (each study clears the log)
     private var suiteStopped = false
+    private var suiteKills: [Int: Int] = [:]           // study -> times the app died during it
+    private var manualSettings: (cells: Set<String>, cycles: Int, cooldown: Double, nominal: Bool, gate: Double, ubatch: Int)?
+
+    private struct SuiteRecord: Codable {
+        var included: [Int]
+        var step: Int?                                 // the study running; set while it runs
+        var deathCounted = false                       // this launch already counted the app dying in `step`
+        var kills: [Int: Int]
+        var outcome: [Int: String]
+        var notes: [String]
+    }
+
+    private func saveSuite(step: Int?, deathCounted: Bool = false) {
+        let r = SuiteRecord(included: Array(suiteIncluded), step: step, deathCounted: deathCounted, kills: suiteKills,
+                            outcome: suiteOutcome, notes: suiteNotes)
+        UserDefaults.standard.set(try? JSONEncoder().encode(r), forKey: "suite")
+    }
 
     init() {
         _ = launchEnvironment   // capture before any arm changes the environment
         Downloader.shared.onFinished = { [weak self] in self?.refresh() }
         Downloader.shared.restore(autostart: true)
-        // A suite that was running when the app died: offer to resume it. If the app died while loading a
-        // model, that study's model does not fit, so resume after it.
-        let killedWhileLoading = UserDefaults.standard.string(forKey: "loadingModel") != nil
-        if let step = UserDefaults.standard.object(forKey: "suiteStep") as? Int {
-            let included = (UserDefaults.standard.array(forKey: "suiteIncluded") as? [Int]).map(Set.init) ?? suiteIncluded
-            suiteIncluded = included
-            let next = (killedWhileLoading ? step + 1 : step)
-            suiteResumeAt = included.filter { $0 >= next }.min()
-            UserDefaults.standard.removeObject(forKey: "suiteStep")
-        }
-        // iOS kills an app that exceeds its memory limit without a crash report; say so on the next launch.
-        if let m = UserDefaults.standard.string(forKey: "loadingModel") {
-            status = "The app was stopped while loading \(m), most likely out of memory: it does not fit on this phone."
+        // iOS kills an app that exceeds its memory limit without a crash report. The marker written before a
+        // load says which model was loading when the app died; keep a record of it.
+        let killedLoading = UserDefaults.standard.string(forKey: "loadingModel")
+        if let m = killedLoading {
+            writeDidNotFit(model: m)
             UserDefaults.standard.removeObject(forKey: "loadingModel")
+        }
+        // A suite the app died in: count the death once, decide what to skip, and offer to resume.
+        if let data = UserDefaults.standard.data(forKey: "suite"),
+           let rec = try? JSONDecoder().decode(SuiteRecord.self, from: data), let step = rec.step {
+            suiteIncluded = Set(rec.included)
+            suiteKills = rec.kills
+            suiteOutcome = rec.outcome
+            suiteNotes = rec.notes
+            if !rec.deathCounted {
+                suiteKills[step, default: 0] += 1
+                if let m = killedLoading {
+                    // it does not fit: skip every remaining study of that model
+                    for j in suite.indices where j >= step && suite[j].model == m { suiteOutcome[j] = "did not fit" }
+                    suiteNotes.append("\(modelTitle(m)): the app was stopped while loading it, most likely out of memory; its studies are skipped.")
+                } else if suiteKills[step, default: 0] >= 2 {
+                    suiteOutcome[step] = "failed"
+                    suiteNotes.append("\"\(suite[step].title)\": the app was stopped during it twice (out of memory?); skipped.")
+                } else {
+                    suiteNotes.append("\"\(suite[step].title)\": the app was stopped during it; resuming runs it again.")
+                }
+                saveSuite(step: step, deathCounted: true)
+            }
+            suiteResumeAt = suiteRemaining(from: step).first
+        }
+        if let m = killedLoading {
+            status = "The app was stopped while loading \(m), most likely out of memory: it does not fit on this phone."
         } else if let unfinished = Self.unfinishedStudy(in: documents) {
             status = "The last study did not finish (\(unfinished)); its quartets up to then are saved in that file."
         }
@@ -81,7 +117,8 @@ final class BenchState: ObservableObject {
             return
         }
         if o["suite"] as? Bool == true {
-            startSuite(from: o["from"] as? Int ?? 0)
+            // resume a suite the app died in unless told where to start
+            if let from = o["from"] as? Int { startSuite(from: from) } else if let r = suiteResumeAt { startSuite(from: r, resuming: true) } else { startSuite() }
             return
         }
         guard let model = o["model"] as? String else {
@@ -103,7 +140,7 @@ final class BenchState: ObservableObject {
             if let n = o["cycles"] as? Int { self.cycles = n }
             if let c = o["cooldown"] as? Double { self.cooldown = c }
             if let w = o["waitForNominal"] as? Bool { self.waitForNominal = w }
-            if let u = o["ubatch"] as? Int { self.promptUbatch = u }
+            if let u = o["ubatch"] as? Int, [128, 256, 512].contains(u) { self.promptUbatch = u }
             self.start()
         }
     }
@@ -164,8 +201,9 @@ final class BenchState: ObservableObject {
     }
 
     func load(_ url: URL, then: ((Engine?) -> Void)? = nil) {
-        guard !loading, !running else { return }
+        guard !loading, !running else { then?(nil); return }
         study = nil          // it holds the engine; the old model must be freed before the next one loads
+        let old = WeakEngine(engine)
         engine = nil
         selected = url
         loading = true
@@ -173,6 +211,11 @@ final class BenchState: ObservableObject {
         UserDefaults.standard.set(url.lastPathComponent, forKey: "loadingModel")
         UserDefaults.standard.synchronize()
         Task.detached {
+            // Wait (bounded) until the previous model is really gone, then run one GPU command: Metal releases
+            // residency-set memory lazily, and two 6-7 GB models must not be held at once.
+            let t0 = Date()
+            while old.engine != nil && Date().timeIntervalSince(t0) < 5 { try? await Task.sleep(nanoseconds: 50_000_000) }
+            flushGPU()
             do {
                 let e = try Engine(path: url.path)
                 await MainActor.run {
@@ -195,9 +238,13 @@ final class BenchState: ObservableObject {
         }
     }
 
-    /// Start a study with the current settings; `then` runs on the main queue when it has finished.
-    func start(then: ((RunResult) -> Void)? = nil) {
-        guard let engine, !running, !Downloader.shared.busy else { return }
+    /// Start a study with the current settings; `then` runs on the main queue when it has finished, with
+    /// whether its results were saved. Returns false (and says why) if it cannot start.
+    @discardableResult
+    func start(then: ((RunResult, Bool) -> Void)? = nil) -> Bool {
+        guard let engine else { status = "Load a model first."; return false }
+        guard !running else { return false }
+        guard !Downloader.shared.busy else { status = "Wait for downloads and hash checks to finish."; return false }
         running = true
         log = []
         result = nil
@@ -234,84 +281,154 @@ final class BenchState: ObservableObject {
                 UIApplication.shared.isIdleTimerDisabled = false
                 let what = s.result.error.map { "Stopped by an error: \($0)." } ?? (s.result.cancelled ? "Stopped." : "Done.")
                 self.status = what + (saveError.map { " Could not save the results: \($0)" } ?? " Results saved to Documents/\(url.lastPathComponent).")
-                then?(s.result)
+                then?(s.result, saveError == nil)
             }
         }
         t.qualityOfService = .userInitiated
         t.stackSize = 8 << 20
         t.start()
+        return true
     }
 
     func stop() {
         suiteStopped = true
         study?.cancelled = true
+        if loading && suiteStep != nil { status = "Stopping the suite once the model has finished loading…" }
     }
 
     // MARK: suite
 
-    func startSuite(from first: Int = 0) {
-        guard !running, !loading, suiteStep == nil, !Downloader.shared.busy else { return }
+    /// Included studies from `from` on that have not been ruled out (did not fit, died twice).
+    func suiteRemaining(from: Int) -> [Int] {
+        suite.indices.filter { $0 >= from && suiteIncluded.contains($0) && !["did not fit", "failed"].contains(suiteOutcome[$0] ?? "") }
+    }
+
+    func startSuite(from first: Int = 0, resuming: Bool = false) {
+        guard !running, !loading, suiteStep == nil else {
+            status = "The suite cannot start while a study or a model load is running."
+            return
+        }
         suiteStopped = false
+        if !resuming {
+            suiteOutcome = [:]
+            suiteNotes = []
+            suiteKills = [:]
+        }
         suiteResumeAt = nil
-        suiteDone = []
-        suiteNotes = []
-        UserDefaults.standard.set(Array(suiteIncluded), forKey: "suiteIncluded")
+        manualSettings = (cells, cycles, cooldown, waitForNominal, gate, promptUbatch)
         suiteNext(first)
     }
 
-    /// Run study `i` (or the next included one), then the rest. Each study loads its model if another one
-    /// is loaded, sets the arms and protocol, and saves its own result file.
+    /// Run the next remaining study from `from` on, then the rest. Each study loads its model if another one is
+    /// loaded, sets the arms and protocol from its spec, and saves its own result file.
     private func suiteNext(_ from: Int) {
-        guard !suiteStopped, let i = suite.indices.filter({ $0 >= from && suiteIncluded.contains($0) }).min() else {
+        guard !suiteStopped, let i = suiteRemaining(from: from).first else {
             suiteFinished()
             return
         }
         suiteStep = i
-        UserDefaults.standard.set(i, forKey: "suiteStep")
+        saveSuite(step: i)
         UIApplication.shared.isIdleTimerDisabled = true
         let spec = suite[i]
         let skip = { (why: String) in
-            self.suiteNotes.append("Skipped \"\(spec.title)\": \(why)")
+            self.suiteOutcome[i] = "skipped"
+            self.suiteNotes.append("\"\(spec.title)\" skipped: \(why)")
             // next runloop turn, so nothing from this step still holds the engine
             DispatchQueue.main.async { self.suiteNext(i + 1) }
         }
         let url = documents.appendingPathComponent(spec.model)
         guard FileManager.default.fileExists(atPath: url.path) else { return skip("\(spec.model) is not in the app") }
         let go = { (engine: Engine) in
-            guard !self.suiteStopped else { return self.suiteFinished() }
             let arms = Presets.all(for: engine.weightType)
             guard let a = arms.first(where: { $0.name == spec.a }), let b = arms.first(where: { $0.name == spec.b }) else {
                 return skip("no arm \"\(spec.a)\" or \"\(spec.b)\" for \(engine.weightType)")
             }
-            self.armA = a
-            self.armB = b
-            self.cells = Set(spec.cells)
-            self.cycles = spec.cycles
-            self.cooldown = spec.cooldown
-            self.promptUbatch = spec.ubatch
-            self.start { r in
-                if let e = r.error { self.suiteNotes.append("\"\(spec.title)\" stopped by an error: \(e)") }
-                if !r.cancelled && r.error == nil { self.suiteDone.insert(i) }
-                DispatchQueue.main.async { self.suiteNext(i + 1) }
+            self.whenDownloadsIdle {
+                self.armA = a
+                self.armB = b
+                self.cells = Set(spec.cells)
+                self.cycles = spec.cycles
+                self.cooldown = spec.cooldown
+                self.waitForNominal = spec.waitForNominal
+                self.gate = spec.gate
+                self.promptUbatch = spec.ubatch
+                let started = self.start { r, saved in
+                    self.recordOutcome(i, spec, r, saved)
+                    DispatchQueue.main.async { self.suiteNext(i + 1) }
+                }
+                if !started { skip("the study could not start (\(self.status))") }
             }
-            if !self.running { skip("the study could not start") }
         }
         if let e = engine, selected?.lastPathComponent == spec.model {
             go(e)
         } else {
             load(url) { e in
-                if let e { go(e) } else { skip("the model did not load") }
+                if self.suiteStopped { return self.suiteFinished() }
+                if let e { go(e) } else { skip("the model did not load (\(self.status))") }
             }
         }
     }
 
+    /// Downloads and hash checks skew timings and block starting: wait for them (the user may cancel them).
+    private func whenDownloadsIdle(_ go: @escaping () -> Void) {
+        if suiteStopped { return suiteFinished() }
+        guard Downloader.shared.busy else { return go() }
+        progress = "Waiting for downloads and hash checks to finish (cancel them below to continue)"
+        DispatchQueue.main.asyncAfter(deadline: .now() + 5) { self.whenDownloadsIdle(go) }
+    }
+
+    /// Done only if every cell has an accepted quartet for every cycle; otherwise say what is missing.
+    private func recordOutcome(_ i: Int, _ spec: StudySpec, _ r: RunResult, _ saved: Bool) {
+        let incomplete = r.summaries.filter { !$0.complete }.map(\.cell)
+        let failedRuns = (r.quartets.flatMap(\.observations) + (r.unfinishedQuartet ?? [])).filter { $0.error != nil }.count
+        if r.cancelled {
+            suiteNotes.append("\"\(spec.title)\" stopped before it finished; its runs so far are saved.")
+        } else if !saved {
+            suiteOutcome[i] = "failed"
+            suiteNotes.append("\"\(spec.title)\": the results could not be saved.")
+        } else if let e = r.error {
+            suiteOutcome[i] = "failed"
+            suiteNotes.append("\"\(spec.title)\" failed: \(e)")
+        } else if !incomplete.isEmpty {
+            suiteOutcome[i] = "incomplete"
+            suiteNotes.append("\"\(spec.title)\": no accepted quartet for every cycle in \(incomplete.joined(separator: ", "))" +
+                              (failedRuns > 0 ? "; \(failedRuns) runs failed" : "") + ".")
+        } else {
+            suiteOutcome[i] = "done"
+        }
+        saveSuite(step: i)
+    }
+
     private func suiteFinished() {
+        guard suiteStep != nil || !suiteStopped || manualSettings != nil else { return }
         let stopped = suiteStopped
         suiteStep = nil
-        UserDefaults.standard.removeObject(forKey: "suiteStep")
+        saveSuite(step: nil)
+        progress = ""
         UIApplication.shared.isIdleTimerDisabled = false
-        status = (stopped ? "Suite stopped" : "Suite finished") + ": \(suiteDone.count) of \(suiteIncluded.count) studies done; each study's results are in Documents."
+        if let m = manualSettings {
+            (cells, cycles, cooldown, waitForNominal, gate, promptUbatch) = (m.cells, m.cycles, m.cooldown, m.nominal, m.gate, m.ubatch)
+            manualSettings = nil
+        }
+        let done = suiteOutcome.values.filter { $0 == "done" }.count
+        status = (stopped ? "Suite stopped" : "Suite finished") +
+            ": \(done) of \(suiteIncluded.count) studies complete; each study's results are in Documents."
     }
+
+    /// A small result file for a model that iOS killed the app while loading: the "does it fit" answer.
+    private func writeDidNotFit(model: String) {
+        let record: [String: Any] = [
+            "tool": "BonsaiBench 2", "event": "the app was stopped while loading this model (most likely out of memory)",
+            "model": model, "time": ISO8601DateFormatter().string(from: Date()),
+            "device": (try? JSONSerialization.jsonObject(with: JSONEncoder().encode(DeviceInfo.capture()))) ?? [:],
+            "build": ["sourceRevision": BuildInfo.current.sourceRevision, "frameworkSHA256": BuildInfo.current.frameworkSHA256],
+        ]
+        let stamp = ISO8601DateFormatter().string(from: Date()).replacingOccurrences(of: ":", with: "-")
+        if let data = try? JSONSerialization.data(withJSONObject: record, options: [.prettyPrinted, .sortedKeys]) {
+            try? data.write(to: documents.appendingPathComponent("bonsaibench-\(stamp)-did-not-fit.json"), options: .atomic)
+        }
+    }
+
 }
 
 extension JSONEncoder {
@@ -325,3 +442,9 @@ extension JSONEncoder {
 }
 
 func gb(_ bytes: UInt64) -> String { String(format: "%.2f GB", Double(bytes) / 1e9) }
+
+/// Lets a load wait until the previous engine has actually been freed.
+final class WeakEngine: @unchecked Sendable {
+    weak var engine: Engine?
+    init(_ e: Engine?) { engine = e }
+}

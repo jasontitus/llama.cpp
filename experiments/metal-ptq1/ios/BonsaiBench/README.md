@@ -20,30 +20,37 @@ which spares ~0.5 GB of logits buffer) and n_ctx 1024.
 For each cell, per cycle:
 
 1. An A-B-B-A quartet.
-2. Before every observation:
-   - wait (up to 5 min) for the thermal gate: the first run of a quartet until the phone is nominal or fair
-     (nominal with "Start quartets only when nominal"), each later run until it is no hotter than when
-     the first run started;
-   - a cooldown (default 8 s);
-   - pause while the app is not in the foreground.
+2. Before every observation, the thermal gate. The app must be in front, then comes the cooldown (default
+   8 s), and then the state is checked; waiting and cooldown repeat until the state is met, for up to 5
+   minutes of thermal waiting. The state a run *starts* in is what counts:
+   - the first run of a quartet needs nominal or fair (nominal with "Start quartets only when nominal");
+   - each later run needs to be no hotter than the first run was, and never above fair.
 3. The quartet is rejected if any of these hold:
-   - the two A runs, or the two B runs, differ by more than the spread gate (default 1.20x);
-   - its runs started in different thermal states, or any run reached serious/critical (a run may warm the
-     phone while it runs: one PTQ1_0 generation takes it from nominal to fair);
    - the app left the foreground;
-   - an observation failed (a Metal command buffer error, a context that could not be created).
+   - the gate was not met within 5 minutes;
+   - any run reached serious/critical at any point (thermal-state notifications are watched during runs);
+   - its runs started in different thermal states (a run may warm the phone while it runs, which is fine;
+     the next run waits for the gate);
+   - an observation failed (a Metal command buffer error, a context that could not be created);
+   - the two A runs, or the two B runs, differ by more than the spread gate (default 1.20x).
+
+   Once heat has decided a rejection, the rest of the quartet is skipped, so as not to heat the phone
+   further.
 4. A rejected quartet is kept and repeated, at most 3 times; the fastest is never chosen.
 5. A cell without an accepted quartet for every cycle is marked incomplete.
 
 The speedup is the geometric mean of the accepted quartets' mean(B)/mean(A).
 
 ppK cells warm up for at least 1 s and measure for at least 2.5 s, since one small decode is ~0.1 s on a
-phone. Each call's time is recorded.
+phone. Each call's time is recorded, warmup included, even when a call fails.
 
-A result JSON is written to Documents at the start and after every quartet, so a study that iOS kills
-keeps what it measured. It records:
+A result JSON is written to Documents at the start and after every run, so a study that iOS kills or that
+is stopped keeps what it measured (`unfinishedQuartet`). It records:
 
-- **Build:** the git revision the app was built from, and the SHA-256 of the embedded llama.framework.
+- **Build:**
+  - the git revision the app was built from, and how many app files were uncommitted;
+  - the revision the framework was built from (recorded by `build-xcframework.sh`);
+  - the SHA-256 of the framework binary, before it is signed into the app.
 - **Launch environment:** any `GGML_*`/`LLAMA_*` variables the app was launched with. They are cleared
   before every observation.
 - **Device:** hardware, OS, GPU family, memory limits.
@@ -157,7 +164,9 @@ xcrun devicectl device process launch --device "$DEVICE" --terminate-existing --
 - `--console` shows the library log.
 - Arms are preset names as shown in the app.
 - Cells may be any `tgN`, `chatN` or `ppK`.
-- `cycles` and `cooldown` are optional.
+- `cycles`, `cooldown`, `waitForNominal` and `ubatch` (512, 256 or 128) are optional.
+- `{"suite":true}` runs the phone suite (below), resuming a suite the app died in, and `"from": N`
+  starts it at study N.
 
 Fetch the results with:
 
@@ -165,6 +174,22 @@ Fetch the results with:
 xcrun devicectl device copy from --device "$DEVICE" --domain-type appDataContainer \
   --domain-identifier dev.bonsaibench.app --source Documents/<file>.json --destination .
 ```
+
+**The phone suite.** "Run the suite" runs the studies still missing from the results table, in order of
+value. It:
+
+- loads each model and sets each study's arms and protocol;
+- saves one result file per study, and afterwards restores your manual settings;
+- waits while a download or hash check is running.
+
+Each study is marked done only if every cell got an accepted quartet for every cycle; otherwise it is
+marked incomplete, failed or skipped, with a note.
+
+If iOS stops the app:
+
+- **While loading a model:** that model does not fit. A `bonsaibench-*-did-not-fit.json` record is written,
+  and resuming skips every study of that model.
+- **During a study:** resuming runs it again once, and a second stop skips it.
 
 **Sending results from the phone.** Use "Share JSON" after a study, or Files › On My iPhone ›
 BonsaiBench, and send or save the `bonsaibench-*.json` files (e.g. to iCloud Drive).
@@ -183,7 +208,7 @@ The other cells come from partial studies with one quartet each, so they are ear
 | pp2 | 15.8 tok/s | 18.4 | 1.16x |
 | pp4 | 17.5 | 18.8 | 1.07x |
 | pp8 | 18.2 | 18.8 | 1.03x |
-| pp512 | 78.9 | 81.7 / 82.3 | not paired (different studies): no loss, see below |
+| pp512 | 78.9 (screen only, see below) | 81.7 / 82.3 (a rejected quartet) | not paired: no loss, see below |
 
 **PrismML's popcount option, for context only.** `GGML_METAL_Q1_0_POPCNT` is PrismML's own bit-plane path,
 off by default in their code. It is not one of our changes and is not counted in our speedups.
@@ -193,12 +218,14 @@ off by default in their code. It is not one of our changes and is not counted in
 - Two comparisons still need measuring, with the "PrismML popcount (their option)" arm:
   - upstream against popcount alone;
   - popcount alone against our stack plus popcount, which is what our changes add when their option is on.
-- Popcount is not bit-exact (M5: mean KLD 0.00037, 99.07% same top token), and greedy output can diverge
+- Popcount is not bit-exact (M5: mean KLD 0.00040, 99.06% same top token), and greedy output can diverge
   under concurrency. On the phone, single-stream greedy output matched upstream in all 8 chat128 runs.
-- At pp512 it has no effect (0.99x): it only covers batches of up to 16 columns.
+- At pp512 it has no effect (0.99x, from a quartet rejected for a thermal change): it only covers batches
+  of up to 16 columns.
 
 **Bonsai 2 PTQ1_0, our changes against default upstream.** Two studies with one accepted quartet per cell
-each; the thermal state was fair throughout and the cooldown 50-60 s:
+each. The phone was mostly at fair (two runs reached serious, in rejected quartets), with a 50-60 s
+cooldown:
 
 | Cell | Upstream | Our PTQ1 stack | Speedup (study 1, study 2) | Geomean |
 |---|---:|---:|---:|---:|
@@ -209,9 +236,10 @@ each; the thermal state was fair throughout and the cooldown 50-60 s:
 
 - The tg128 quartet was rejected: the phone went from fair to serious during a stack run, which then ran
   at 3.3 tok/s.
-- PTQ1_0 generation is compute-bound on the phone too: 5.7 tok/s upstream, against 10.9 for Q1_0.
+- PTQ1_0 generation is compute-bound on the phone too: 5.7 tok/s upstream in chat128, against about 9.6
+  for Q1_0 in chat128.
 
-Upstream's PTQ1_0 path for 2-8-token batches is very slow on the A19: 2.65 tok/s at pp2, against 15.8
+Upstream's PTQ1_0 path for 2-8-token batches is very slow on the A19: 2.9 tok/s at pp2, against 15.8
 for Q1_0 upstream on the same phone. The multi-column kernels (the CUDA PR #218 port) remove that
 bottleneck. These batch shapes are what MTP verification and concurrent requests run.
 
@@ -224,7 +252,8 @@ bottleneck. These batch shapes are what MTP verification and concurrent requests
   - A drift like that is not linear, so A-B-B-A cannot cancel it, and it favours the arm that needs fewer
     ALU cycles.
   - The spread gate and the thermal-change rule rejected those quartets.
-  - The app now waits for a nominal thermal state before every observation (toggle in Protocol).
+  - The app's thermal gate now requires every run of a quartet to start in the same state, checked after
+    the cooldown (see "What it measures").
   - Use a 30-60 s cooldown for the generation cells on a phone.
 - **Memory is not a limit for Q1_0.** The footprint stayed at 0.42-0.44 GB: weights are memory-mapped from
   flash and not counted, and iOS allowed 6.0 GB more.
@@ -234,12 +263,15 @@ bottleneck. These batch shapes are what MTP verification and concurrent requests
   - Metal runs about 90% of a graph as one command buffer (`n_cb` = 1), so a 512-token ubatch is 5-9 s of
     GPU work on the phone. That is long enough to plausibly hit iOS's command-buffer timeout, more so when
     the phone is warm and slower.
-  - This version records Metal's error text and every call's time to confirm it. It also has a "prompt
+  - This version records Metal's error text, and every call's time including warmup and a failing call,
+    to confirm it. It also has a "prompt
     micro-batch" setting (512 / 256 / 128) to split the batch into shorter submissions.
   - Until then, leave pp512 out of phone studies.
 - **pp512 is not slower with our stack.**
-  - A first study measured 54.0 tok/s and then a failed command buffer. That did not reproduce: a later
-    study ran the stack at 81.7 and 82.3 tok/s, with no error.
+  - A first study showed 78.9 (upstream) and 54.0 (stack) tok/s on screen, then a failed command buffer.
+    Its file has no pp512 data: that version discarded a quartet that stopped with an error.
+  - It did not reproduce: a later study ran the stack at 81.7 and 82.3 tok/s with no error (in a quartet
+    rejected for a thermal change).
   - The M5 profile agrees. Only two stack changes touch a 512-token batch: the in-place delta-net state
     (neutral) and `SMALLM_MM` (faster).
   - The failed run was probably a transient, for example iOS using the GPU for its own work while
