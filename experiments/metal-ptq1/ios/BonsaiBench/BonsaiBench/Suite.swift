@@ -68,6 +68,20 @@ enum Suites {
     ]
 }
 
+extension Suites {
+    /// One-tap single studies: each loads its model and sets everything itself.
+    static let quick: [StudySpec] = [
+        StudySpec(title: "Is SMALLM_MM what slows 512-token prompts on PTQ1_0?", model: ptq1, a: "upstream",
+                  b: "only SMALLM_MM", cells: ["pp512"], cycles: 2, cooldown: 60),
+        StudySpec(title: "PTQ1_0 512-token prompts: our flags vs upstream", model: ptq1, a: "upstream",
+                  b: "M5 stack (PTQ1)", cells: ["pp512"], cycles: 2, cooldown: 60),
+        StudySpec(title: "PTQ1_0 plain generation (tg128): our flags vs upstream", model: ptq1, a: "upstream",
+                  b: "M5 stack (PTQ1)", cells: ["tg128"], cycles: 3, cooldown: 60),
+        StudySpec(title: "MTP headline: upstream plain vs our flags + MTP (needs the MTP file)", model: ptq1mtp,
+                  a: "upstream", b: "M5 stack (PTQ1) + MTP", cells: ["gen128"], cycles: 3, cooldown: 60),
+    ]
+}
+
 func durationText(_ seconds: Double) -> String {
     let m = Int((seconds / 60).rounded())
     return m >= 60 ? "\(m / 60) h \(m % 60) min" : "\(m) min"

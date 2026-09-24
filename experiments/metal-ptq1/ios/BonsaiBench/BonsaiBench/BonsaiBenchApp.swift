@@ -24,7 +24,7 @@ final class BenchState: ObservableObject {
     @Published var armB = Presets.upstream
     @Published var cells: Set<String> = Set(defaultCells.map(\.name))
     @Published var cycles = 3
-    @Published var cooldown = 8.0
+    @Published var cooldown = 60.0
     @Published var waitForNominal = false
     @Published var promptUbatch = 512
     @Published var gate = 1.20
@@ -36,7 +36,9 @@ final class BenchState: ObservableObject {
 
     // Suite: the studies run in order; `suiteStep` is the one running (nil when no suite runs). Its state is
     // persisted (SuiteRecord) so that a suite the app died in can be resumed with what it had done.
-    let suite = Suites.phone
+    @Published var suite = Suites.phone              // the phone suite, or one quick test while it runs
+    @Published var quickTitle: String?               // the quick test running (it borrows the suite runner)
+    private var savedSuite: (included: Set<Int>, outcome: [Int: String], notes: [String], resume: Int?)?
     @Published var suiteIncluded: Set<Int> = Set(Suites.phone.indices)
     @Published var suiteStep: Int?
     @Published var suiteOutcome: [Int: String] = [:]   // done, incomplete, failed, skipped, did not fit
@@ -57,6 +59,7 @@ final class BenchState: ObservableObject {
     }
 
     private func saveSuite(step: Int?, deathCounted: Bool = false) {
+        guard quickTitle == nil else { return }    // a quick test never touches the phone suite's saved state
         let r = SuiteRecord(titles: suite.map(\.title), included: Array(suiteIncluded), step: step, deathCounted: deathCounted, kills: suiteKills,
                             outcome: suiteOutcome, notes: suiteNotes)
         UserDefaults.standard.set(try? JSONEncoder().encode(r), forKey: "suite")
@@ -311,6 +314,22 @@ final class BenchState: ObservableObject {
         if loading && suiteStep != nil { status = "Stopping the suite once the model has finished loading…" }
     }
 
+    // MARK: quick tests
+
+    /// Run one study with the suite runner (it loads the model and sets arms and protocol), then put the
+    /// phone suite back as it was.
+    func runQuick(_ spec: StudySpec) {
+        guard !running, !loading, suiteStep == nil else {
+            status = "Wait for the running study or model load to finish."
+            return
+        }
+        savedSuite = (suiteIncluded, suiteOutcome, suiteNotes, suiteResumeAt)
+        quickTitle = spec.title
+        suite = [spec]
+        suiteIncluded = [0]
+        startSuite(from: 0)
+    }
+
     // MARK: suite
 
     /// Included studies from `from` on that have not been ruled out (did not fit, died twice).
@@ -424,6 +443,19 @@ final class BenchState: ObservableObject {
         if let m = manualSettings {
             (cells, cycles, cooldown, waitForNominal, gate, promptUbatch) = (m.cells, m.cycles, m.cooldown, m.nominal, m.gate, m.ubatch)
             manualSettings = nil
+        }
+        if let title = quickTitle {
+            let outcome = suiteOutcome[0]
+            let notes = suiteNotes
+            quickTitle = nil
+            suite = Suites.phone
+            if let s = savedSuite {
+                (suiteIncluded, suiteOutcome, suiteNotes, suiteResumeAt) = (s.included, s.outcome, s.notes, s.resume)
+            }
+            savedSuite = nil
+            status = (stopped ? "Stopped: " : "Finished: ") + title + (outcome.map { " (\($0))" } ?? "") +
+                (notes.isEmpty ? ". Results below; the file is in Documents." : ". " + notes.joined(separator: " "))
+            return
         }
         let done = suiteOutcome.values.filter { $0 == "done" }.count
         status = (stopped ? "Suite stopped" : "Suite finished") +

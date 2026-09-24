@@ -195,6 +195,11 @@ so: that model does not fit.
 
 ## Running a study
 
+**Quick tests** (top of the app) are the simplest: each has one Run button that loads the right model and
+sets the arms, cells, quartets and cooldown itself. The **Phone suite** runs several of them in a row.
+
+**A custom study** (switch "Custom study" on):
+
 1. Load a model.
 2. Pick arm A (usually "upstream") and arm B.
 3. Choose cells and tap "Run A-B-B-A".

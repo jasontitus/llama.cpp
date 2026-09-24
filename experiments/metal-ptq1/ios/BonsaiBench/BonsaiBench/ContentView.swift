@@ -6,6 +6,7 @@ struct ContentView: View {
     @ObservedObject private var downloads = Downloader.shared
     @Environment(\.scenePhase) private var scenePhase
     @State private var importing = false
+    @AppStorage("showCustom") private var showCustom = false
 
     var body: some View {
         NavigationStack {
@@ -18,74 +19,35 @@ struct ContentView: View {
                 }
 
                 Section {
-                    if let url = state.selected {
-                        HStack(alignment: .top, spacing: 12) {
-                            if state.loading {
-                                ProgressView()
-                            } else if state.engine != nil {
-                                Image(systemName: "checkmark.circle.fill").foregroundStyle(.green).font(.title2)
+                    ForEach(Suites.quick, id: \.title) { spec in
+                        let have = state.models.contains { $0.lastPathComponent == spec.model }
+                        VStack(alignment: .leading, spacing: 6) {
+                            Text(spec.title).font(.body)
+                            Text("\(modelTitle(spec.model)) · B = \(spec.b) vs A = \(spec.a) · \(spec.cells.joined(separator: ", ")) · \(spec.cycles) quartets · ~\(durationText(spec.estimatedSeconds))")
+                                .font(.caption).foregroundStyle(.secondary)
+                            if state.quickTitle == spec.title {
+                                if !state.progress.isEmpty { Text(state.progress).font(.callout.monospacedDigit()) }
+                                Button("Stop", role: .destructive) { state.stop() }
+                            } else if !have {
+                                Text("Needs \(spec.model) in the app").font(.caption).foregroundStyle(.orange)
                             } else {
-                                Image(systemName: "exclamationmark.triangle.fill").foregroundStyle(.orange).font(.title2)
-                            }
-                            VStack(alignment: .leading, spacing: 3) {
-                                Text(modelTitle(url.lastPathComponent)).font(.headline)
-                                Text(url.lastPathComponent).font(.caption.monospaced()).foregroundStyle(.secondary)
-                                if state.loading {
-                                    Text("Loading…").font(.caption)
-                                } else if let e = state.engine {
-                                    Text("\(e.weightType) · \(gb(state.size(url))) · " +
-                                         (VerifiedMark.get(url) != nil ? "SHA-256 verified" : "not checked against the published hash"))
-                                        .font(.caption).foregroundStyle(.secondary)
-                                } else {
-                                    Text("Not loaded (see the message below)").font(.caption).foregroundStyle(.orange)
-                                }
+                                Button("Run") { state.runQuick(spec) }
+                                    .buttonStyle(.borderedProminent)
+                                    .disabled(state.running || state.loading || state.suiteStep != nil || downloads.busy)
                             }
                         }
+                        .padding(.vertical, 2)
+                    }
+                } header: {
+                    Text("Quick tests")
+                } footer: {
+                    Text("One tap each: the test loads its model and sets everything. Keep the app open and the phone flat; results appear below and are saved to Documents.")
+                }
+
+                Section {
+                    if state.quickTitle != nil {
+                        Text("A quick test is running.").foregroundStyle(.secondary)
                     } else {
-                        Text("No model loaded. Pick one below.").foregroundStyle(.secondary)
-                    }
-                } header: {
-                    Text("Model under test")
-                } footer: {
-                    Text(state.status)
-                }
-
-                Section {
-                    ForEach(state.models, id: \.self) { url in
-                        let need = estimatedNeedBytes(modelFileBytes: state.size(url), mtp: url.lastPathComponent.lowercased().contains("-mtp"))
-                        let avail = state.device.appAvailableMemoryBytes
-                        let isSelected = state.selected?.lastPathComponent == url.lastPathComponent
-                        Button {
-                            state.load(url)
-                        } label: {
-                            HStack {
-                                VStack(alignment: .leading, spacing: 2) {
-                                    Text(modelTitle(url.lastPathComponent)).foregroundStyle(.primary)
-                                    Text(url.lastPathComponent).font(.caption2.monospaced()).foregroundStyle(.secondary)
-                                    Text("\(gb(state.size(url))) file, read from flash · ~\(gb(need)) app memory" + (avail > 0 ? (need < avail ? " · likely fits" : " · likely too large") : ""))
-                                        .font(.caption).foregroundStyle(avail > 0 && need >= avail ? .red : .secondary)
-                                }
-                                Spacer()
-                                if isSelected && state.loading {
-                                    ProgressView()
-                                } else if isSelected && state.engine != nil {
-                                    Label("Loaded", systemImage: "checkmark.circle.fill").font(.callout).foregroundStyle(.green)
-                                } else {
-                                    Text("Load").font(.callout).foregroundStyle(Color.accentColor)
-                                }
-                            }
-                        }
-                        .disabled(state.running || state.loading || state.suiteStep != nil || (isSelected && state.engine != nil))
-                    }
-                    Button("Import a .gguf…") { importing = true }.disabled(state.running || state.loading || state.suiteStep != nil)
-                } header: {
-                    Text("Choose a model")
-                } footer: {
-                    Text(state.models.isEmpty ? "No models yet: download one at the bottom of this page."
-                         : "Tap a model to load it; the loaded one is marked. Loading replaces the previous model.")
-                }
-
-                Section {
                     ForEach(Array(state.suite.enumerated()), id: \.offset) { i, spec in
                         let have = state.models.contains { $0.lastPathComponent == spec.model }
                         HStack(alignment: .top, spacing: 10) {
@@ -132,10 +94,84 @@ struct ContentView: View {
                         }
                     }
                     ForEach(state.suiteNotes, id: \.self) { Text($0).font(.caption).foregroundStyle(.orange) }
+                    }
                 } header: {
                     Text("Phone suite")
                 } footer: {
                     Text("Runs the included studies in order, loading each model, and saves one result file per study. The screen stays on; keep the app in front and the phone plugged in. If iOS stops the app (a model that does not fit), reopen it and resume.")
+                }
+
+                Section {
+                    if let url = state.selected {
+                        HStack(alignment: .top, spacing: 12) {
+                            if state.loading {
+                                ProgressView()
+                            } else if state.engine != nil {
+                                Image(systemName: "checkmark.circle.fill").foregroundStyle(.green).font(.title2)
+                            } else {
+                                Image(systemName: "exclamationmark.triangle.fill").foregroundStyle(.orange).font(.title2)
+                            }
+                            VStack(alignment: .leading, spacing: 3) {
+                                Text(modelTitle(url.lastPathComponent)).font(.headline)
+                                Text(url.lastPathComponent).font(.caption.monospaced()).foregroundStyle(.secondary)
+                                if state.loading {
+                                    Text("Loading…").font(.caption)
+                                } else if let e = state.engine {
+                                    Text("\(e.weightType) · \(gb(state.size(url))) · " +
+                                         (VerifiedMark.get(url) != nil ? "SHA-256 verified" : "not checked against the published hash"))
+                                        .font(.caption).foregroundStyle(.secondary)
+                                } else {
+                                    Text("Not loaded (see the message below)").font(.caption).foregroundStyle(.orange)
+                                }
+                            }
+                        }
+                    } else {
+                        Text("No model loaded. Pick one below.").foregroundStyle(.secondary)
+                    }
+                } header: {
+                    Text("Model under test")
+                } footer: {
+                    Text(state.status)
+                }
+
+                Section {
+                    Toggle("Custom study (choose model, arms and cells yourself)", isOn: $showCustom)
+                }
+
+                if showCustom {
+                Section {
+                    ForEach(state.models, id: \.self) { url in
+                        let need = estimatedNeedBytes(modelFileBytes: state.size(url), mtp: url.lastPathComponent.lowercased().contains("-mtp"))
+                        let avail = state.device.appAvailableMemoryBytes
+                        let isSelected = state.selected?.lastPathComponent == url.lastPathComponent
+                        Button {
+                            state.load(url)
+                        } label: {
+                            HStack {
+                                VStack(alignment: .leading, spacing: 2) {
+                                    Text(modelTitle(url.lastPathComponent)).foregroundStyle(.primary)
+                                    Text(url.lastPathComponent).font(.caption2.monospaced()).foregroundStyle(.secondary)
+                                    Text("\(gb(state.size(url))) file, read from flash · ~\(gb(need)) app memory" + (avail > 0 ? (need < avail ? " · likely fits" : " · likely too large") : ""))
+                                        .font(.caption).foregroundStyle(avail > 0 && need >= avail ? .red : .secondary)
+                                }
+                                Spacer()
+                                if isSelected && state.loading {
+                                    ProgressView()
+                                } else if isSelected && state.engine != nil {
+                                    Label("Loaded", systemImage: "checkmark.circle.fill").font(.callout).foregroundStyle(.green)
+                                } else {
+                                    Text("Load").font(.callout).foregroundStyle(Color.accentColor)
+                                }
+                            }
+                        }
+                        .disabled(state.running || state.loading || state.suiteStep != nil || (isSelected && state.engine != nil))
+                    }
+                    Button("Import a .gguf…") { importing = true }.disabled(state.running || state.loading || state.suiteStep != nil)
+                } header: {
+                    Text("Choose a model")
+                } footer: {
+                    Text(state.models.isEmpty ? "No models yet: download one at the bottom of this page."
+                         : "Tap a model to load it; the loaded one is marked. Loading replaces the previous model.")
                 }
 
                 if let engine = state.engine {
@@ -155,7 +191,7 @@ struct ContentView: View {
                                 set: { on in if on { state.cells.insert(cell.name) } else { state.cells.remove(cell.name) } }))
                         }
                         Stepper("Quartets per cell: \(state.cycles)", value: $state.cycles, in: 1...6)
-                        Stepper(String(format: "Cooldown: %.0f s", state.cooldown), value: $state.cooldown, in: 0...120, step: 2)
+                        Stepper(String(format: "Cooldown: %.0f s", state.cooldown), value: $state.cooldown, in: 0...180, step: 10)
                         Toggle("Start quartets only when nominal", isOn: $state.waitForNominal)
                         Picker("Prompt micro-batch (pp cells)", selection: $state.promptUbatch) {
                             Text("512 (as on the Mac)").tag(512)
@@ -183,6 +219,7 @@ struct ContentView: View {
                     }
                 }
 
+                }
                 if let r = state.result {
                     Section {
                         ForEach(r.summaries, id: \.cell) { s in
