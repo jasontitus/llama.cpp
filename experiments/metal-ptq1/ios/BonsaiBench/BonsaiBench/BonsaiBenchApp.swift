@@ -25,6 +25,7 @@ final class BenchState: ObservableObject {
     @Published var cycles = 3
     @Published var cooldown = 8.0
     @Published var waitForNominal = true
+    @Published var promptUbatch = 512
     @Published var gate = 1.20
     @Published var result: RunResult?
     @Published var resultURL: URL?
@@ -73,6 +74,7 @@ final class BenchState: ObservableObject {
             if let n = o["cycles"] as? Int { self.cycles = n }
             if let c = o["cooldown"] as? Double { self.cooldown = c }
             if let w = o["waitForNominal"] as? Bool { self.waitForNominal = w }
+            if let u = o["ubatch"] as? Int { self.promptUbatch = u }
             self.start()
         }
     }
@@ -179,7 +181,7 @@ final class BenchState: ObservableObject {
         let url = documents.appendingPathComponent("bonsaibench-\(stamp).json")
         var saveError: String?
         let s = Study(engine: engine, armA: armA, armB: armB, cells: chosen, cycles: cycles, cooldown: cooldown,
-                      waitForNominal: waitForNominal,
+                      waitForNominal: waitForNominal, promptUbatch: promptUbatch,
                       gate: gate, attempts: 3,
                       log: { line in Task { @MainActor in self.log.append(line) } },
                       save: { r in

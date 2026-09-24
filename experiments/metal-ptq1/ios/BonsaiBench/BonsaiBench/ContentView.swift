@@ -104,6 +104,11 @@ struct ContentView: View {
                         Stepper("Quartets per cell: \(state.cycles)", value: $state.cycles, in: 1...6)
                         Stepper(String(format: "Cooldown: %.0f s", state.cooldown), value: $state.cooldown, in: 0...120, step: 2)
                         Toggle("Wait for nominal thermal state", isOn: $state.waitForNominal)
+                        Picker("Prompt micro-batch (pp cells)", selection: $state.promptUbatch) {
+                            Text("512 (as on the Mac)").tag(512)
+                            Text("256").tag(256)
+                            Text("128").tag(128)
+                        }
                         Stepper(String(format: "Spread gate: %.2f", state.gate), value: $state.gate, in: 1.05...2.0, step: 0.05)
                     }
                     .disabled(state.running)

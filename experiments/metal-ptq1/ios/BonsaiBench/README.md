@@ -194,6 +194,19 @@ off by default in their code. It is not one of our changes and is not counted in
   under concurrency. On the phone, single-stream greedy output matched upstream in all 8 chat128 runs.
 - At pp512 it has no effect (0.99x): it only covers batches of up to 16 columns.
 
+**Bonsai 2 PTQ1_0, our changes against default upstream** (one accepted quartet per cell, thermal state
+fair throughout):
+
+| Cell | Upstream | Our PTQ1 stack | Speedup |
+|---|---:|---:|---:|
+| pp2 | 2.65 / 2.93 tok/s | 11.86 / 11.96 | **4.27x** |
+| pp4 | 4.32 / 4.70 | 10.39 / 10.81 | **2.35x** |
+| pp8 | 5.03 / 5.18 | 11.74 / 11.76 | **2.30x** (after one rejected quartet, spread 1.30) |
+
+Upstream's PTQ1_0 path for 2-8-token batches is very slow on the A19: 2.65 tok/s at pp2, against 15.8
+for Q1_0 upstream on the same phone. The multi-column kernels (the CUDA PR #218 port) remove that
+bottleneck. These batch shapes are what MTP verification and concurrent requests run.
+
 **Observations:**
 
 - **The Q1_0 kernels are compute-bound on the phone GPU.** Throughput barely grows from 2 to 8 tokens
@@ -207,6 +220,15 @@ off by default in their code. It is not one of our changes and is not counted in
   - Use a 30-60 s cooldown for the generation cells on a phone.
 - **Memory is not a limit for Q1_0.** The footprint stayed at 0.42-0.44 GB: weights are memory-mapped from
   flash and not counted, and iOS allowed 6.0 GB more.
+- **pp512 can fail on the phone: probably the GPU watchdog.** Both `llama_decode failed (-3)` stops (Q1_0
+  first study, PTQ1_0 study) happened in pp512. The seeded cell order puts pp512 fourth in the first cycle,
+  and both studies failed on their fourth cell.
+  - Metal runs about 90% of a graph as one command buffer (`n_cb` = 1), so a 512-token ubatch is 5-9 s of
+    GPU work on the phone. That is long enough to plausibly hit iOS's command-buffer timeout, more so when
+    the phone is warm and slower.
+  - This version records Metal's error text and every call's time to confirm it. It also has a "prompt
+    micro-batch" setting (512 / 256 / 128) to split the batch into shorter submissions.
+  - Until then, leave pp512 out of phone studies.
 - **pp512 is not slower with our stack.**
   - A first study measured 54.0 tok/s and then a failed command buffer. That did not reproduce: a later
     study ran the stack at 81.7 and 82.3 tok/s, with no error.

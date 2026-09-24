@@ -125,14 +125,16 @@ final class Engine {
         return Array(out.prefix(Int(n)))
     }
 
-    private func makeContext(nCtx: UInt32) throws -> OpaquePointer {
+    /// ubatch: the largest graph llama.cpp builds for a batch. Metal runs most of a graph as one command
+    /// buffer, so a 512-token ubatch is several seconds of GPU work on a phone; a smaller one splits it.
+    private func makeContext(nCtx: UInt32, ubatch: UInt32 = 512) throws -> OpaquePointer {
         var cp = llama_context_default_params()
         cp.n_ctx = nCtx
         // Only the last token's logits are ever read. The default (n_batch rows) would reserve
         // 512 x 248k floats (~0.5 GB) of compute buffer that a phone cannot spare.
         cp.n_outputs_max = 1
         cp.n_batch = 512
-        cp.n_ubatch = 512
+        cp.n_ubatch = ubatch
         cp.n_seq_max = 1
         cp.flash_attn_type = LLAMA_FLASH_ATTN_TYPE_ENABLED
         let threads = Int32(max(1, min(8, ProcessInfo.processInfo.activeProcessorCount - 2)))
@@ -248,8 +250,9 @@ final class Engine {
     /// "ppK": k tokens per decode call (llama-bench ppK; the step shape of MTP verification and concurrent
     /// requests), on a fresh context. One decode of a small batch is ~0.1 s on a phone, so both the warmup
     /// (which also brings the GPU clocks up) and the measurement run for a minimum time, not a count.
-    func batchRate(k: Int, warmupSeconds: Double = 1, minSeconds: Double = 2.5, minReps: Int = 2) throws -> (rate: Double, probe: Probe, calls: [Double]) {
-        let ctx = try makeContext(nCtx: UInt32(max(1024, k + 64)))
+    func batchRate(k: Int, ubatch: Int = 512, warmupSeconds: Double = 1, minSeconds: Double = 2.5,
+                   minReps: Int = 2) throws -> (rate: Double, probe: Probe, calls: [Double]) {
+        let ctx = try makeContext(nCtx: UInt32(max(1024, k + 64)), ubatch: UInt32(ubatch))
         defer { llama_free(ctx) }
         let tokens = randomTokens(k + 1)
         let batch = Array(tokens.prefix(k))

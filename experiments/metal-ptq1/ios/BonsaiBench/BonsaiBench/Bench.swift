@@ -144,6 +144,7 @@ struct RunResult: Codable {
     var cycles: Int
     var cooldownSeconds: Double
     var waitForNominal: Bool          // thermal gate: wait for nominal (else only leave serious/critical)
+    var promptUbatch: Int             // ubatch for ppK: 512 as on the Mac; smaller splits long GPU submissions
     var spreadGate: Double
     var prompt: String
     var quartets: [Quartet] = []
@@ -214,7 +215,7 @@ final class Study {
     }
 
     init(engine: Engine, armA: Arm, armB: Arm, cells: [Cell], cycles: Int, cooldown: Double, waitForNominal: Bool,
-         gate: Double, attempts: Int, log: @escaping (String) -> Void, save: @escaping (RunResult) -> Void) {
+         promptUbatch: Int = 512, gate: Double, attempts: Int, log: @escaping (String) -> Void, save: @escaping (RunResult) -> Void) {
         self.engine = engine
         self.cells = cells
         self.attempts = attempts
@@ -225,7 +226,8 @@ final class Study {
         result = RunResult(build: .current, launchEnvironment: launchEnvironment, device: DeviceInfo.capture(),
                            model: url.lastPathComponent, modelDescription: engine.description, modelBytes: size,
                            modelSHA256Verified: VerifiedMark.get(url), armA: armA, armB: armB, cycles: cycles,
-                           cooldownSeconds: cooldown, waitForNominal: waitForNominal, spreadGate: gate, prompt: benchPrompt)
+                           cooldownSeconds: cooldown, waitForNominal: waitForNominal, promptUbatch: promptUbatch,
+                           spreadGate: gate, prompt: benchPrompt)
     }
 
     private struct Interrupted: Error {}
@@ -268,7 +270,7 @@ final class Study {
                 obs.tokensPerSecond = r.rate
                 probe = r.probe
             default:
-                let r = try engine.batchRate(k: cell.count, minReps: cell.count >= 256 ? 2 : 5)
+                let r = try engine.batchRate(k: cell.count, ubatch: result.promptUbatch, minReps: cell.count >= 256 ? 2 : 5)
                 obs.tokensPerSecond = r.rate
                 obs.callSeconds = r.calls
                 probe = r.probe
