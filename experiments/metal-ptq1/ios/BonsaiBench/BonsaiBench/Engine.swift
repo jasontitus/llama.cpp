@@ -121,8 +121,12 @@ final class Engine {
     let sizeBytes: UInt64
     let nParams: UInt64
     let hasMTP: Bool                      // loaded with its multi-token-prediction layers (an MTP GGUF)
+    /// The weights were read into the app's memory instead of memory-mapped from the file: iOS cannot evict
+    /// them under memory pressure (memory-mapped weights are re-read from flash after an eviction), but they
+    /// count against the app's memory limit.
+    let weightsInMemory: Bool
 
-    init(path: String) throws {
+    init(path: String, weightsInMemory: Bool = false) throws {
         LibraryLog.shared.install()
         llama_backend_init()
         var mp = llama_model_default_params()
@@ -133,6 +137,8 @@ final class Engine {
         #endif
         // A grafted MTP GGUF ("...-mtp.gguf") carries the MTP head; load it so gen cells can draft with it.
         mp.load_mtp = (path as NSString).lastPathComponent.lowercased().contains("-mtp")
+        if weightsInMemory { mp.load_mode = LLAMA_LOAD_MODE_NONE }   // read into backend buffers; default: memory-mapped
+        self.weightsInMemory = weightsInMemory
         guard let m = llama_model_load_from_file(path, mp) else { throw EngineError.loadFailed(path) }
         model = m
         vocab = llama_model_get_vocab(m)

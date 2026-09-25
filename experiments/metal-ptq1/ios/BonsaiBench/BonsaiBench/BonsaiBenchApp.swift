@@ -221,7 +221,7 @@ final class BenchState: ObservableObject {
         }
     }
 
-    func load(_ url: URL, then: ((Engine?) -> Void)? = nil) {
+    func load(_ url: URL, weightsInMemory: Bool = false, then: ((Engine?) -> Void)? = nil) {
         guard !loading, !running else { then?(nil); return }
         study = nil          // it holds the engine; the old model must be freed before the next one loads
         let old = WeakEngine(engine)
@@ -238,7 +238,7 @@ final class BenchState: ObservableObject {
             while old.engine != nil && Date().timeIntervalSince(t0) < 5 { try? await Task.sleep(nanoseconds: 50_000_000) }
             flushGPU()
             do {
-                let e = try Engine(path: url.path)
+                let e = try Engine(path: url.path, weightsInMemory: weightsInMemory)
                 await MainActor.run {
                     UserDefaults.standard.removeObject(forKey: "loadingModel")
                     self.loading = false
@@ -418,10 +418,10 @@ final class BenchState: ObservableObject {
                 if !started { skip("the study could not start (\(self.status))") }
             }
         }
-        if let e = engine, selected?.lastPathComponent == spec.model {
+        if let e = engine, selected?.lastPathComponent == spec.model, e.weightsInMemory == spec.weightsInMemory {
             go(e)
         } else {
-            load(url) { e in
+            load(url, weightsInMemory: spec.weightsInMemory) { e in
                 if self.suiteStopped { return self.suiteFinished() }
                 if let e { go(e) } else { skip("the model did not load (\(self.status))") }
             }

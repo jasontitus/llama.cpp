@@ -194,6 +194,7 @@ struct ScreenResult: Codable {
     var modelDescription: String
     var modelBytes: UInt64
     var modelSHA256Verified: String?
+    var weightsInMemory: Bool          // loaded into app memory (true) or memory-mapped
     var configs: [ScreenConfig]
     var cells: [String]
     var rounds: Int
@@ -262,7 +263,8 @@ final class Screen {
         let size = (try? url.resourceValues(forKeys: [.fileSizeKey]).fileSize).map { UInt64($0) } ?? 0
         result = ScreenResult(title: title, build: .current, launchEnvironment: launchEnvironment, device: DeviceInfo.capture(),
                               model: url.lastPathComponent, modelDescription: engine.description, modelBytes: size,
-                              modelSHA256Verified: VerifiedMark.get(url), configs: spec.configs, cells: spec.cells,
+                              modelSHA256Verified: VerifiedMark.get(url), weightsInMemory: engine.weightsInMemory,
+                              configs: spec.configs, cells: spec.cells,
                               rounds: spec.rounds, reference: spec.reference, cooldownSeconds: cooldown,
                               waitForNominal: waitForNominal, thermalWaitLimitSeconds: thermalWaitLimit, seed: String(seed))
     }

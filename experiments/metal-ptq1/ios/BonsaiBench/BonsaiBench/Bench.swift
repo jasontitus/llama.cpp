@@ -190,6 +190,7 @@ struct RunResult: Codable {
     var modelDescription: String
     var modelBytes: UInt64
     var modelSHA256Verified: String?  // set when the file matched the published hash in this app
+    var weightsInMemory: Bool?        // the model was read into app memory instead of memory-mapped
     var armA: Arm
     var armB: Arm
     var cycles: Int
@@ -290,6 +291,7 @@ final class Study {
                            cooldownSeconds: cooldown, waitForNominal: waitForNominal, promptUbatch: promptUbatch,
                            spreadGate: gate, prompt: benchPrompt)
         result.thermalWaitLimitSeconds = thermalWaitLimit
+        result.weightsInMemory = engine.weightsInMemory
     }
 
     private struct Interrupted: Error {}

@@ -16,11 +16,13 @@ struct StudySpec: Hashable {
     /// A diagnostic screen (Diagnose.swift) instead of an A-B-B-A study: `a`/`b`/`cells`/`cycles` are unused.
     var screen: ScreenSpec? = nil
     var attempts = 3                 // A-B-B-A: attempts per quartet
+    var weightsInMemory = false      // load the model into app memory instead of memory-mapping it
 
     /// One line for the lists: what is compared and how.
     var detail: String {
         if let screen {
-            return "\(screen.configs.map(\.name).joined(separator: "; ")) · \(screen.cells.joined(separator: ", ")) · \(screen.rounds) rounds, \(Int(cooldown)) s cooldown"
+            return "\(screen.configs.map(\.name).joined(separator: "; ")) · \(screen.cells.joined(separator: ", ")) · \(screen.rounds) rounds, \(Int(cooldown)) s cooldown" +
+                (weightsInMemory ? " · weights in app memory" : "")
         }
         return "B = \(b) vs A = \(a) · \(cells.joined(separator: ", ")) · \(cycles) quartets, \(Int(cooldown)) s cooldown" +
             (ubatch != 512 ? " · micro-batch \(ubatch)" : "")
@@ -120,7 +122,19 @@ enum Suites {
                       ScreenConfig(name: "stack without MULTICOL, GLU and STAGE",
                                    flags: stack(without: ["GGML_METAL_PTQ1_MULTICOL", "GGML_METAL_PTQ1_GLU", "GGML_METAL_PTQ1_STAGE"])),
                   ], cells: ["pp512"], rounds: 4, reference: "upstream", retryFailed: true)),
-    ]
+    ] + memoryStudies
+
+    /// 5. iOS evicts the memory-mapped weights (up to 6 GB re-read from flash in one run, 2026-09-25 diagnostics):
+    ///    the same runs with the weights memory-mapped and read into app memory, alternating (A B A B, the model
+    ///    reloaded each time), with 4 command buffers so GPU errors stay out of it. If the in-memory model does not
+    ///    fit, the app is stopped while loading and the suite marks the model's remaining studies "did not fit".
+    private static let memoryStudies: [StudySpec] = [false, true, false, true].enumerated().map { i, inMemory in
+        StudySpec(title: "Weights " + (inMemory ? "in app memory" : "memory-mapped") + " (\(i / 2 + 1) of 2)", model: ptq1,
+                  a: "-", b: "-", cells: [], cycles: 0, cooldown: 60,
+                  screen: ScreenSpec(configs: [ScreenConfig(name: "upstream, 4 command buffers", flags: ["GGML_METAL_N_CB": "4"])],
+                                     cells: ["pp512"], rounds: 4, reference: "upstream, 4 command buffers"),
+                  weightsInMemory: inMemory)
+    }
 
     private static let benchmarkStudies: [StudySpec] = [
         StudySpec(title: "Q1_0 prompts: the new K32 prefill kernel vs our Q1 stack", model: q1, a: "M5 stack (Q1)",

@@ -317,14 +317,20 @@ gate, each saving `Documents/bonsaidiag-<time>.json` (the A-B-B-A one `bonsaiben
    op tables compare).
 4. The stack with the flags that act at 512 tokens left out one at a time, the three 2-8-token kernels left out
    together, and upstream against itself as the null; 4 mirrored rounds, a failed run retried once.
+5. (next build) Weights memory-mapped against weights read into app memory (`LLAMA_LOAD_MODE_NONE`; iOS cannot
+   evict them, but they count against the app's memory limit, ~6.4 GB with the increased-memory-limit
+   entitlement), alternating A B A B with the model reloaded each time, 4 command buffers so GPU errors stay out.
+   In-memory loading gives bitwise-identical logits (M5 check).
 
 A screen stops with "check failed" if a configuration did not take effect (no stats written, a different
 command-buffer count, no profile).
 
 **The weights leave memory while the app waits.** The diagnostics' memory counters show iOS evicting the
-memory-mapped model while the app waits for the phone to cool: after gaps of 2 minutes or more, the next run
-paged 1.8-5.3 GB back in from flash (after a 40 s gap, almost nothing), which slows its warmup and sometimes its
-timed calls (61.7 instead of ~72 tok/s at pp512). Since build `928af16`+1, ppK warmup goes on while a call still
+memory-mapped model: runs paged 1.8-6.0 GB back in from flash, mostly after the app waited 2 minutes or more for
+the phone to cool, but also after 40 s gaps and during runs (6.0 GB in one run, more than the 5.5 GB model).
+Such runs slow to 55-62 instead of ~72 tok/s at pp512. The phone (12 GB) is under constant memory pressure with
+this model loaded, with Apple Intelligence's on-device model service the largest other process. Since `0d39d22`,
+ppK warmup goes on while a call still
 pages in more than 64 MB (at most 4 warmup calls), every call's page-ins are recorded (`warmupPageinBytes`,
 `callPageinBytes`), and the diagnostics leave runs whose timed calls paged in more than 256 MB out of the rates.
 Earlier phone results did not control for this; their warmup calls absorbed most of it.
