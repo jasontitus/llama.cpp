@@ -1,0 +1,9 @@
+Full-model KL check with llama-perplexity (Bonsai-27B-Q1_0, WikiText-2 test, 20 chunks x 512, ubatch 512, -fa on),
+build before the review fixes (K32 kernels then in the mul_mm library). llama-perplexity stores the base
+log-probabilities as 16-bit values, so its maximum KLD has a storage floor: the same configuration run twice
+gives the same 5.2e-5 as swizzle 1. This is consistent with identical logits but cannot show bitwise equality;
+check-q1-model-*.txt (final build, float logits) does.
+
+noise control: Q1 stack vs Q1 stack (same config twice)
+  control: Mean PPL(Q)/PPL(base) : 1.000000 ± 0.000001|Mean KLD: -0.000000 ± 0.000000|Maximum KLD: 0.000052|Same top p: 100.000 ± 0.000 %|
+  swizzle 1 (same base): Mean PPL(Q)/PPL(base) : 1.000000 ± 0.000001|Mean KLD: -0.000000 ± 0.000000|Maximum KLD: 0.000052|Same top p: 100.000 ± 0.000 %|

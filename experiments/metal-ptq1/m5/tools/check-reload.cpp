@@ -40,6 +40,8 @@ static const char * k_flags[] = {
     "GGML_METAL_Q1_GLU",
     "GGML_METAL_Q1_GLU_MAX",
     "GGML_METAL_Q1_GLU_NR0",
+    "GGML_METAL_Q1_MM_K32_ALIGNED",
+    "GGML_METAL_Q1_SWIZZLE_LOG",
     "GGML_METAL_SMALLM",
     "GGML_METAL_SMALLM_MM",
     "GGML_GDN_ROWS_PLAIN",

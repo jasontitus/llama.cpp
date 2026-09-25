@@ -17,6 +17,13 @@ final class BenchState: ObservableObject {
     @Published var engine: Engine?
     @Published var status = "Download a model below, or copy a .gguf into the app's Documents (Finder or Files)."
     @Published var log: [String] = []
+
+    /// A line of the on-screen log, also appended to Documents/bonsaibench-log.txt so that a Mac can read it
+    /// (devicectl device copy from) while a suite runs, without touching the app.
+    func addLog(_ line: String) {
+        log.append(line)
+        LogFile.append(line)
+    }
     @Published var progress = ""
     @Published var running = false
     @Published var loading = false
@@ -260,7 +267,7 @@ final class BenchState: ObservableObject {
     /// Start a study with the current settings; `then` runs on the main queue when it has finished, with
     /// whether its results were saved. Returns false (and says why) if it cannot start.
     @discardableResult
-    func start(then: ((RunResult, Bool) -> Void)? = nil) -> Bool {
+    func start(thermalWaitLimit: Double = 300, then: ((RunResult, Bool) -> Void)? = nil) -> Bool {
         guard let engine else { status = "Load a model first."; return false }
         guard !running else { return false }
         guard !Downloader.shared.busy else { status = "Wait for downloads and hash checks to finish."; return false }
@@ -282,9 +289,9 @@ final class BenchState: ObservableObject {
         let url = documents.appendingPathComponent("bonsaibench-\(stamp).json")
         var saveError: String?
         let s = Study(engine: engine, armA: armA, armB: armB, cells: chosen, cycles: cycles, cooldown: cooldown,
-                      waitForNominal: waitForNominal, promptUbatch: promptUbatch,
+                      waitForNominal: waitForNominal, thermalWaitLimit: thermalWaitLimit, promptUbatch: promptUbatch,
                       gate: gate, attempts: 3,
-                      log: { line in Task { @MainActor in self.log.append(line) } },
+                      log: { line in Task { @MainActor in self.addLog(line) } },
                       progress: { p in Task { @MainActor in self.progress = p } },
                       save: { r in
                           // Atomic, after every quartet: a study killed by iOS keeps what it measured.
@@ -292,7 +299,7 @@ final class BenchState: ObservableObject {
                           catch { saveError = error.localizedDescription }
                       })
         study = s
-        log.append("\(modelTitle(engine.path.split(separator: "/").last.map(String.init) ?? "")) · A = \(armA.name) · B = \(armB.name)")
+        addLog("\(modelTitle(engine.path.split(separator: "/").last.map(String.init) ?? "")) · A = \(armA.name) · B = \(armB.name)")
         // A dedicated thread at user-initiated priority: CPU-side graph encoding stays on performance cores.
         let t = Thread {
             s.run()
@@ -392,7 +399,7 @@ final class BenchState: ObservableObject {
                 self.waitForNominal = spec.waitForNominal
                 self.gate = spec.gate
                 self.promptUbatch = spec.ubatch
-                let started = self.start { r, saved in
+                let started = self.start(thermalWaitLimit: spec.thermalWaitLimit) { r, saved in
                     self.recordOutcome(i, spec, r, saved)
                     DispatchQueue.main.async { self.suiteNext(i + 1) }
                 }
@@ -500,4 +507,27 @@ func gb(_ bytes: UInt64) -> String { String(format: "%.2f GB", Double(bytes) / 1
 final class WeakEngine: @unchecked Sendable {
     weak var engine: Engine?
     init(_ e: Engine?) { engine = e }
+}
+
+/// Documents/bonsaibench-log.txt: every on-screen log line with a timestamp, written off the main thread and
+/// restarted when it passes 5 MB.
+enum LogFile {
+    static let url = FileManager.default.urls(for: .documentDirectory, in: .userDomainMask)[0]
+        .appendingPathComponent("bonsaibench-log.txt")
+    private static let queue = DispatchQueue(label: "bonsaibench.logfile", qos: .utility)
+
+    static func append(_ line: String) {
+        let data = Data((ISO8601DateFormatter().string(from: Date()) + " " + line + "\n").utf8)
+        queue.async {
+            let size = (try? FileManager.default.attributesOfItem(atPath: url.path)[.size] as? Int) ?? 0
+            if size > 5_000_000 { try? FileManager.default.removeItem(at: url) }
+            if let h = try? FileHandle(forWritingTo: url) {
+                defer { try? h.close() }
+                _ = try? h.seekToEnd()
+                try? h.write(contentsOf: data)
+            } else {
+                try? data.write(to: url)
+            }
+        }
+    }
 }

@@ -62,7 +62,10 @@ is stopped keeps what it measured (`unfinishedQuartet`). It records:
 - **Per observation:**
   - thermal state before and after;
   - the process footprint and the memory iOS still allows, while the context is alive;
-  - any library warnings or errors, including Metal's reason for a failed command buffer.
+  - any library warnings or errors, including Metal's reason for a failed command buffer;
+  - the prompt-processing (mul_mm) kernels the library created, as "pipeline: kernel_mul_mm_...". Each is
+    created once per app launch, so it appears in the first observation that uses it; this is how a phone
+    result shows that the K32 kernel really ran.
 
 Arms:
 
@@ -70,8 +73,9 @@ Arms:
 - **bit-exact (rows mode):** the in-place delta-net state only.
 - **The recommended stack** for the model's weight type, read from the GGUF.
 - **The stack plus batch-invariant mode.**
-- **Per type:** the tensor path (PTQ1_0). For Q1_0, PrismML's own popcount option alone and with our
-  stack, for context; it is their flag, not one of our changes.
+- **Per type:** the tensor path (PTQ1_0). For Q1_0, "M5 stack (Q1) + K32 prefill" (our new prompt kernel,
+  `GGML_METAL_Q1_SWIZZLE_LOG=1`: +7% pp512 on M5 Max), and PrismML's own popcount option alone and with our
+  stack, for context; popcount is their flag, not one of our changes.
 - **"only X":** each flag of the stack on its own, to find which one causes a difference.
 
 ### MTP (multi-token prediction)
@@ -195,8 +199,15 @@ so: that model does not fit.
 
 ## Running a study
 
-**Quick tests** (top of the app) are the simplest: each has one Run button that loads the right model and
-sets the arms, cells, quartets and cooldown itself. The **Phone suite** runs several of them in a row.
+**Unattended run** (the button at the top of the app) runs every study still needed, in order, loading each
+model and saving one result file per study; the list of studies, with a switch per study, is below the quick
+tests. It takes a few hours with cooling. **Quick tests** run one study each: one Run button that loads the
+right model and sets the arms, cells, quartets and cooldown itself.
+
+Everything the app shows in its log is also appended, with timestamps, to `Documents/bonsaibench-log.txt`, and
+each study's result file is rewritten after every quartet. A Mac can read both while a suite runs without
+disturbing it: `xcrun devicectl device copy from --device <id> --domain-type appDataContainer
+--domain-identifier dev.bonsaibench.app --source Documents/bonsaibench-log.txt --destination .`
 
 **A custom study** (switch "Custom study" on):
 
@@ -292,6 +303,46 @@ cooldown:
   at 3.3 tok/s.
 - PTQ1_0 generation is compute-bound on the phone too: 5.7 tok/s upstream in chat128, against about 9.6
   for Q1_0 in chat128.
+
+**Bonsai 1 binary Q1_0: the K32 prefill kernel** (new on 2026-09-24; our Q1 stack against the stack plus
+`GGML_METAL_Q1_SWIZZLE_LOG=1`; `iphone17promax-q1-k32-prefill-vs-stack-2026-09-25T01-52-17Z.json`):
+
+| Cell | Q1 stack | + K32 prefill | Speedup |
+|---|---:|---:|---:|
+| pp128 (3 quartets, all accepted) | 94.8 tok/s | 101.0 | **1.065x** (1.060-1.067) |
+| pp512 (2 of 3 quartets) | 81.7 | 86.5 | 1.059x (1.025, 1.094) |
+
+- iOS built the optional `mul_mm_q1` library, and the result file logs `pipeline:
+  kernel_mul_mm_q1_0_f32_k32_swizzle1` for the B arm, so the new kernel really ran. M5 Max: 1.07x / 1.08x.
+- 6 pp512 runs failed with the GPU error described below, in both arms.
+
+**Rows mode alone at pp512 on PTQ1_0** (`iphone17promax-ptq1-pp512-only-rows-2026-09-25T02-36-41Z.json`): one
+accepted quartet, 0.97x; 7 runs failed with the GPU error below, in both arms including upstream. With
+`SMALLM_MM` alone at 0.975x, neither flag explains the stack's ~0.70x by itself.
+
+**512-token prompts fail intermittently on the phone.** In the two studies above, about 1 in 4 pp512 runs
+stopped with `Discarded (victim of GPU error/recovery) (00000005:kIOGPUCommandBufferCallbackErrorInnocentVictim)`,
+in every arm, including plain upstream and at nominal temperature, so it is not caused by our flags. A
+512-token micro-batch is several seconds of GPU work in one command buffer; the "prompt micro-batch" setting
+(256 or 128) splits it, and is the next thing to try.
+
+**Bonsai 2 PTQ1_0 with MTP: upstream plain decoding against our flags + MTP** (gen128, one draft token,
+the MTP file; `iphone17promax-ptq1-mtp-upstream-vs-stack-mtp-2026-09-25T00-19-23Z.json`). Three cycles were
+requested and two quartets were accepted (six attempts), so the result is preliminary:
+
+| | Upstream plain | Our flags + MTP | Speedup |
+|---|---:|---:|---:|
+| Accepted quartets (2) | 5.43 tok/s | 7.39 | **1.36x** (1.29, 1.44) |
+| All 11 runs of each arm, any quartet | 3.38-6.13 | 7.09-7.93 | |
+
+- 649 of 759 drafts were accepted (85.5%, as on the M5), and the 128 tokens were identical between the
+  arms in all 5 complete quartets.
+- The M5's comparable figure is its generation-only rate: 1.35x.
+- Heat is again the problem, and it hits upstream harder: its runs ranged 3.4-6.1 tok/s while flags + MTP
+  held 7.1-7.9. Four attempts were rejected, one each for a spread over the 1.2 gate, the phone not cooling
+  to the gate within 5 minutes, the phone reaching serious, and the app leaving the foreground; the first
+  cycle used up its three attempts. Even so, the slowest flags + MTP run was faster than the fastest
+  upstream run.
 
 Upstream's PTQ1_0 path for 2-8-token batches is very slow on the A19: 2.9 tok/s at pp2, against 15.8
 for Q1_0 upstream on the same phone. The multi-column kernels (the CUDA PR #218 port) remove that

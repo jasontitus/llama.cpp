@@ -434,3 +434,61 @@ GPU-family-7 only), and a paired A-B-B-A of the pre-M1 build (`754d1fb`) against
 the PTQ1 flags in both arms gives tg128 1.005x, pp2 0.989x, pp4 0.994x, pp8 1.000x, 2 requests 0.992x,
 MTP 1 request 0.998x (3 quartets each, all accepted first attempt, identical tokens in the server cells).
 Results in `results/m1-change-check/`.
+
+## Q1_0 K32 prefill (`GGML_METAL_Q1_MM_K32_ALIGNED`, `GGML_METAL_Q1_SWIZZLE_LOG`)
+
+Ported from the earlier Bonsai 1 kernel-tuning work (`~/experiments/ktune`, historically -4.8% cold prefill,
+bitwise; TODO item 23). `kernel_mul_mm_q1_0_f32_k32` is the tensor-API `kernel_mul_mm` specialised for Q1_0
+products made only of full tiles: a static K=32 `matmul2d` descriptor, fixed 32 x 128 operand views and a
+whole-tile store, no bounds handling. The same threads dequantize the same 16-weight chunks in the same K
+order, so the result can be (and on M5 is) bitwise equal to the generic kernel. `SWIZZLE_LOG=L` (1-3,
+implies K32) also groups 2^L adjacent row tiles on the grid's x axis so they run on the same activation
+columns.
+
+**Eligibility, per product:** Q1_0 x F32 -> F32 on a device with tensor units, all contiguous, and
+K % 32 == 0, M % 64 == 0, N % 128 == 0; otherwise the whole product stays on the generic kernel (swizzle
+also needs M/64 % 2^L == 0). In Bonsai-27B-Q1_0 every Q1_0 projection qualifies at 128- and 512-token
+micro-batches (FFN, attention, delta-net in/out, and the output head when every position has logits) except
+the 48-row `ssm_alpha`/`ssm_beta` (small-row path). A micro-batch whose size is not a multiple of 128 (the last
+one of most prompts, continuous-batching steps) gets nothing; see TODO 23.
+
+**Safety:** the kernels live in their own Metal library (`kernels/mul_mm_q1.metal`), marked optional: if a
+device compiler rejects it, the backend loads without it and a selected K32 kernel falls back to the generic
+one with a warning, remembered for the process (tested by injecting a compile error; `results/q1-k32/
+library-and-fallback.txt`). Cold build of that library on M5: 0.13 s, in parallel with the 0.74 s `mul_mm`
+library, so startup is unchanged; its pipelines are created only when a flag selects them.
+
+**Correctness (M5 Max, final build):**
+
+- `tools/check-q1-mm.cpp`: 17 products x 4 flag settings, each in a fresh process (so the pipeline log names
+  the kernel that ran: `loaded kernel_mul_mm_q1_0_f32_k32...`), bitwise equal to flags off, guard buffer after
+  the output untouched. Shapes: all Bonsai-27B projection shapes including the 248320-row output head, a
+  one-column-tile product, M/64 = 3, batched, broadcast (dims 2 and 3), and four tail shapes that must stay
+  generic.
+- `tools/check-q1-model.cpp`: full model, 700 WikiText tokens as one prompt with logits at every position (a
+  512-token micro-batch on K32, a 188-token one on the generic kernel): Q1 stack vs + K32, + swizzle 1 and a
+  repeat of the stack, and flags off vs swizzle 1 alone: 0 of 173,824,000 float logits differ in every arm,
+  with the kernel each arm introduced identified.
+- Correctness matrix unchanged; its test-backend-ops shapes are too small to reach K32, so it only shows
+  that the flags leave everything else alone.
+- Bitwise equality is a property of this device's compiler, not a guarantee: re-run both checkers on other
+  devices and OS versions. (An earlier llama-perplexity KL check sits at that tool's 16-bit storage floor,
+  max KLD 5.2e-5 for the same configuration run twice as for swizzle 1: `results/q1-k32/kld-prefix-build.txt`.)
+
+**Speed (M5 Max, Bonsai-27B-Q1_0, llama-bench `-fa on`, ubatch 512, depth 0, A-B-B-A, 3 quartets, all
+accepted first attempt; tokens/s A -> B, per-quartet range):**
+
+| Comparison | pp512 | pp128 | tg128 |
+|---|---|---|---|
+| Q1 stack -> + swizzle 1 | **1.071x** (887.7 -> 950.5; 1.069-1.072) | **1.082x** (643.5 -> 696.2; 1.079-1.084) | 0.999x (0.995-1.007) |
+| + swizzle 1 -> + swizzle 2 | 0.989x | 0.999x | |
+| + swizzle 1 -> + swizzle 3 | 0.978x | 1.001x | |
+| flags off -> Q1 stack + swizzle 1 | **1.109x** (856.7 -> 950.3) | **1.137x** (613.1 -> 697.3) | 1.132x (63.7 -> 72.2) |
+| Q1 stack -> + K32 (no swizzle; build before the review fixes) | 1.056x | 1.085x | discarded |
+| same, kernels in the optional library (final source) | **1.070x** (888.1 -> 950.1; 1.069-1.071) | **1.081x** (643.8 -> 696.2; 1.080-1.082) | |
+
+- Swizzle 1 is the best grouping; it adds about 1.4% at pp512 over K32 alone (two separate studies, not a
+  paired comparison) and nothing at pp128, where there is one column tile.
+- Decode never reaches `mul_mm` (one token per step), so tg128 is unaffected by construction; the K32-only
+  study's tg128 was disturbed by drift within its `-r 3` invocations (72 -> 54 tok/s) and is not reported.
+- Results in `results/q1-k32/`.

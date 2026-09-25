@@ -1,0 +1,19 @@
+Optional mul_mm_q1 library (K32 kernels): startup cost and failure handling, M5 Max, macOS 26.6.2
+
+Library build at backend start (ggml_metal_library_compile_all, embedded source, all kinds in parallel);
+cold = Metal's shader cache defeated with a comment nonce in both mul_mm sources:
+
+                      mul_mm     mul_mm_q1   all 21 libraries (wall)
+  cold (first run)    0.742 s    0.127 s     0.742 s (max single = mul_mm)
+  warm (second run)   0.001 s    0.008 s     0.009 s
+
+The K32 pipelines themselves are created only when a flag selects them.
+
+Fault injection: `#error` appended to kernels/mul_mm_q1.metal, rebuilt, then:
+  - backend start: "optional 'mul_mm_q1' library failed to build; its research kernels are unavailable: ..."
+    (warning), "loaded 21 libraries", backend OK (flags off unaffected)
+  - check-q1-model, flags off vs GGML_METAL_Q1_SWIZZLE_LOG=1 (700 tokens): one warning
+    "kernel_mul_mm_q1_0_f32_k32_swizzle1 is unavailable; using the generic kernel", output bitwise equal,
+    and the checker FAILS the arm ("kernel_mul_mm_q1_0_f32_k32_swizzle1 was never created")
+  - check-q1-mm: every eligible K32/swizzle case FAILS with "kernel kernel_mul_mm_q1_0_f32 (want ...k32...)"
+Sources restored afterwards (kernels/mul_mm.metal identical to the committed file); all checks pass again.

@@ -6,6 +6,7 @@
 
 #include "ggml-impl.h"
 
+#include <atomic>
 #include <cassert>
 #include <memory>
 #include <string>
@@ -849,8 +850,35 @@ ggml_metal_pipeline_with_params ggml_metal_library_get_pipeline_mul_mm(ggml_meta
     const bool ptq1_b128 = ptq1_b128_env && has_tensor && tsrc0 == GGML_TYPE_PTQ1_0 && tsrc1 == GGML_TYPE_F32 &&
                            op->src[0]->ne[0] % 128 == 0;
 
+    // research (historical Bonsai 1 prefill work, ported): Q1_0 products made only of full tiles on a
+    // static-K32 variant of the tensor kernel without bounds handling (GGML_METAL_Q1_MM_K32_ALIGNED=1),
+    // optionally on a grouped grid where 2^log adjacent row tiles share activation columns
+    // (GGML_METAL_Q1_SWIZZLE_LOG=1..3, which implies the K32 kernel). The decision is per product: any
+    // M % 64, N % 128 or K % 32 remainder keeps the whole product on the generic kernel. Same
+    // dequantization, K32 order and precision as the generic kernel; output measured bitwise equal on M5.
+    const int  q1_swz_env = GGML_METAL_ENV_INT("GGML_METAL_Q1_SWIZZLE_LOG", 0);
+    const int  q1_swz_log = q1_swz_env >= 1 && q1_swz_env <= 3 ? q1_swz_env : 0;
+    if (q1_swz_env != 0 && q1_swz_log == 0) {
+        static std::atomic<bool> warned{false};
+        if (!warned.exchange(true)) {
+            GGML_LOG_WARN("%s: GGML_METAL_Q1_SWIZZLE_LOG=%d ignored (use 1..3)\n", __func__, q1_swz_env);
+        }
+    }
+    static std::atomic<bool> q1_k32_failed{false}; // the K32 kernels were unavailable once: stop asking
+    const bool q1_k32_env = GGML_METAL_ENV_INT("GGML_METAL_Q1_MM_K32_ALIGNED", 0) == 1 || q1_swz_log != 0;
+    const bool q1_k32 = q1_k32_env && !q1_k32_failed.load(std::memory_order_relaxed) && has_tensor &&
+                        tsrc0 == GGML_TYPE_Q1_0 && tsrc1 == GGML_TYPE_F32 && op->type == GGML_TYPE_F32 &&
+                        !bc_inp && !bc_out && op->ne[0] >= NRA && op->ne[1] >= NRB &&
+                        ggml_is_contiguous(op->src[0]) && ggml_is_contiguous(op->src[1]) && ggml_is_contiguous(op);
+    // the grouped grid needs a whole number of row-tile groups
+    const bool q1_swz = q1_k32 && q1_swz_log != 0 && (op->ne[0] / NRA) % (1 << q1_swz_log) == 0;
+
     if (ptq1_b128) {
         snprintf(base, 256, "kernel_mul_mm_ptq1_0_f32_b128");
+    } else if (q1_swz) {
+        snprintf(base, 256, "kernel_mul_mm_q1_0_f32_k32_swizzle%d", q1_swz_log);
+    } else if (q1_k32) {
+        snprintf(base, 256, "kernel_mul_mm_q1_0_f32_k32");
     } else {
         snprintf(base, 256, "kernel_mul_mm_%s_%s", ggml_type_name(tsrc0), ggml_type_name(tsrc1));
     }
@@ -873,12 +901,21 @@ ggml_metal_pipeline_with_params ggml_metal_library_get_pipeline_mul_mm(ggml_meta
         ggml_metal_cv_free(cv);
     }
 
+    // K32 kernels missing (their optional library failed to build) or rejected: remember it and select again,
+    // which now picks the generic kernel with its own settings
+    if (!res.pipeline && q1_k32) {
+        GGML_LOG_WARN("%s: %s is unavailable; using the generic kernel\n", __func__, base);
+        q1_k32_failed.store(true, std::memory_order_relaxed);
+        return ggml_metal_library_get_pipeline_mul_mm(lib, op);
+    }
+
     if (has_tensor) {
         res.nr0 = NRA;
         res.nr1 = NRB;
 
         const size_t smem_a = NRA * (ptq1_b128 ? 128 : N_MM_NK_TOTAL) * sizeof(ggml_fp16_t);
         res.smem = smem_a;
+        res.grid_swizzle_log = q1_swz ? q1_swz_log : 0;
     } else {
         res.nr0 = 64;
         res.nr1 = 32;
@@ -891,7 +928,6 @@ ggml_metal_pipeline_with_params ggml_metal_library_get_pipeline_mul_mm(ggml_meta
     return res;
 }
 
-#include <atomic>
 #include <mutex>
 
 static std::atomic<uint64_t> g_research_generation{0};
@@ -921,6 +957,8 @@ static const char * const g_research_names[] = {
     "GGML_METAL_Q1_GLU",
     "GGML_METAL_Q1_GLU_MAX",
     "GGML_METAL_Q1_GLU_NR0",
+    "GGML_METAL_Q1_MM_K32_ALIGNED",
+    "GGML_METAL_Q1_SWIZZLE_LOG",
     "GGML_METAL_SMALLM",
     "GGML_METAL_SMALLM_MM",
     "GGML_GDN_ROWS_PLAIN",

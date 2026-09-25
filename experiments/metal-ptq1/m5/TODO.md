@@ -76,3 +76,41 @@ decision or another device. Each item lists the evidence that would close it.
 15. **M1 regression check** (completed for the recorded workload). The 21-cell device suite plus nine profile/revision controls passed; see [M1 results](../m1/README.md). PTQ1 selects STAGE=0 for single-user use; enabled staging uses family7 R4. PQ2 plain is faster than MTP on M1. Concurrency four, long-context behavior, and other family7 hardware remain unmeasured by this final suite.
 
 22. **Revalidate the merged M1 fixes on M5 and phones** (open). Use the exact merged revision and rebuild the phone framework. Cover flags-off performance/allocations, n=1..8 full and partial tiles, odd rows, padded inputs, retained/pre-backend allocations, sequential profile changes and held-context rejection. Exercise tensor scratch on supported hardware; M1 cannot do so. Measure plain/MTP C1 and C2/C4 where supported, larger prefill, actual memory footprint and sustained thermal behavior before any Apple10-specific dispatch. The current phone app does not establish real MTP/server-concurrency performance; A20 capabilities remain unverified.
+
+## From the earlier Bonsai 1 kernel-tuning work (ktune / mcpzim), 2026-09-24
+
+A scan of `~/experiments/ktune` and `~/experiments/mcpzim/tools/bonsai-ab` for Bonsai 1 changes still missing
+here. That work measured cold **prefill** on a 14.4k-token prompt against upstream ggml `df03399`; decode was
+flat in every pair, and its decode experiments (R4 mat-vec, packed16, 0/1-FMA, delta-net tweaks) found
+nothing, which our multi-column, small-row and rows-mode flags now cover.
+
+23. **Q1_0 K32-aligned tensor prefill with grid swizzle** (done on M5; phone open). Ported as
+    `GGML_METAL_Q1_MM_K32_ALIGNED` / `GGML_METAL_Q1_SWIZZLE_LOG` (EXPERIMENTS.md, "Q1_0 K32 prefill"): with
+    swizzle 1, pp512 1.07x and pp128 1.08x over the Q1 stack on M5 Max, decode unaffected, float logits bitwise
+    equal on the full model. Open:
+    - **Phone:** measured on iPhone 17 Pro Max (iOS 27): pp128 1.065x (3 quartets), pp512 ~1.06x (2 of 3;
+      the rest hit the pp512 GPU errors below); iOS builds the optional library and the app logged
+      `kernel_mul_mm_q1_0_f32_k32_swizzle1`. Complete pp512 once the GPU errors are understood.
+    - **Ragged batches:** a product is K32 only when N % 128 == 0 (and M % 64 == 0), so a prompt's last
+      micro-batch usually stays generic (a 300-token chat prompt gets nothing) and so do continuous-batching
+      steps. Next step: run the aligned column prefix on K32 and the tail on the generic kernel (two dispatches),
+      or a K32 variant that keeps the N bounds.
+24. **Flash-attention query promotion + tensor QK, 16 queries per threadgroup** (open). Historical isolated
+    attention -10%, full-model -2 to -4.5% (screened). Only the non-vec FA path at 512 queries: ~0 at short
+    contexts (attention is ~1% of a 512-token chunk at depth 0), helps long prompts; applies to Q1_0, PQ2_0
+    and PTQ1_0 alike. Ports exist that apply cleanly to our `fa.metal`:
+    `~/experiments/ktune/runs/bonsai2-release/variants/old7/candidate.diff`. Risks: F16 KV never
+    qualified (only Q4_0 KV), tensor-API headers in the fa library add runtime-compile time at startup
+    (+12 s historically; measure on a phone). Test with a depth cell (llama-bench `-p 512 -d 8192`).
+25. **"old9" attention on top of 24** (open): smaller Q shared memory on the tensor path, compact score
+    planes, V fragments reused across two query groups. Isolated -9% to -17% vs old7; confirmed full-model
+    -0.53% vs old7 on Bonsai 1; on Bonsai 2 PQ2 (our FA source, 24 + 25 together) -4.63% prefill at 13.6k
+    tokens but not overall-qualified (one decode guard at 1.051). Cumulative diff:
+    `variants/old9/candidate.diff`. Alternative arm: `bonsai-deep-05/0001` (-1.56% vs old7).
+26. **Conv-native: fused conv + conv-history write** (low priority). Screened -3.9% prefill (3 pairs, one
+    favouring control), decode within noise; the SiLU fusion part is already here (PrismML `fuse_silu`), the
+    CONCAT/CPY history removal is not. Needs allocator and graph grouping changes.
+27. **Half-open range overlap** (`ggml-metal-common.cpp`, `>=` -> `>`) (low): measured 1.2% slower prefill
+    historically; a one-line decode probe at most.
+28. **Ahead-of-time metallib packaging** (startup only): 40 s -> 28 s launch-to-answer historically when the
+    tensor library was compiled at runtime; no tokens/s effect.

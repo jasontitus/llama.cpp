@@ -8,7 +8,7 @@ on Apple silicon. Research kernels remain opt-in. Flags-off kernel dispatch and 
 |---|---|
 | Apple M5 Max (40-core GPU, Apple10) | **Measured**: results below |
 | Apple M1 Ultra (64-core GPU, Apple7) | **Measured**: 64 GPU cores, 128 GB, macOS 26.7; [M1 results and profile](../m1/README.md) |
-| iPhone 17 Pro Max (A19 Pro, Apple10, 12 GB, iOS 27) | **Preliminary** (1-3 quartets per cell), from the [`BonsaiBench`](../ios/BonsaiBench) app; MTP built into the app, not yet run on the phone |
+| iPhone 17 Pro Max (A19 Pro, Apple10, 12 GB, iOS 27) | **Preliminary** (1-3 quartets per cell), from the [`BonsaiBench`](../ios/BonsaiBench) app, including MTP (generation only) |
 
 Desktop columns use the same model-specific flags and paired A-B-B-A procedure. The M1 column below uses the M5 flag set, including PTQ1 staging; the preferred M1 single-user profile disables staging and is reported separately. The iPhone uses an adapted in-app protocol, not the desktop tools. Compare paired gains within each study; absolute rates also reflect device, software revision, and run conditions.
 
@@ -22,7 +22,7 @@ PrismML's own popcount option is never counted.
 | | M5 Max | M1 Ultra | iPhone 17 Pro Max |
 |---|---|---|---|
 | Plain decoding | 1.10x | 1.09x | 1.10x (chat128, 1 quartet) |
-| With MTP, 1 draft token (server) | **1.34x** | 1.28x | not yet run on the phone |
+| With MTP, 1 draft token (server) | **1.34x** | 1.28x | **1.36x** (generation only, 2 quartets; M5 generation only: 1.35x) |
 | Plain decoding, other models (tg128) | 1.11-1.14x | 1.12x (PQ2_0) | **1.18x** (Q1_0, complete study) |
 
 - The generated text is identical between the arms in every server comparison.
@@ -39,6 +39,13 @@ most: upstream's PTQ1_0 multi-token path is slow on Apple GPUs.
 
 Upstream's MTP is slower than its own plain decoding on these GPUs; only with the multi-column kernels
 does MTP pay off.
+
+**Prompt processing, Bonsai 1 binary (Q1_0), M5 Max:** a new K32 tensor prefill kernel with grid swizzle
+(`GGML_METAL_Q1_SWIZZLE_LOG=1`, ported from our earlier Bonsai 1 tuning) makes pp512 1.07x and pp128 1.08x
+faster on top of the Q1 flags, with bitwise-identical logits on the full model; the full Q1 set is 1.11x
+(pp512), 1.14x (pp128) and 1.13x (tg128) over flags off. It applies to micro-batches whose size is a multiple of
+128 tokens. On the iPhone it gives 1.065x at pp128 (3 quartets) and about 1.06x at pp512 (2 quartets), with
+the app confirming the K32 kernel ran.
 
 **Quality is unchanged.** On the M5, all four models with every flag on (PTQ1_0 including the tensor path)
 against upstream:
@@ -61,10 +68,15 @@ within 1.1%, so the M5 numbers stand for the current branch.
   - Memory is not a limit: weights are memory-mapped, with a 0.4 GB app footprint and about 6 GB still
     available.
   - Heat is the main measurement problem, so the app gates on thermal state and uses 40-60 s cooldowns.
+  - MTP works on the phone: 85.5% of drafts accepted, text identical to upstream in all 5 complete quartets, 1.36x
+    over upstream plain decoding (2 accepted quartets). Upstream's plain decoding throttles more under
+    heat (3.4-6.1 tok/s over 11 runs) than flags + MTP (7.1-7.9), so 4 of 6 quartets failed the spread or
+    thermal gates; even the slowest flags + MTP run beat the fastest upstream run.
   - **Open issue:** 512-token prompt processing on PTQ1_0 is about 30% slower with the flags on the phone,
-    reproducible (M5: 1.002x). The likely cause is `SMALLM_MM` routing that file's BF16 48-row gate
-    projections to the mat-vec kernel at 512 columns; the Q1_0 file stores them in 1 bit and shows no loss.
-    A phone confirmation run and a width cap are next.
+    reproducible (M5: 1.046x faster). Neither flag that acts at 512 tokens explains it alone: `SMALLM_MM`
+    measured 0.975x and rows mode 0.97x (one accepted quartet) on the phone.
+  - 512-token prompt runs now fail intermittently on the phone (about 1 in 4) with an iOS GPU error, in every
+    arm including plain upstream; see the app's README.
 
 ## Results by device
 
@@ -80,7 +92,7 @@ flags" below; the bit-identical row uses `GGML_GDN_ROWS_PLAIN=1` only. The bit-i
 | PTQ1 plain decoding, bit-identical subset (server, 1 request) | 1.07x (41.2 -> 44.3) | 1.08x (26.9 -> 29.0) | n/a |
 | PTQ1 tg128 | 1.08x (43.4 -> 47.0) | 1.09x (29.7 -> 32.3) | _pending_ |
 | PTQ1 MTP -> MTP (server, 1 request) | 3.34x (16.6 -> 55.4) | 2.61x (13.3 -> 34.6) | n/a (server row; see "generation only" below) |
-| PTQ1 generation only: upstream plain -> flags + MTP | 1.35x (45.4 -> 61.4) | – | _pending_ (app gen128) |
+| PTQ1 generation only: upstream plain -> flags + MTP | 1.35x (45.4 -> 61.4) | – | preliminary, 2 of 3 quartets: **1.36x** (1.29-1.44; 5.4 -> 7.4), identical text |
 | PTQ1 generation only: MTP -> MTP | not measured | – | _pending_ (app gen128) |
 | PTQ1 2 requests (server) | **3.43x** (17.9 -> 62.2) | 2.73x (15.3 -> 41.7) | n/a |
 | PTQ1 pp2 / pp4 / pp8 | **3.85x / 2.12x / 2.29x** (20.6 -> 79.3, 37.0 -> 78.4, 40.5 -> 92.8) | 2.97x / 1.51x / 1.46x (16.3 -> 48.4, 26.1 -> 39.5, 30.0 -> 43.7) | preliminary, 2 quartets each: **4.19x / 2.44x / 2.35x** (2.9 -> 11.9, 4.8 -> 11.7, 5.0 -> 11.7) |
@@ -90,6 +102,7 @@ flags" below; the bit-identical row uses `GGML_GDN_ROWS_PLAIN=1` only. The bit-i
 | Bonsai 1 ternary 2 requests (server) | 1.33x (50.1 -> 66.6) | 1.12x (32.6 -> 36.5) | n/a |
 | Bonsai 1 binary tg128 | 1.14x (66.7 -> 75.7) | 1.12x (39.1 -> 43.9) | **1.18x** (10.9 -> 12.8) |
 | Bonsai 1 binary 2 requests (server) | 1.17x (79.8 -> 93.2) | 1.16x (45.3 -> 52.6) | n/a |
+| Bonsai 1 binary pp512 / pp128, flags + K32 prefill (swizzle 1) | 1.11x / 1.14x (856.7 -> 950.3, 613.1 -> 697.3) | – | K32 over the Q1 flags: ~1.06x (2 of 3 quartets) / **1.065x** (94.8 -> 101.0) |
 
 ### M1 Ultra: single-user generation rates
 
@@ -189,7 +202,7 @@ These are the measured M5 selections. Use the separate M1 single-user guidance a
 | Bonsai 2 PTQ1_0 | `GGML_METAL_PTQ1_MULTICOL=1 GGML_METAL_PTQ1_MULTICOL_MAX=8 GGML_METAL_PTQ1_GLU=1 GGML_METAL_PTQ1_STAGE=1 GGML_GDN_ROWS_PLAIN=1 GGML_METAL_SMALLM_MM=1` (+ `GGML_METAL_PTQ1_TENSOR=1` for 4 concurrent MTP requests) | plain +10.5%, with MTP 1.34x |
 | Bonsai 2 PQ2_0 | `GGML_METAL_PQ2_MULTICOL=1 GGML_METAL_PQ2_GLU=1 GGML_GDN_ROWS_PLAIN=1 GGML_METAL_SMALLM=1 GGML_METAL_SMALLM_MM=1` | plain +11%, with MTP 1.22x, 2 requests +33% |
 | Bonsai 1 ternary (PQ2_0) | same as Bonsai 2 PQ2_0 | decode +11.6%, 2 requests +33% |
-| Bonsai 1 binary (Q1_0) | `GGML_GDN_ROWS_PLAIN=1 GGML_METAL_SMALLM=1 GGML_METAL_SMALLM_MM=1` | decode +13.6% (tg128, where only the two bit-identical flags act); server single request +10.9% |
+| Bonsai 1 binary (Q1_0) | `GGML_GDN_ROWS_PLAIN=1 GGML_METAL_SMALLM=1 GGML_METAL_SMALLM_MM=1 GGML_METAL_Q1_SWIZZLE_LOG=1` | decode +13.6% (tg128, where only the two bit-identical flags act); server single request +10.9%; prompts pp512 +10.9%, pp128 +13.7% (the swizzle flag alone: +7.1%, +8.2%, bitwise equal) |
 
 `GGML_METAL_SMALLM_MM` changes prompt processing of the 48-row projections: it is not bit-identical to
 upstream, but closer to exact (NMSE vs a double-precision reference ~1e-14 instead of ~1e-7).
@@ -216,6 +229,10 @@ perplexity, but its int8 activations change greedy text under concurrency.
 - **Not from CUDA:** the delta-net recurrent state was copied out and back (3 MB per layer per token);
   PrismML's existing in-place rows mode is now also used for plain decoding. This alone is most of the
   single-request plain-decoding gain and is bitwise identical.
+- **Q1_0 prefill (from our earlier Bonsai 1 work, not CUDA):** a copy of the tensor prefill kernel with a
+  static K=32 `matmul2d` and no bounds handling for products made only of full tiles, plus a grid swizzle
+  that runs pairs of row tiles on the same activation columns: +7% pp512. It lives in an optional Metal
+  library, so a device that cannot build it loses only these kernels.
 - **M5 tensor units:** `matmul2d` runs half at ~33 T MAC/s and int8 at ~64 T. A tensor-unit matvec with
   hi/lo-split activations (NMSE 4e-13) wins only at 8 columns (+9% for 4 concurrent MTP requests).
   Upstream's tensor prefill already runs at ~88% of the best arrangement measured; CUDA's prefill ideas
@@ -242,6 +259,11 @@ This section records the historical M5 snapshots and their quality runs. Final M
 - Batch invariance: 64/64 positions bitwise identical at batch sizes 2/3/4, also across 1134- and
   2011-token contexts.
 - Three adversarial code reviews; all findings fixed (see EXPERIMENTS.md).
+- Q1_0 K32 prefill (`GGML_METAL_Q1_SWIZZLE_LOG=1`, added after the quality runs below): full-model float
+  logits bitwise equal with and without it on M5 Max (700-token prompt, 173.8M logits), and bitwise equal on
+  17 isolated products with the kernel identified per product (`results/q1-k32/`). Two further adversarial
+  reviews; findings fixed. The Q1_0 quality row below therefore also holds with it on M5; other devices need
+  their own check.
 - Standard quality benchmarks, every model with all of its flags on (PTQ1_0 including the tensor path)
   against upstream (logs in `results/quality/`, script `tools/run-quality.sh`):
 

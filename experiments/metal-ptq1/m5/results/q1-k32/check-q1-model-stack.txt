@@ -1,0 +1,5 @@
+arm 0 [GGML_GDN_ROWS_PLAIN=1 GGML_METAL_SMALLM=1 GGML_METAL_SMALLM_MM=1]: reference, 700 tokens x 248320 logits; new mul_mm kernels: kernel_mul_mm_q1_0_f32
+arm 1 [GGML_GDN_ROWS_PLAIN=1 GGML_METAL_SMALLM=1 GGML_METAL_SMALLM_MM=1 GGML_METAL_Q1_MM_K32_ALIGNED=1]: bitwise equal, 0 of 173824000 logits differ; new mul_mm kernels: kernel_mul_mm_q1_0_f32_k32
+arm 2 [GGML_GDN_ROWS_PLAIN=1 GGML_METAL_SMALLM=1 GGML_METAL_SMALLM_MM=1 GGML_METAL_Q1_SWIZZLE_LOG=1]: bitwise equal, 0 of 173824000 logits differ; new mul_mm kernels: kernel_mul_mm_q1_0_f32_k32_swizzle1
+arm 3 [GGML_GDN_ROWS_PLAIN=1 GGML_METAL_SMALLM=1 GGML_METAL_SMALLM_MM=1]: bitwise equal, 0 of 173824000 logits differ; new mul_mm kernels: none
+ALL BITWISE EQUAL

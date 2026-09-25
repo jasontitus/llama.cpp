@@ -22,6 +22,31 @@ struct ContentView: View {
                     }
                 }
 
+                // The main action: every study still needed, unattended. The list with a switch per study is below
+                // the quick tests.
+                if state.quickTitle == nil {
+                    Section {
+                        if let step = state.suiteStep {
+                            Text("Study \(step + 1) of \(state.suite.count): \(state.suite[step].title)")
+                            if !state.progress.isEmpty { Text(state.progress).font(.callout.monospacedDigit()) }
+                            Button("Stop", role: .destructive) { state.stop() }
+                        } else {
+                            let total = state.suite.indices.filter { state.suiteIncluded.contains($0) }.reduce(0.0) { $0 + state.suite[$1].estimatedSeconds }
+                            Button("Run everything we still need (~\(durationText(total)) plus cooling)") { state.startSuite() }
+                                .buttonStyle(.borderedProminent)
+                                .disabled(state.running || state.loading || downloads.busy || state.suiteIncluded.isEmpty)
+                            if let r = state.suiteResumeAt {
+                                Button("Resume at study \(r + 1)") { state.startSuite(from: r, resuming: true) }
+                                    .disabled(state.running || state.loading || downloads.busy)
+                            }
+                        }
+                    } header: {
+                        Text("Unattended run")
+                    } footer: {
+                        Text("Runs the \(state.suiteIncluded.count) studies listed below the quick tests, in order, and saves one result file per study. Every run starts only when the phone is nominal (cool); the app waits up to an hour for it, so it can run overnight. Keep the phone plugged in, flat, with the app open; the screen stays on. If iOS stops the app, reopen it and resume.")
+                    }
+                }
+
                 Section {
                     ForEach(Suites.quick, id: \.title) { spec in
                         let have = state.models.contains { $0.lastPathComponent == spec.model }
@@ -85,24 +110,12 @@ struct ContentView: View {
                                 .disabled(state.suiteStep != nil)
                         }
                     }
-                    if state.suiteStep != nil {
-                        if !state.progress.isEmpty { Text(state.progress).font(.callout.monospacedDigit()) }
-                        Button("Stop the suite", role: .destructive) { state.stop() }
-                    } else {
-                        let total = state.suite.indices.filter { state.suiteIncluded.contains($0) }.reduce(0.0) { $0 + state.suite[$1].estimatedSeconds }
-                        Button("Run the suite (~\(durationText(total)) plus thermal waits)") { state.startSuite() }
-                            .disabled(state.running || state.loading || downloads.busy || state.suiteIncluded.isEmpty)
-                        if let r = state.suiteResumeAt {
-                            Button("Resume the suite at study \(r + 1)") { state.startSuite(from: r, resuming: true) }
-                                .disabled(state.running || state.loading || downloads.busy)
-                        }
-                    }
                     ForEach(state.suiteNotes, id: \.self) { Text($0).font(.caption).foregroundStyle(.orange) }
                     }
                 } header: {
-                    Text("Phone suite")
+                    Text("Everything we still need: the studies")
                 } footer: {
-                    Text("Runs the included studies in order, loading each model, and saves one result file per study. The screen stays on; keep the app in front and the phone plugged in. If iOS stops the app (a model that does not fit), reopen it and resume.")
+                    Text("Started with the button at the top. Switch a study off to skip it; a study whose model is not in the app is skipped.")
                 }
 
                 Section {

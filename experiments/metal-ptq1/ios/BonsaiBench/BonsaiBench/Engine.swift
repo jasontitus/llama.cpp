@@ -8,7 +8,7 @@ let researchFlagNames: [String] = [
     "GGML_METAL_PTQ1_MULTICOL", "GGML_METAL_PTQ1_MULTICOL_MAX", "GGML_METAL_PTQ1_GLU", "GGML_METAL_PTQ1_STAGE",
     "GGML_METAL_PTQ1_TENSOR", "GGML_METAL_PTQ1_TENSOR_MIN", "GGML_GDN_ROWS_PLAIN", "GGML_METAL_SMALLM",
     "GGML_METAL_SMALLM_MM", "GGML_METAL_PQ2_MULTICOL", "GGML_METAL_PQ2_GLU", "GGML_METAL_Q1_GLU",
-    "GGML_METAL_BATCH_INVARIANT", "GGML_METAL_Q1_0_POPCNT",
+    "GGML_METAL_BATCH_INVARIANT", "GGML_METAL_Q1_0_POPCNT", "GGML_METAL_Q1_MM_K32_ALIGNED", "GGML_METAL_Q1_SWIZZLE_LOG",
 ]
 
 /// GGML_* / LLAMA_* variables the app was launched with (an Xcode scheme, devicectl). Recorded with every
@@ -24,8 +24,9 @@ func applyFlags(_ flags: [String: String]) {
 }
 
 /// The library's warnings and errors (e.g. Metal's reason for a failed command buffer), collected per
-/// observation. Everything is also written to stderr, which `devicectl device process launch --console`
-/// shows.
+/// observation, plus the prefill (mul_mm) kernels it compiles, as "pipeline: kernel_mul_mm_...": a kernel is
+/// compiled once per app process, so it shows in the first observation that uses it. Everything is also
+/// written to stderr, which `devicectl device process launch --console` shows.
 final class LibraryLog {
     static let shared = LibraryLog()
     private let lock = NSLock()
@@ -50,6 +51,12 @@ final class LibraryLog {
     private func add(level: ggml_log_level, _ text: String) {
         lock.lock(); defer { lock.unlock() }
         if level != GGML_LOG_LEVEL_CONT { keeping = level == GGML_LOG_LEVEL_WARN || level == GGML_LOG_LEVEL_ERROR }
+        // "loaded <kernel>_bci=..." is logged once a pipeline exists (a failed compile logs no "loaded")
+        if level == GGML_LOG_LEVEL_DEBUG, let r = text.range(of: "loaded kernel_mul_mm_") {
+            let name = text[text.index(r.lowerBound, offsetBy: 7)...]
+            let base = name.range(of: "_bci=").map { name[..<$0.lowerBound] } ?? name.prefix { $0 != " " }
+            lines.append("pipeline: \(base)")
+        }
         guard keeping else { return }
         if level == GGML_LOG_LEVEL_CONT, let last = lines.popLast() { lines.append(last + text) } else { lines.append(text) }
         if lines.count > 200 { lines.removeFirst(lines.count - 200) }

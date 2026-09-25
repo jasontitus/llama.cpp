@@ -111,6 +111,7 @@ int ggml_metal_pipeline_max_theads_per_threadgroup(struct ggml_metal_pipeline_wi
     X(FA,              fa)             \
     X(MUL_MV,          mul_mv)         \
     X(MUL_MM,          mul_mm)         \
+    X(MUL_MM_Q1,       mul_mm_q1)      \
     X(QUANTIZE,        quantize)       \
     X(SOFTMAX,         softmax)        \
     X(NORM,            norm)           \
@@ -141,6 +142,12 @@ static const char * const k_lib_names[GGML_METAL_LIB_COUNT] = {
     GGML_METAL_LIBS
 #undef X
 };
+
+// Libraries of opt-in research kernels: if one fails to build, its kernels are missing (the host falls back to
+// the generic kernels) instead of the whole Metal library failing.
+static bool ggml_metal_lib_is_optional(int kind) {
+    return kind == GGML_METAL_LIB_MUL_MM_Q1;
+}
 
 struct ggml_metal_library {
     // Per-kind compiled libraries. When single_library is true, the whole library
@@ -315,7 +322,9 @@ static bool ggml_metal_library_compile_all(
             NSString * src = source_for_kind(kind, &error);
             if (!src) {
                 err_per_lib[kind] = [error retain];
-                atomic_store(&any_failure, true);
+                if (!ggml_metal_lib_is_optional(kind)) {
+                    atomic_store(&any_failure, true);
+                }
                 return;
             }
 
@@ -341,7 +350,9 @@ static bool ggml_metal_library_compile_all(
             t_per_lib[kind] = ggml_time_us() - t0;
 
             if (!lib) {
-                atomic_store(&any_failure, true);
+                if (!ggml_metal_lib_is_optional(kind)) {
+                    atomic_store(&any_failure, true);
+                }
                 return;
             }
 
@@ -354,6 +365,16 @@ static bool ggml_metal_library_compile_all(
     const bool ok = !atomic_load(&any_failure);
 
     if (ok) {
+        // only an optional library can fail without failing the set
+        for (int kind = 0; kind < GGML_METAL_LIB_COUNT; ++kind) {
+            if (err_per_lib[kind]) {
+                GGML_LOG_WARN("%s: optional '%s' library failed to build; its research kernels are unavailable: %s\n",
+                              __func__, k_lib_names[kind], [[err_per_lib[kind] description] UTF8String]);
+                [err_per_lib[kind] release];
+                err_per_lib[kind] = nil;
+            }
+        }
+
         const int64_t t_total = ggml_time_us() - t_start;
         int64_t t_max = 0;
         for (int kind = 0; kind < GGML_METAL_LIB_COUNT; ++kind) {
@@ -650,6 +671,7 @@ struct ggml_metal_pipeline_with_params ggml_metal_library_get_pipeline(ggml_meta
         /*.smem     =*/ 0,
         /*.c4       =*/ false,
         /*.cnt      =*/ false,
+        /*.grid_swizzle_log =*/ 0,
     };
 
     res.pipeline = ggml_metal_pipelines_get(lib->pipelines, name);
@@ -668,6 +690,7 @@ struct ggml_metal_pipeline_with_params ggml_metal_library_compile_pipeline(ggml_
         /*.smem     =*/ 0,
         /*.c4       =*/ false,
         /*.cnt      =*/ false,
+        /*.grid_swizzle_log =*/ 0,
     };
 
     [lib->lock lock];

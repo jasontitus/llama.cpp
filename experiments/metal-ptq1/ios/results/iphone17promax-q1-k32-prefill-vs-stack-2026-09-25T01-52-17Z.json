@@ -1,0 +1,1395 @@
+{
+  "armA" : {
+    "draft" : 0,
+    "flags" : {
+      "GGML_GDN_ROWS_PLAIN" : "1",
+      "GGML_METAL_SMALLM" : "1",
+      "GGML_METAL_SMALLM_MM" : "1"
+    },
+    "name" : "M5 stack (Q1)"
+  },
+  "armB" : {
+    "draft" : 0,
+    "flags" : {
+      "GGML_GDN_ROWS_PLAIN" : "1",
+      "GGML_METAL_Q1_SWIZZLE_LOG" : "1",
+      "GGML_METAL_SMALLM" : "1",
+      "GGML_METAL_SMALLM_MM" : "1"
+    },
+    "name" : "M5 stack (Q1) + K32 prefill"
+  },
+  "build" : {
+    "appDirtyFiles" : "6",
+    "frameworkDirtyFiles" : "6",
+    "frameworkRevision" : "e610dc16b532660200baa87aa2514cc87cf603b3",
+    "frameworkSHA256" : "0c92bbe97f2a5f1855060fbecdb5b5e169432a0ef6e12cf99c3de10037dcc313",
+    "sourceRevision" : "e610dc16b532660200baa87aa2514cc87cf603b3"
+  },
+  "cancelled" : false,
+  "cooldownSeconds" : 40,
+  "cycles" : 3,
+  "device" : {
+    "appAvailableMemoryBytes" : 6297349520,
+    "gpuName" : "Apple A19 Pro GPU",
+    "highestAppleFamily" : 10,
+    "lowPowerMode" : false,
+    "machine" : "iPhone18,2",
+    "physicalMemoryBytes" : 12263424000,
+    "systemVersion" : "Version 27.0 (Build 24A437)",
+    "thermalState" : "nominal"
+  },
+  "finished" : "2026-09-25T02:36:34Z",
+  "launchEnvironment" : {
+
+  },
+  "minAvailableBytes" : 6014938248,
+  "model" : "Bonsai-27B-Q1_0.gguf",
+  "modelBytes" : 3803452480,
+  "modelDescription" : "qwen35 27B Q1_0",
+  "modelSHA256Verified" : "17ef842e47450caeb8eaa3ebfbbab5d2f2278b62b79be107985fb69a2f819aa0",
+  "peakFootprintBytes" : 427512696,
+  "prompt" : "<|im_start|>user\nWrite a Python function that merges two sorted lists into one sorted list, with a docstring.<|im_end|>\n<|im_start|>assistant\n<think>\n\n<\/think>\n\n",
+  "promptUbatch" : 512,
+  "quartets" : [
+    {
+      "accepted" : true,
+      "attempt" : 1,
+      "cell" : "pp512",
+      "cycle" : 0,
+      "observations" : [
+        {
+          "arm" : "M5 stack (Q1)",
+          "availableBytes" : 6016412808,
+          "callSeconds" : [
+            5.995710166,
+            6.177608583
+          ],
+          "footprintBytes" : 426038136,
+          "gateReached" : true,
+          "interrupted" : false,
+          "libraryMessages" : [
+            "pipeline: kernel_mul_mm_q1_0_f32"
+          ],
+          "position" : 0,
+          "startedAt" : "2026-09-25T01:52:57Z",
+          "thermalAfter" : "nominal",
+          "thermalBefore" : "nominal",
+          "thermalMax" : "nominal",
+          "thermalWaitSeconds" : 0.00010800361633300781,
+          "tokensPerSecond" : 84.11839212573962,
+          "warmupCallSeconds" : [
+            5.95123475
+          ]
+        },
+        {
+          "arm" : "M5 stack (Q1) + K32 prefill",
+          "availableBytes" : 6014938248,
+          "callSeconds" : [
+            6.065216291,
+            6.279874208
+          ],
+          "footprintBytes" : 427512696,
+          "gateReached" : true,
+          "interrupted" : false,
+          "libraryMessages" : [
+            "pipeline: kernel_mul_mm_q1_0_f32_k32_swizzle1"
+          ],
+          "position" : 1,
+          "startedAt" : "2026-09-25T01:53:55Z",
+          "thermalAfter" : "nominal",
+          "thermalBefore" : "nominal",
+          "thermalMax" : "nominal",
+          "thermalWaitSeconds" : 0.001793980598449707,
+          "tokensPerSecond" : 82.94795409421648,
+          "warmupCallSeconds" : [
+            5.801019833
+          ]
+        },
+        {
+          "arm" : "M5 stack (Q1) + K32 prefill",
+          "availableBytes" : 6018280608,
+          "callSeconds" : [
+            5.709498417,
+            5.8374695
+          ],
+          "footprintBytes" : 424170336,
+          "gateReached" : true,
+          "interrupted" : false,
+          "libraryMessages" : [
+
+          ],
+          "position" : 2,
+          "startedAt" : "2026-09-25T01:54:54Z",
+          "thermalAfter" : "nominal",
+          "thermalBefore" : "nominal",
+          "thermalMax" : "nominal",
+          "thermalWaitSeconds" : 0.0028259754180908203,
+          "tokensPerSecond" : 88.68128909342668,
+          "warmupCallSeconds" : [
+            5.647395792
+          ]
+        },
+        {
+          "arm" : "M5 stack (Q1)",
+          "availableBytes" : 6019919008,
+          "callSeconds" : [
+            6.04612,
+            6.233398542
+          ],
+          "footprintBytes" : 422531936,
+          "gateReached" : true,
+          "interrupted" : false,
+          "libraryMessages" : [
+
+          ],
+          "position" : 3,
+          "startedAt" : "2026-09-25T01:55:51Z",
+          "thermalAfter" : "nominal",
+          "thermalBefore" : "nominal",
+          "thermalMax" : "nominal",
+          "thermalWaitSeconds" : 0.005092978477478027,
+          "tokensPerSecond" : 83.39089162963373,
+          "warmupCallSeconds" : [
+            5.974429834
+          ]
+        }
+      ],
+      "ratio" : 1.02459540951943,
+      "spread" : 1.0691196674085293
+    },
+    {
+      "accepted" : true,
+      "attempt" : 1,
+      "cell" : "pp128",
+      "cycle" : 0,
+      "observations" : [
+        {
+          "arm" : "M5 stack (Q1)",
+          "availableBytes" : 6036155528,
+          "callSeconds" : [
+            1.32382525,
+            1.335524458,
+            1.321775042,
+            1.340235125,
+            1.367106167
+          ],
+          "footprintBytes" : 406295416,
+          "gateReached" : true,
+          "interrupted" : false,
+          "libraryMessages" : [
+
+          ],
+          "position" : 0,
+          "startedAt" : "2026-09-25T01:56:50Z",
+          "thermalAfter" : "nominal",
+          "thermalBefore" : "nominal",
+          "thermalMax" : "nominal",
+          "thermalWaitSeconds" : 0.005028963088989258,
+          "tokensPerSecond" : 95.68711210928502,
+          "warmupCallSeconds" : [
+            1.442658875
+          ]
+        },
+        {
+          "arm" : "M5 stack (Q1) + K32 prefill",
+          "availableBytes" : 6036974728,
+          "callSeconds" : [
+            1.242339042,
+            1.247230084,
+            1.238206959,
+            1.261891333,
+            1.278467167
+          ],
+          "footprintBytes" : 405476216,
+          "gateReached" : true,
+          "interrupted" : false,
+          "libraryMessages" : [
+
+          ],
+          "position" : 1,
+          "startedAt" : "2026-09-25T01:57:38Z",
+          "thermalAfter" : "nominal",
+          "thermalBefore" : "nominal",
+          "thermalMax" : "nominal",
+          "thermalWaitSeconds" : 0.0047310590744018555,
+          "tokensPerSecond" : 102.1037425602756,
+          "warmupCallSeconds" : [
+            1.244731791
+          ]
+        },
+        {
+          "arm" : "M5 stack (Q1) + K32 prefill",
+          "availableBytes" : 6036991112,
+          "callSeconds" : [
+            1.23777025,
+            1.247063458,
+            1.244852958,
+            1.238598167,
+            1.2609095
+          ],
+          "footprintBytes" : 405459832,
+          "gateReached" : true,
+          "interrupted" : false,
+          "libraryMessages" : [
+
+          ],
+          "position" : 2,
+          "startedAt" : "2026-09-25T01:58:26Z",
+          "thermalAfter" : "nominal",
+          "thermalBefore" : "nominal",
+          "thermalMax" : "nominal",
+          "thermalWaitSeconds" : 0.002866029739379883,
+          "tokensPerSecond" : 102.74201859613102,
+          "warmupCallSeconds" : [
+            1.237906791
+          ]
+        },
+        {
+          "arm" : "M5 stack (Q1)",
+          "availableBytes" : 6036139144,
+          "callSeconds" : [
+            1.32050675,
+            1.32845375,
+            1.336571875,
+            1.321613417,
+            1.344526333
+          ],
+          "footprintBytes" : 406311800,
+          "gateReached" : true,
+          "interrupted" : false,
+          "libraryMessages" : [
+
+          ],
+          "position" : 3,
+          "startedAt" : "2026-09-25T01:59:13Z",
+          "thermalAfter" : "nominal",
+          "thermalBefore" : "nominal",
+          "thermalMax" : "nominal",
+          "thermalWaitSeconds" : 0.005027055740356445,
+          "tokensPerSecond" : 96.21640814113339,
+          "warmupCallSeconds" : [
+            1.318046209
+          ]
+        }
+      ],
+      "ratio" : 1.0674413939311778,
+      "spread" : 1.006251250148628
+    },
+    {
+      "accepted" : false,
+      "attempt" : 1,
+      "cell" : "pp512",
+      "cycle" : 1,
+      "observations" : [
+        {
+          "arm" : "M5 stack (Q1)",
+          "availableBytes" : 0,
+          "callSeconds" : [
+
+          ],
+          "error" : "llama_decode failed (-3)",
+          "footprintBytes" : 0,
+          "gateReached" : true,
+          "interrupted" : false,
+          "libraryMessages" : [
+            "ggml_metal_synchronize: error: command buffer 0 failed with status 5",
+            "error: Discarded (victim of GPU error\/recovery) (00000005:kIOGPUCommandBufferCallbackErrorInnocentVictim)",
+            "ggml_metal_synchronize: error: command buffer 0 failed with status 5",
+            "error: Discarded (victim of GPU error\/recovery) (00000005:kIOGPUCommandBufferCallbackErrorInnocentVictim)",
+            "ggml_metal_synchronize: error: command buffer 0 failed with status 5",
+            "error: Discarded (victim of GPU error\/recovery) (00000005:kIOGPUCommandBufferCallbackErrorInnocentVictim)",
+            "ggml_metal_synchronize: error: command buffer 0 failed with status 5",
+            "error: Discarded (victim of GPU error\/recovery) (00000005:kIOGPUCommandBufferCallbackErrorInnocentVictim)",
+            "ggml_metal_synchronize: error: command buffer 0 failed with status 5",
+            "error: Discarded (victim of GPU error\/recovery) (00000005:kIOGPUCommandBufferCallbackErrorInnocentVictim)",
+            "ggml_metal_synchronize: error: command buffer 0 failed with status 5",
+            "error: Discarded (victim of GPU error\/recovery) (00000005:kIOGPUCommandBufferCallbackErrorInnocentVictim)",
+            "ggml_metal_synchronize: error: command buffer 0 failed with status 5",
+            "error: Discarded (victim of GPU error\/recovery) (00000005:kIOGPUCommandBufferCallbackErrorInnocentVictim)",
+            "ggml_metal_synchronize: error: command buffer 0 failed with status 5",
+            "error: Discarded (victim of GPU error\/recovery) (00000005:kIOGPUCommandBufferCallbackErrorInnocentVictim)",
+            "ggml_metal_synchronize: error: command buffer 0 failed with status 5",
+            "error: Discarded (victim of GPU error\/recovery) (00000005:kIOGPUCommandBufferCallbackErrorInnocentVictim)",
+            "ggml_metal_synchronize: error: command buffer 0 failed with status 5",
+            "error: Discarded (victim of GPU error\/recovery) (00000005:kIOGPUCommandBufferCallbackErrorInnocentVictim)",
+            "ggml_metal_synchronize: error: command buffer 0 failed with status 5",
+            "error: Discarded (victim of GPU error\/recovery) (00000005:kIOGPUCommandBufferCallbackErrorInnocentVictim)",
+            "ggml_metal_synchronize: error: command buffer 0 failed with status 5",
+            "error: Discarded (victim of GPU error\/recovery) (00000005:kIOGPUCommandBufferCallbackErrorInnocentVictim)",
+            "ggml_metal_synchronize: error: command buffer 0 failed with status 5",
+            "error: Discarded (victim of GPU error\/recovery) (00000005:kIOGPUCommandBufferCallbackErrorInnocentVictim)",
+            "ggml_metal_graph_compute: backend is in error state from a previous command buffer failure - recreate the backend to recover",
+            "graph_compute: ggml_backend_sched_graph_compute_async failed with error -1",
+            "process_ubatch: failed to compute graph, compute status: -1",
+            "decode: removing memory module entries for seq_id = 0, pos = [0, +inf)",
+            "llama_decode: failed to decode, ret = -3",
+            "ggml_metal_synchronize: error: command buffer 0 failed with status 5",
+            "error: Discarded (victim of GPU error\/recovery) (00000005:kIOGPUCommandBufferCallbackErrorInnocentVictim)",
+            "ggml_metal_synchronize: error: command buffer 0 failed with status 5",
+            "error: Discarded (victim of GPU error\/recovery) (00000005:kIOGPUCommandBufferCallbackErrorInnocentVictim)"
+          ],
+          "position" : 0,
+          "startedAt" : "2026-09-25T02:00:01Z",
+          "thermalAfter" : "nominal",
+          "thermalBefore" : "nominal",
+          "thermalMax" : "nominal",
+          "thermalWaitSeconds" : 0.005024909973144531,
+          "tokensPerSecond" : 0,
+          "warmupCallSeconds" : [
+            5.584906
+          ]
+        },
+        {
+          "arm" : "M5 stack (Q1) + K32 prefill",
+          "availableBytes" : 6015085704,
+          "callSeconds" : [
+            5.740302458,
+            5.955754666
+          ],
+          "footprintBytes" : 427365240,
+          "gateReached" : true,
+          "interrupted" : false,
+          "libraryMessages" : [
+
+          ],
+          "position" : 1,
+          "startedAt" : "2026-09-25T02:00:47Z",
+          "thermalAfter" : "nominal",
+          "thermalBefore" : "nominal",
+          "thermalMax" : "nominal",
+          "thermalWaitSeconds" : 0.004341006278991699,
+          "tokensPerSecond" : 87.55087198563515,
+          "warmupCallSeconds" : [
+            5.649862125
+          ]
+        },
+        {
+          "arm" : "M5 stack (Q1) + K32 prefill",
+          "availableBytes" : 6015036552,
+          "callSeconds" : [
+            5.917587875,
+            6.02582375
+          ],
+          "footprintBytes" : 427414392,
+          "gateReached" : true,
+          "interrupted" : false,
+          "libraryMessages" : [
+
+          ],
+          "position" : 2,
+          "startedAt" : "2026-09-25T02:01:45Z",
+          "thermalAfter" : "nominal",
+          "thermalBefore" : "nominal",
+          "thermalMax" : "nominal",
+          "thermalWaitSeconds" : 0.004017949104309082,
+          "tokensPerSecond" : 85.73764617277017,
+          "warmupCallSeconds" : [
+            5.663477083
+          ]
+        },
+        {
+          "arm" : "M5 stack (Q1)",
+          "availableBytes" : 6018215048,
+          "callSeconds" : [
+            6.248678875,
+            6.450569458
+          ],
+          "footprintBytes" : 424235896,
+          "gateReached" : true,
+          "interrupted" : false,
+          "libraryMessages" : [
+
+          ],
+          "position" : 3,
+          "startedAt" : "2026-09-25T02:02:42Z",
+          "thermalAfter" : "nominal",
+          "thermalBefore" : "nominal",
+          "thermalMax" : "nominal",
+          "thermalWaitSeconds" : 0.0050220489501953125,
+          "tokensPerSecond" : 80.63469373530204,
+          "warmupCallSeconds" : [
+            6.006633916
+          ]
+        }
+      ],
+      "ratio" : "nan",
+      "rejectReason" : "an observation failed",
+      "spread" : "inf"
+    },
+    {
+      "accepted" : false,
+      "attempt" : 2,
+      "cell" : "pp512",
+      "cycle" : 1,
+      "observations" : [
+        {
+          "arm" : "M5 stack (Q1)",
+          "availableBytes" : 6019722376,
+          "callSeconds" : [
+            6.128524166,
+            6.355845416
+          ],
+          "footprintBytes" : 422728568,
+          "gateReached" : true,
+          "interrupted" : false,
+          "libraryMessages" : [
+
+          ],
+          "position" : 0,
+          "startedAt" : "2026-09-25T02:03:41Z",
+          "thermalAfter" : "nominal",
+          "thermalBefore" : "nominal",
+          "thermalMax" : "nominal",
+          "thermalWaitSeconds" : 0.002485990524291992,
+          "tokensPerSecond" : 82.02256375655574,
+          "warmupCallSeconds" : [
+            5.949711709
+          ]
+        },
+        {
+          "arm" : "M5 stack (Q1) + K32 prefill",
+          "availableBytes" : 6015020168,
+          "callSeconds" : [
+            6.145835667,
+            6.497826083
+          ],
+          "footprintBytes" : 427430776,
+          "gateReached" : true,
+          "interrupted" : false,
+          "libraryMessages" : [
+
+          ],
+          "position" : 1,
+          "startedAt" : "2026-09-25T02:04:40Z",
+          "thermalAfter" : "nominal",
+          "thermalBefore" : "nominal",
+          "thermalMax" : "nominal",
+          "thermalWaitSeconds" : 0.005043983459472656,
+          "tokensPerSecond" : 80.98919602938604,
+          "warmupCallSeconds" : [
+            5.658671417
+          ]
+        },
+        {
+          "arm" : "M5 stack (Q1) + K32 prefill",
+          "availableBytes" : 0,
+          "callSeconds" : [
+            6.128955,
+            5.616798458
+          ],
+          "error" : "llama_decode failed (-3)",
+          "footprintBytes" : 0,
+          "gateReached" : true,
+          "interrupted" : false,
+          "libraryMessages" : [
+            "ggml_metal_synchronize: error: command buffer 0 failed with status 5",
+            "error: Discarded (victim of GPU error\/recovery) (00000005:kIOGPUCommandBufferCallbackErrorInnocentVictim)",
+            "ggml_metal_synchronize: error: command buffer 0 failed with status 5",
+            "error: Discarded (victim of GPU error\/recovery) (00000005:kIOGPUCommandBufferCallbackErrorInnocentVictim)",
+            "ggml_metal_synchronize: error: command buffer 0 failed with status 5",
+            "error: Discarded (victim of GPU error\/recovery) (00000005:kIOGPUCommandBufferCallbackErrorInnocentVictim)",
+            "ggml_metal_synchronize: error: command buffer 0 failed with status 5",
+            "error: Discarded (victim of GPU error\/recovery) (00000005:kIOGPUCommandBufferCallbackErrorInnocentVictim)",
+            "ggml_metal_synchronize: error: command buffer 0 failed with status 5",
+            "error: Discarded (victim of GPU error\/recovery) (00000005:kIOGPUCommandBufferCallbackErrorInnocentVictim)",
+            "ggml_metal_synchronize: error: command buffer 0 failed with status 5",
+            "error: Discarded (victim of GPU error\/recovery) (00000005:kIOGPUCommandBufferCallbackErrorInnocentVictim)",
+            "ggml_metal_synchronize: error: command buffer 0 failed with status 5",
+            "error: Discarded (victim of GPU error\/recovery) (00000005:kIOGPUCommandBufferCallbackErrorInnocentVictim)",
+            "ggml_metal_synchronize: error: command buffer 0 failed with status 5",
+            "error: Discarded (victim of GPU error\/recovery) (00000005:kIOGPUCommandBufferCallbackErrorInnocentVictim)",
+            "ggml_metal_synchronize: error: command buffer 0 failed with status 5",
+            "error: Discarded (victim of GPU error\/recovery) (00000005:kIOGPUCommandBufferCallbackErrorInnocentVictim)",
+            "ggml_metal_synchronize: error: command buffer 0 failed with status 5",
+            "error: Discarded (victim of GPU error\/recovery) (00000005:kIOGPUCommandBufferCallbackErrorInnocentVictim)",
+            "ggml_metal_synchronize: error: command buffer 0 failed with status 5",
+            "error: Discarded (victim of GPU error\/recovery) (00000005:kIOGPUCommandBufferCallbackErrorInnocentVictim)",
+            "ggml_metal_synchronize: error: command buffer 0 failed with status 5",
+            "error: Discarded (victim of GPU error\/recovery) (00000005:kIOGPUCommandBufferCallbackErrorInnocentVictim)",
+            "ggml_metal_synchronize: error: command buffer 0 failed with status 5",
+            "error: Discarded (victim of GPU error\/recovery) (00000005:kIOGPUCommandBufferCallbackErrorInnocentVictim)",
+            "ggml_metal_graph_compute: backend is in error state from a previous command buffer failure - recreate the backend to recover",
+            "graph_compute: ggml_backend_sched_graph_compute_async failed with error -1",
+            "process_ubatch: failed to compute graph, compute status: -1",
+            "decode: removing memory module entries for seq_id = 0, pos = [512, +inf)",
+            "llama_decode: failed to decode, ret = -3",
+            "ggml_metal_synchronize: error: command buffer 0 failed with status 5",
+            "error: Discarded (victim of GPU error\/recovery) (00000005:kIOGPUCommandBufferCallbackErrorInnocentVictim)",
+            "ggml_metal_synchronize: error: command buffer 0 failed with status 5",
+            "error: Discarded (victim of GPU error\/recovery) (00000005:kIOGPUCommandBufferCallbackErrorInnocentVictim)"
+          ],
+          "position" : 2,
+          "startedAt" : "2026-09-25T02:06:59Z",
+          "thermalAfter" : "nominal",
+          "thermalBefore" : "nominal",
+          "thermalMax" : "nominal",
+          "thermalWaitSeconds" : 40.03269898891449,
+          "tokensPerSecond" : 0,
+          "warmupCallSeconds" : [
+            5.630707583
+          ]
+        },
+        {
+          "arm" : "M5 stack (Q1)",
+          "availableBytes" : 6015134856,
+          "callSeconds" : [
+            6.160892084,
+            6.417183875
+          ],
+          "footprintBytes" : 427316088,
+          "gateReached" : true,
+          "interrupted" : false,
+          "libraryMessages" : [
+
+          ],
+          "position" : 3,
+          "startedAt" : "2026-09-25T02:12:36Z",
+          "thermalAfter" : "nominal",
+          "thermalBefore" : "nominal",
+          "thermalMax" : "nominal",
+          "thermalWaitSeconds" : 240.1755349636078,
+          "tokensPerSecond" : 81.41149754047213,
+          "warmupCallSeconds" : [
+            6.321903125
+          ]
+        }
+      ],
+      "ratio" : "nan",
+      "rejectReason" : "an observation failed",
+      "spread" : "inf"
+    },
+    {
+      "accepted" : true,
+      "attempt" : 3,
+      "cell" : "pp512",
+      "cycle" : 1,
+      "observations" : [
+        {
+          "arm" : "M5 stack (Q1)",
+          "availableBytes" : 6019673224,
+          "callSeconds" : [
+            6.370047292,
+            6.681545167
+          ],
+          "footprintBytes" : 422777720,
+          "gateReached" : true,
+          "interrupted" : false,
+          "libraryMessages" : [
+
+          ],
+          "position" : 0,
+          "startedAt" : "2026-09-25T02:13:35Z",
+          "thermalAfter" : "nominal",
+          "thermalBefore" : "nominal",
+          "thermalMax" : "nominal",
+          "thermalWaitSeconds" : 0.00503993034362793,
+          "tokensPerSecond" : 78.4578589330591,
+          "warmupCallSeconds" : [
+            5.986049667
+          ]
+        },
+        {
+          "arm" : "M5 stack (Q1) + K32 prefill",
+          "availableBytes" : 6015085704,
+          "callSeconds" : [
+            5.71606525,
+            5.889405625
+          ],
+          "footprintBytes" : 427365240,
+          "gateReached" : true,
+          "interrupted" : false,
+          "libraryMessages" : [
+
+          ],
+          "position" : 1,
+          "startedAt" : "2026-09-25T02:16:40Z",
+          "thermalAfter" : "nominal",
+          "thermalBefore" : "nominal",
+          "thermalMax" : "nominal",
+          "thermalWaitSeconds" : 85.07498109340668,
+          "tokensPerSecond" : 88.23424840140319,
+          "warmupCallSeconds" : [
+            5.620219834
+          ]
+        },
+        {
+          "arm" : "M5 stack (Q1) + K32 prefill",
+          "availableBytes" : 6019591304,
+          "callSeconds" : [
+            5.824612125,
+            6.063599333
+          ],
+          "footprintBytes" : 422843256,
+          "gateReached" : true,
+          "interrupted" : false,
+          "libraryMessages" : [
+
+          ],
+          "position" : 2,
+          "startedAt" : "2026-09-25T02:17:37Z",
+          "thermalAfter" : "nominal",
+          "thermalBefore" : "nominal",
+          "thermalMax" : "nominal",
+          "thermalWaitSeconds" : 0.005020022392272949,
+          "tokensPerSecond" : 86.13574915097207,
+          "warmupCallSeconds" : [
+            5.616870167
+          ]
+        },
+        {
+          "arm" : "M5 stack (Q1)",
+          "availableBytes" : 6019607688,
+          "callSeconds" : [
+            6.190789917,
+            6.469841875
+          ],
+          "footprintBytes" : 422843256,
+          "gateReached" : true,
+          "interrupted" : false,
+          "libraryMessages" : [
+
+          ],
+          "position" : 3,
+          "startedAt" : "2026-09-25T02:18:35Z",
+          "thermalAfter" : "nominal",
+          "thermalBefore" : "nominal",
+          "thermalMax" : "nominal",
+          "thermalWaitSeconds" : 0.003965020179748535,
+          "tokensPerSecond" : 80.88063983086887,
+          "warmupCallSeconds" : [
+            5.947336458
+          ]
+        }
+      ],
+      "ratio" : 1.0943368922454677,
+      "spread" : 1.0308800282184212
+    },
+    {
+      "accepted" : true,
+      "attempt" : 1,
+      "cell" : "pp128",
+      "cycle" : 1,
+      "observations" : [
+        {
+          "arm" : "M5 stack (Q1)",
+          "availableBytes" : 6035975304,
+          "callSeconds" : [
+            1.334915709,
+            1.352971792,
+            1.399183583,
+            1.432734792,
+            1.470275916
+          ],
+          "footprintBytes" : 406475640,
+          "gateReached" : true,
+          "interrupted" : false,
+          "libraryMessages" : [
+
+          ],
+          "position" : 0,
+          "startedAt" : "2026-09-25T02:19:34Z",
+          "thermalAfter" : "fair",
+          "thermalBefore" : "fair",
+          "thermalMax" : "fair",
+          "thermalWaitSeconds" : 0.0015799999237060547,
+          "tokensPerSecond" : 91.55829917934099,
+          "warmupCallSeconds" : [
+            1.329351209
+          ]
+        },
+        {
+          "arm" : "M5 stack (Q1) + K32 prefill",
+          "availableBytes" : 6035958920,
+          "callSeconds" : [
+            1.258358208,
+            1.26053375,
+            1.310605125,
+            1.34958575,
+            1.377609208
+          ],
+          "footprintBytes" : 406492024,
+          "gateReached" : true,
+          "interrupted" : false,
+          "libraryMessages" : [
+
+          ],
+          "position" : 1,
+          "startedAt" : "2026-09-25T02:20:22Z",
+          "thermalAfter" : "fair",
+          "thermalBefore" : "fair",
+          "thermalMax" : "fair",
+          "thermalWaitSeconds" : 0.0029990673065185547,
+          "tokensPerSecond" : 97.61019672694431,
+          "warmupCallSeconds" : [
+            1.257664542
+          ]
+        },
+        {
+          "arm" : "M5 stack (Q1) + K32 prefill",
+          "availableBytes" : 6033353864,
+          "callSeconds" : [
+            1.246836209,
+            1.245037333,
+            1.270209875,
+            1.310641458,
+            1.326084834
+          ],
+          "footprintBytes" : 409097080,
+          "gateReached" : true,
+          "interrupted" : false,
+          "libraryMessages" : [
+
+          ],
+          "position" : 2,
+          "startedAt" : "2026-09-25T02:21:10Z",
+          "thermalAfter" : "fair",
+          "thermalBefore" : "fair",
+          "thermalMax" : "fair",
+          "thermalWaitSeconds" : 0.005041956901550293,
+          "tokensPerSecond" : 100.0186017564849,
+          "warmupCallSeconds" : [
+            1.245768375
+          ]
+        },
+        {
+          "arm" : "M5 stack (Q1)",
+          "availableBytes" : 6035958920,
+          "callSeconds" : [
+            1.328827083,
+            1.336598333,
+            1.329627291,
+            1.359978542,
+            1.385504959
+          ],
+          "footprintBytes" : 406492024,
+          "gateReached" : true,
+          "interrupted" : false,
+          "libraryMessages" : [
+
+          ],
+          "position" : 3,
+          "startedAt" : "2026-09-25T02:21:58Z",
+          "thermalAfter" : "fair",
+          "thermalBefore" : "fair",
+          "thermalMax" : "fair",
+          "thermalWaitSeconds" : 0.005033969879150391,
+          "tokensPerSecond" : 94.94793592836376,
+          "warmupCallSeconds" : [
+            1.323952334
+          ]
+        }
+      ],
+      "ratio" : 1.0596364157439633,
+      "spread" : 1.0370216220638095
+    },
+    {
+      "accepted" : true,
+      "attempt" : 1,
+      "cell" : "pp128",
+      "cycle" : 2,
+      "observations" : [
+        {
+          "arm" : "M5 stack (Q1)",
+          "availableBytes" : 6035942536,
+          "callSeconds" : [
+            1.329575375,
+            1.338231167,
+            1.329541292,
+            1.35578475,
+            1.393789042
+          ],
+          "footprintBytes" : 406508408,
+          "gateReached" : true,
+          "interrupted" : false,
+          "libraryMessages" : [
+
+          ],
+          "position" : 0,
+          "startedAt" : "2026-09-25T02:22:46Z",
+          "thermalAfter" : "fair",
+          "thermalBefore" : "fair",
+          "thermalMax" : "fair",
+          "thermalWaitSeconds" : 0.004086971282958984,
+          "tokensPerSecond" : 94.85807535301582,
+          "warmupCallSeconds" : [
+            1.321578292
+          ]
+        },
+        {
+          "arm" : "M5 stack (Q1) + K32 prefill",
+          "availableBytes" : 6036794504,
+          "callSeconds" : [
+            1.242916708,
+            1.254156583,
+            1.247173541,
+            1.27085325,
+            1.302128958
+          ],
+          "footprintBytes" : 405656440,
+          "gateReached" : true,
+          "interrupted" : false,
+          "libraryMessages" : [
+
+          ],
+          "position" : 1,
+          "startedAt" : "2026-09-25T02:23:35Z",
+          "thermalAfter" : "fair",
+          "thermalBefore" : "fair",
+          "thermalMax" : "fair",
+          "thermalWaitSeconds" : 0.005035996437072754,
+          "tokensPerSecond" : 101.3102415548954,
+          "warmupCallSeconds" : [
+            1.243315709
+          ]
+        },
+        {
+          "arm" : "M5 stack (Q1) + K32 prefill",
+          "availableBytes" : 6032501896,
+          "callSeconds" : [
+            1.2424695,
+            1.246661542,
+            1.241836042,
+            1.259309583,
+            1.283421584
+          ],
+          "footprintBytes" : 409949048,
+          "gateReached" : true,
+          "interrupted" : false,
+          "libraryMessages" : [
+
+          ],
+          "position" : 2,
+          "startedAt" : "2026-09-25T02:24:22Z",
+          "thermalAfter" : "fair",
+          "thermalBefore" : "fair",
+          "thermalMax" : "fair",
+          "thermalWaitSeconds" : 0.005027055740356445,
+          "tokensPerSecond" : 102.01319451377611,
+          "warmupCallSeconds" : [
+            1.2385465
+          ]
+        },
+        {
+          "arm" : "M5 stack (Q1)",
+          "availableBytes" : 6035893384,
+          "callSeconds" : [
+            1.321301083,
+            1.333899333,
+            1.321678,
+            1.341064583,
+            1.367697916
+          ],
+          "footprintBytes" : 406557560,
+          "gateReached" : true,
+          "interrupted" : false,
+          "libraryMessages" : [
+
+          ],
+          "position" : 3,
+          "startedAt" : "2026-09-25T02:25:10Z",
+          "thermalAfter" : "fair",
+          "thermalBefore" : "fair",
+          "thermalMax" : "fair",
+          "thermalWaitSeconds" : 0.005020022392272949,
+          "tokensPerSecond" : 95.72754626472488,
+          "warmupCallSeconds" : [
+            1.319907125
+          ]
+        }
+      ],
+      "ratio" : 1.0668351281844293,
+      "spread" : 1.0091660189021685
+    },
+    {
+      "accepted" : false,
+      "attempt" : 1,
+      "cell" : "pp512",
+      "cycle" : 2,
+      "observations" : [
+        {
+          "arm" : "M5 stack (Q1)",
+          "availableBytes" : 6015380616,
+          "callSeconds" : [
+            6.176783666,
+            6.4215965
+          ],
+          "footprintBytes" : 427070328,
+          "gateReached" : true,
+          "interrupted" : false,
+          "libraryMessages" : [
+
+          ],
+          "position" : 0,
+          "startedAt" : "2026-09-25T02:25:58Z",
+          "thermalAfter" : "fair",
+          "thermalBefore" : "fair",
+          "thermalMax" : "fair",
+          "thermalWaitSeconds" : 0.005033016204833984,
+          "tokensPerSecond" : 81.28029052207282,
+          "warmupCallSeconds" : [
+            5.970401
+          ]
+        },
+        {
+          "arm" : "M5 stack (Q1) + K32 prefill",
+          "availableBytes" : 6015249544,
+          "callSeconds" : [
+            5.974791667,
+            6.394410375
+          ],
+          "footprintBytes" : 427201400,
+          "gateReached" : true,
+          "interrupted" : false,
+          "libraryMessages" : [
+
+          ],
+          "position" : 1,
+          "startedAt" : "2026-09-25T02:26:57Z",
+          "thermalAfter" : "fair",
+          "thermalBefore" : "fair",
+          "thermalMax" : "fair",
+          "thermalWaitSeconds" : 0.0050220489501953125,
+          "tokensPerSecond" : 82.78626192077525,
+          "warmupCallSeconds" : [
+            5.644908
+          ]
+        },
+        {
+          "arm" : "M5 stack (Q1) + K32 prefill",
+          "availableBytes" : 6019460232,
+          "callSeconds" : [
+            6.025954084,
+            6.231340667
+          ],
+          "footprintBytes" : 422990712,
+          "gateReached" : true,
+          "interrupted" : false,
+          "libraryMessages" : [
+
+          ],
+          "position" : 2,
+          "startedAt" : "2026-09-25T02:27:55Z",
+          "thermalAfter" : "fair",
+          "thermalBefore" : "fair",
+          "thermalMax" : "fair",
+          "thermalWaitSeconds" : 0.005092978477478027,
+          "tokensPerSecond" : 83.54208826678153,
+          "warmupCallSeconds" : [
+            5.686921
+          ]
+        },
+        {
+          "arm" : "M5 stack (Q1)",
+          "availableBytes" : 0,
+          "callSeconds" : [
+            6.296272,
+            5.667828875
+          ],
+          "error" : "llama_decode failed (-3)",
+          "footprintBytes" : 0,
+          "gateReached" : true,
+          "interrupted" : false,
+          "libraryMessages" : [
+            "ggml_metal_synchronize: error: command buffer 0 failed with status 5",
+            "error: Discarded (victim of GPU error\/recovery) (00000005:kIOGPUCommandBufferCallbackErrorInnocentVictim)",
+            "ggml_metal_synchronize: error: command buffer 0 failed with status 5",
+            "error: Discarded (victim of GPU error\/recovery) (00000005:kIOGPUCommandBufferCallbackErrorInnocentVictim)",
+            "ggml_metal_synchronize: error: command buffer 0 failed with status 5",
+            "error: Discarded (victim of GPU error\/recovery) (00000005:kIOGPUCommandBufferCallbackErrorInnocentVictim)",
+            "ggml_metal_synchronize: error: command buffer 0 failed with status 5",
+            "error: Discarded (victim of GPU error\/recovery) (00000005:kIOGPUCommandBufferCallbackErrorInnocentVictim)",
+            "ggml_metal_synchronize: error: command buffer 0 failed with status 5",
+            "error: Discarded (victim of GPU error\/recovery) (00000005:kIOGPUCommandBufferCallbackErrorInnocentVictim)",
+            "ggml_metal_synchronize: error: command buffer 0 failed with status 5",
+            "error: Discarded (victim of GPU error\/recovery) (00000005:kIOGPUCommandBufferCallbackErrorInnocentVictim)",
+            "ggml_metal_synchronize: error: command buffer 0 failed with status 5",
+            "error: Discarded (victim of GPU error\/recovery) (00000005:kIOGPUCommandBufferCallbackErrorInnocentVictim)",
+            "ggml_metal_synchronize: error: command buffer 0 failed with status 5",
+            "error: Discarded (victim of GPU error\/recovery) (00000005:kIOGPUCommandBufferCallbackErrorInnocentVictim)",
+            "ggml_metal_synchronize: error: command buffer 0 failed with status 5",
+            "error: Discarded (victim of GPU error\/recovery) (00000005:kIOGPUCommandBufferCallbackErrorInnocentVictim)",
+            "ggml_metal_synchronize: error: command buffer 0 failed with status 5",
+            "error: Discarded (victim of GPU error\/recovery) (00000005:kIOGPUCommandBufferCallbackErrorInnocentVictim)",
+            "ggml_metal_synchronize: error: command buffer 0 failed with status 5",
+            "error: Discarded (victim of GPU error\/recovery) (00000005:kIOGPUCommandBufferCallbackErrorInnocentVictim)",
+            "ggml_metal_synchronize: error: command buffer 0 failed with status 5",
+            "error: Discarded (victim of GPU error\/recovery) (00000005:kIOGPUCommandBufferCallbackErrorInnocentVictim)",
+            "ggml_metal_synchronize: error: command buffer 0 failed with status 5",
+            "error: Discarded (victim of GPU error\/recovery) (00000005:kIOGPUCommandBufferCallbackErrorInnocentVictim)",
+            "ggml_metal_graph_compute: backend is in error state from a previous command buffer failure - recreate the backend to recover",
+            "graph_compute: ggml_backend_sched_graph_compute_async failed with error -1",
+            "process_ubatch: failed to compute graph, compute status: -1",
+            "decode: removing memory module entries for seq_id = 0, pos = [512, +inf)",
+            "llama_decode: failed to decode, ret = -3",
+            "ggml_metal_synchronize: error: command buffer 0 failed with status 5",
+            "error: Discarded (victim of GPU error\/recovery) (00000005:kIOGPUCommandBufferCallbackErrorInnocentVictim)",
+            "ggml_metal_synchronize: error: command buffer 0 failed with status 5",
+            "error: Discarded (victim of GPU error\/recovery) (00000005:kIOGPUCommandBufferCallbackErrorInnocentVictim)"
+          ],
+          "position" : 3,
+          "startedAt" : "2026-09-25T02:28:54Z",
+          "thermalAfter" : "fair",
+          "thermalBefore" : "fair",
+          "thermalMax" : "fair",
+          "thermalWaitSeconds" : 0.005038022994995117,
+          "tokensPerSecond" : 0,
+          "warmupCallSeconds" : [
+            5.991153041
+          ]
+        }
+      ],
+      "ratio" : "nan",
+      "rejectReason" : "an observation failed",
+      "spread" : "inf"
+    },
+    {
+      "accepted" : false,
+      "attempt" : 2,
+      "cell" : "pp512",
+      "cycle" : 2,
+      "observations" : [
+        {
+          "arm" : "M5 stack (Q1)",
+          "availableBytes" : 6019574920,
+          "callSeconds" : [
+            6.232395375,
+            6.534640959
+          ],
+          "footprintBytes" : 422876024,
+          "gateReached" : true,
+          "interrupted" : false,
+          "libraryMessages" : [
+
+          ],
+          "position" : 0,
+          "startedAt" : "2026-09-25T02:29:52Z",
+          "thermalAfter" : "fair",
+          "thermalBefore" : "fair",
+          "thermalMax" : "fair",
+          "thermalWaitSeconds" : 0.005030035972595215,
+          "tokensPerSecond" : 80.20655485039838,
+          "warmupCallSeconds" : [
+            5.9752135
+          ]
+        },
+        {
+          "arm" : "M5 stack (Q1) + K32 prefill",
+          "availableBytes" : 6019247240,
+          "callSeconds" : [
+            5.918420125,
+            6.325699542
+          ],
+          "footprintBytes" : 423203704,
+          "gateReached" : true,
+          "interrupted" : false,
+          "libraryMessages" : [
+
+          ],
+          "position" : 1,
+          "startedAt" : "2026-09-25T02:30:51Z",
+          "thermalAfter" : "fair",
+          "thermalBefore" : "fair",
+          "thermalMax" : "fair",
+          "thermalWaitSeconds" : 0.0018169879913330078,
+          "tokensPerSecond" : 83.63198235965102,
+          "warmupCallSeconds" : [
+            5.679618875
+          ]
+        },
+        {
+          "arm" : "M5 stack (Q1) + K32 prefill",
+          "availableBytes" : 6015200392,
+          "callSeconds" : [
+            5.856648583,
+            6.092480667
+          ],
+          "footprintBytes" : 427250552,
+          "gateReached" : true,
+          "interrupted" : false,
+          "libraryMessages" : [
+
+          ],
+          "position" : 2,
+          "startedAt" : "2026-09-25T02:31:49Z",
+          "thermalAfter" : "fair",
+          "thermalBefore" : "fair",
+          "thermalMax" : "fair",
+          "thermalWaitSeconds" : 0.003618955612182617,
+          "tokensPerSecond" : 85.69662094834231,
+          "warmupCallSeconds" : [
+            5.6732145
+          ]
+        },
+        {
+          "arm" : "M5 stack (Q1)",
+          "availableBytes" : 0,
+          "callSeconds" : [
+
+          ],
+          "error" : "llama_decode failed (-3)",
+          "footprintBytes" : 0,
+          "gateReached" : true,
+          "interrupted" : false,
+          "libraryMessages" : [
+            "ggml_metal_synchronize: error: command buffer 0 failed with status 5",
+            "error: Discarded (victim of GPU error\/recovery) (00000005:kIOGPUCommandBufferCallbackErrorInnocentVictim)",
+            "ggml_metal_synchronize: error: command buffer 0 failed with status 5",
+            "error: Discarded (victim of GPU error\/recovery) (00000005:kIOGPUCommandBufferCallbackErrorInnocentVictim)",
+            "ggml_metal_synchronize: error: command buffer 0 failed with status 5",
+            "error: Discarded (victim of GPU error\/recovery) (00000005:kIOGPUCommandBufferCallbackErrorInnocentVictim)",
+            "ggml_metal_synchronize: error: command buffer 0 failed with status 5",
+            "error: Discarded (victim of GPU error\/recovery) (00000005:kIOGPUCommandBufferCallbackErrorInnocentVictim)",
+            "ggml_metal_synchronize: error: command buffer 0 failed with status 5",
+            "error: Discarded (victim of GPU error\/recovery) (00000005:kIOGPUCommandBufferCallbackErrorInnocentVictim)",
+            "ggml_metal_synchronize: error: command buffer 0 failed with status 5",
+            "error: Discarded (victim of GPU error\/recovery) (00000005:kIOGPUCommandBufferCallbackErrorInnocentVictim)",
+            "ggml_metal_synchronize: error: command buffer 0 failed with status 5",
+            "error: Discarded (victim of GPU error\/recovery) (00000005:kIOGPUCommandBufferCallbackErrorInnocentVictim)",
+            "ggml_metal_synchronize: error: command buffer 0 failed with status 5",
+            "error: Discarded (victim of GPU error\/recovery) (00000005:kIOGPUCommandBufferCallbackErrorInnocentVictim)",
+            "ggml_metal_synchronize: error: command buffer 0 failed with status 5",
+            "error: Discarded (victim of GPU error\/recovery) (00000005:kIOGPUCommandBufferCallbackErrorInnocentVictim)",
+            "ggml_metal_synchronize: error: command buffer 0 failed with status 5",
+            "error: Discarded (victim of GPU error\/recovery) (00000005:kIOGPUCommandBufferCallbackErrorInnocentVictim)",
+            "ggml_metal_synchronize: error: command buffer 0 failed with status 5",
+            "error: Discarded (victim of GPU error\/recovery) (00000005:kIOGPUCommandBufferCallbackErrorInnocentVictim)",
+            "ggml_metal_synchronize: error: command buffer 0 failed with status 5",
+            "error: Discarded (victim of GPU error\/recovery) (00000005:kIOGPUCommandBufferCallbackErrorInnocentVictim)",
+            "ggml_metal_synchronize: error: command buffer 0 failed with status 5",
+            "error: Discarded (victim of GPU error\/recovery) (00000005:kIOGPUCommandBufferCallbackErrorInnocentVictim)",
+            "ggml_metal_graph_compute: backend is in error state from a previous command buffer failure - recreate the backend to recover",
+            "graph_compute: ggml_backend_sched_graph_compute_async failed with error -1",
+            "process_ubatch: failed to compute graph, compute status: -1",
+            "decode: removing memory module entries for seq_id = 0, pos = [0, +inf)",
+            "llama_decode: failed to decode, ret = -3",
+            "ggml_metal_synchronize: error: command buffer 0 failed with status 5",
+            "error: Discarded (victim of GPU error\/recovery) (00000005:kIOGPUCommandBufferCallbackErrorInnocentVictim)",
+            "ggml_metal_synchronize: error: command buffer 0 failed with status 5",
+            "error: Discarded (victim of GPU error\/recovery) (00000005:kIOGPUCommandBufferCallbackErrorInnocentVictim)"
+          ],
+          "position" : 3,
+          "startedAt" : "2026-09-25T02:32:47Z",
+          "thermalAfter" : "fair",
+          "thermalBefore" : "fair",
+          "thermalMax" : "fair",
+          "thermalWaitSeconds" : 0.0030629634857177734,
+          "tokensPerSecond" : 0,
+          "warmupCallSeconds" : [
+            5.62103075
+          ]
+        }
+      ],
+      "ratio" : "nan",
+      "rejectReason" : "an observation failed",
+      "spread" : "inf"
+    },
+    {
+      "accepted" : false,
+      "attempt" : 3,
+      "cell" : "pp512",
+      "cycle" : 2,
+      "observations" : [
+        {
+          "arm" : "M5 stack (Q1)",
+          "availableBytes" : 6019427464,
+          "callSeconds" : [
+            6.352062542,
+            6.7751415
+          ],
+          "footprintBytes" : 423023480,
+          "gateReached" : true,
+          "interrupted" : false,
+          "libraryMessages" : [
+
+          ],
+          "position" : 0,
+          "startedAt" : "2026-09-25T02:33:32Z",
+          "thermalAfter" : "fair",
+          "thermalBefore" : "fair",
+          "thermalMax" : "fair",
+          "thermalWaitSeconds" : 0.005027055740356445,
+          "tokensPerSecond" : 78.00594831342228,
+          "warmupCallSeconds" : [
+            6.027915666
+          ]
+        },
+        {
+          "arm" : "M5 stack (Q1) + K32 prefill",
+          "availableBytes" : 0,
+          "callSeconds" : [
+
+          ],
+          "error" : "llama_decode failed (-3)",
+          "footprintBytes" : 0,
+          "gateReached" : true,
+          "interrupted" : false,
+          "libraryMessages" : [
+            "ggml_metal_synchronize: error: command buffer 0 failed with status 5",
+            "error: Discarded (victim of GPU error\/recovery) (00000005:kIOGPUCommandBufferCallbackErrorInnocentVictim)",
+            "ggml_metal_synchronize: error: command buffer 0 failed with status 5",
+            "error: Discarded (victim of GPU error\/recovery) (00000005:kIOGPUCommandBufferCallbackErrorInnocentVictim)",
+            "ggml_metal_synchronize: error: command buffer 0 failed with status 5",
+            "error: Discarded (victim of GPU error\/recovery) (00000005:kIOGPUCommandBufferCallbackErrorInnocentVictim)",
+            "ggml_metal_synchronize: error: command buffer 0 failed with status 5",
+            "error: Discarded (victim of GPU error\/recovery) (00000005:kIOGPUCommandBufferCallbackErrorInnocentVictim)",
+            "ggml_metal_synchronize: error: command buffer 0 failed with status 5",
+            "error: Discarded (victim of GPU error\/recovery) (00000005:kIOGPUCommandBufferCallbackErrorInnocentVictim)",
+            "ggml_metal_synchronize: error: command buffer 0 failed with status 5",
+            "error: Discarded (victim of GPU error\/recovery) (00000005:kIOGPUCommandBufferCallbackErrorInnocentVictim)",
+            "ggml_metal_synchronize: error: command buffer 0 failed with status 5",
+            "error: Discarded (victim of GPU error\/recovery) (00000005:kIOGPUCommandBufferCallbackErrorInnocentVictim)",
+            "ggml_metal_synchronize: error: command buffer 0 failed with status 5",
+            "error: Discarded (victim of GPU error\/recovery) (00000005:kIOGPUCommandBufferCallbackErrorInnocentVictim)",
+            "ggml_metal_synchronize: error: command buffer 0 failed with status 5",
+            "error: Discarded (victim of GPU error\/recovery) (00000005:kIOGPUCommandBufferCallbackErrorInnocentVictim)",
+            "ggml_metal_synchronize: error: command buffer 0 failed with status 5",
+            "error: Discarded (victim of GPU error\/recovery) (00000005:kIOGPUCommandBufferCallbackErrorInnocentVictim)",
+            "ggml_metal_synchronize: error: command buffer 0 failed with status 5",
+            "error: Discarded (victim of GPU error\/recovery) (00000005:kIOGPUCommandBufferCallbackErrorInnocentVictim)",
+            "ggml_metal_synchronize: error: command buffer 0 failed with status 5",
+            "error: Discarded (victim of GPU error\/recovery) (00000005:kIOGPUCommandBufferCallbackErrorInnocentVictim)",
+            "ggml_metal_synchronize: error: command buffer 0 failed with status 5",
+            "error: Discarded (victim of GPU error\/recovery) (00000005:kIOGPUCommandBufferCallbackErrorInnocentVictim)",
+            "ggml_metal_graph_compute: backend is in error state from a previous command buffer failure - recreate the backend to recover",
+            "graph_compute: ggml_backend_sched_graph_compute_async failed with error -1",
+            "process_ubatch: failed to compute graph, compute status: -1",
+            "decode: removing memory module entries for seq_id = 0, pos = [0, +inf)",
+            "llama_decode: failed to decode, ret = -3",
+            "ggml_metal_synchronize: error: command buffer 0 failed with status 5",
+            "error: Discarded (victim of GPU error\/recovery) (00000005:kIOGPUCommandBufferCallbackErrorInnocentVictim)",
+            "ggml_metal_synchronize: error: command buffer 0 failed with status 5",
+            "error: Discarded (victim of GPU error\/recovery) (00000005:kIOGPUCommandBufferCallbackErrorInnocentVictim)"
+          ],
+          "position" : 1,
+          "startedAt" : "2026-09-25T02:34:32Z",
+          "thermalAfter" : "fair",
+          "thermalBefore" : "fair",
+          "thermalMax" : "fair",
+          "thermalWaitSeconds" : 0.005028963088989258,
+          "tokensPerSecond" : 0,
+          "warmupCallSeconds" : [
+            5.557429875
+          ]
+        },
+        {
+          "arm" : "M5 stack (Q1) + K32 prefill",
+          "availableBytes" : 6014987400,
+          "callSeconds" : [
+            6.000900208,
+            6.26233075
+          ],
+          "footprintBytes" : 427463544,
+          "gateReached" : true,
+          "interrupted" : false,
+          "libraryMessages" : [
+
+          ],
+          "position" : 2,
+          "startedAt" : "2026-09-25T02:35:17Z",
+          "thermalAfter" : "fair",
+          "thermalBefore" : "fair",
+          "thermalMax" : "fair",
+          "thermalWaitSeconds" : 0.005033016204833984,
+          "tokensPerSecond" : 83.50164842422598,
+          "warmupCallSeconds" : [
+            5.655746041
+          ]
+        },
+        {
+          "arm" : "M5 stack (Q1)",
+          "availableBytes" : 0,
+          "callSeconds" : [
+            6.705170458,
+            5.667344042
+          ],
+          "error" : "llama_decode failed (-3)",
+          "footprintBytes" : 0,
+          "gateReached" : true,
+          "interrupted" : false,
+          "libraryMessages" : [
+            "ggml_metal_synchronize: error: command buffer 0 failed with status 5",
+            "error: Discarded (victim of GPU error\/recovery) (00000005:kIOGPUCommandBufferCallbackErrorInnocentVictim)",
+            "ggml_metal_synchronize: error: command buffer 0 failed with status 5",
+            "error: Discarded (victim of GPU error\/recovery) (00000005:kIOGPUCommandBufferCallbackErrorInnocentVictim)",
+            "ggml_metal_synchronize: error: command buffer 0 failed with status 5",
+            "error: Discarded (victim of GPU error\/recovery) (00000005:kIOGPUCommandBufferCallbackErrorInnocentVictim)",
+            "ggml_metal_synchronize: error: command buffer 0 failed with status 5",
+            "error: Discarded (victim of GPU error\/recovery) (00000005:kIOGPUCommandBufferCallbackErrorInnocentVictim)",
+            "ggml_metal_synchronize: error: command buffer 0 failed with status 5",
+            "error: Discarded (victim of GPU error\/recovery) (00000005:kIOGPUCommandBufferCallbackErrorInnocentVictim)",
+            "ggml_metal_synchronize: error: command buffer 0 failed with status 5",
+            "error: Discarded (victim of GPU error\/recovery) (00000005:kIOGPUCommandBufferCallbackErrorInnocentVictim)",
+            "ggml_metal_synchronize: error: command buffer 0 failed with status 5",
+            "error: Discarded (victim of GPU error\/recovery) (00000005:kIOGPUCommandBufferCallbackErrorInnocentVictim)",
+            "ggml_metal_synchronize: error: command buffer 0 failed with status 5",
+            "error: Discarded (victim of GPU error\/recovery) (00000005:kIOGPUCommandBufferCallbackErrorInnocentVictim)",
+            "ggml_metal_synchronize: error: command buffer 0 failed with status 5",
+            "error: Discarded (victim of GPU error\/recovery) (00000005:kIOGPUCommandBufferCallbackErrorInnocentVictim)",
+            "ggml_metal_synchronize: error: command buffer 0 failed with status 5",
+            "error: Discarded (victim of GPU error\/recovery) (00000005:kIOGPUCommandBufferCallbackErrorInnocentVictim)",
+            "ggml_metal_synchronize: error: command buffer 0 failed with status 5",
+            "error: Discarded (victim of GPU error\/recovery) (00000005:kIOGPUCommandBufferCallbackErrorInnocentVictim)",
+            "ggml_metal_synchronize: error: command buffer 0 failed with status 5",
+            "error: Discarded (victim of GPU error\/recovery) (00000005:kIOGPUCommandBufferCallbackErrorInnocentVictim)",
+            "ggml_metal_synchronize: error: command buffer 0 failed with status 5",
+            "error: Discarded (victim of GPU error\/recovery) (00000005:kIOGPUCommandBufferCallbackErrorInnocentVictim)",
+            "ggml_metal_graph_compute: backend is in error state from a previous command buffer failure - recreate the backend to recover",
+            "graph_compute: ggml_backend_sched_graph_compute_async failed with error -1",
+            "process_ubatch: failed to compute graph, compute status: -1",
+            "decode: removing memory module entries for seq_id = 0, pos = [512, +inf)",
+            "llama_decode: failed to decode, ret = -3",
+            "ggml_metal_synchronize: error: command buffer 0 failed with status 5",
+            "error: Discarded (victim of GPU error\/recovery) (00000005:kIOGPUCommandBufferCallbackErrorInnocentVictim)",
+            "ggml_metal_synchronize: error: command buffer 0 failed with status 5",
+            "error: Discarded (victim of GPU error\/recovery) (00000005:kIOGPUCommandBufferCallbackErrorInnocentVictim)"
+          ],
+          "position" : 3,
+          "startedAt" : "2026-09-25T02:36:16Z",
+          "thermalAfter" : "fair",
+          "thermalBefore" : "fair",
+          "thermalMax" : "fair",
+          "thermalWaitSeconds" : 0.00504302978515625,
+          "tokensPerSecond" : 0,
+          "warmupCallSeconds" : [
+            6.104074958
+          ]
+        }
+      ],
+      "ratio" : "nan",
+      "rejectReason" : "an observation failed",
+      "spread" : "inf"
+    }
+  ],
+  "spreadGate" : 1.2,
+  "started" : "2026-09-25T01:52:17Z",
+  "summaries" : [
+    {
+      "aMean" : 81.71194562982534,
+      "acceptedQuartets" : 2,
+      "bMean" : 86.4998101850046,
+      "cell" : "pp512",
+      "complete" : false,
+      "mtpTokenDifferenceQuartets" : 0,
+      "rejectedQuartets" : 5,
+      "speedupGeomean" : 1.0588921362737875,
+      "speedupMax" : 1.0943368922454677,
+      "speedupMin" : 1.02459540951943,
+      "tokenMismatchQuartets" : 0
+    },
+    {
+      "aMean" : 94.83256282931065,
+      "acceptedQuartets" : 3,
+      "bMean" : 100.96633261808456,
+      "cell" : "pp128",
+      "complete" : true,
+      "mtpTokenDifferenceQuartets" : 0,
+      "rejectedQuartets" : 0,
+      "speedupGeomean" : 1.0646317346571834,
+      "speedupMax" : 1.0674413939311778,
+      "speedupMin" : 1.0596364157439633,
+      "tokenMismatchQuartets" : 0
+    }
+  ],
+  "tool" : "BonsaiBench 3",
+  "waitForNominal" : false
+}

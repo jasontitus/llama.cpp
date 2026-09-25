@@ -1,0 +1,62 @@
+=== PTQ1 baseline [X=0]
+  MUL_MAT:  101/101 tests passed 0 FAIL; new kernels: 
+  MUL_MAT_VEC_FUSION:  44/44 tests passed 0 FAIL; new kernels: 
+  fixtures m5/decode-shapes.txt:  72/72 tests passed 0 FAIL
+  strict test-metal-ptq1-m5: 52 PASS / 0 FAIL
+=== PTQ1 M5 stack [GGML_METAL_PTQ1_MULTICOL=1 GGML_METAL_PTQ1_MULTICOL_MAX=8 GGML_METAL_PTQ1_GLU=1 GGML_METAL_PTQ1_STAGE=1]
+  MUL_MAT:  101/101 tests passed 0 FAIL; new kernels: mul_mv_ptq1_0_f32_mc_r4_c2_nsg mul_mv_ptq1_0_f32_mc_r4_c3_nsg mul_mv_ptq1_0_f32_mc_r4_c4_nsg mul_mv_ptq1_0_f32_mcs_r2_c2_nsg mul_mv_ptq1_0_f32_mcs_r2_c3_nsg mul_mv_ptq1_0_f32_mcs_r4_c4_nsg ptq1_0_stage 
+  MUL_MAT_VEC_FUSION:  44/44 tests passed 0 FAIL; new kernels: mul_mv_ptq1_0_f32_glu_r2_c1_nsg mul_mv_ptq1_0_f32_glu_r2_c2_nsg mul_mv_ptq1_0_f32_glu_r2_c4_nsg mul_mv_ptq1_0_f32_glus_r2_c2_nsg mul_mv_ptq1_0_f32_glus_r2_c3_nsg mul_mv_ptq1_0_f32_glus_r2_c4_nsg mul_mv_ptq1_0_f32_mc_r4_c2_nsg mul_mv_ptq1_0_f32_mc_r4_c4_nsg ptq1_0_stage 
+  fixtures m5/decode-shapes.txt:  72/72 tests passed 0 FAIL
+  strict test-metal-ptq1-m5: 52 PASS / 0 FAIL
+=== PTQ1 stack+tensor [GGML_METAL_PTQ1_MULTICOL=1 GGML_METAL_PTQ1_MULTICOL_MAX=8 GGML_METAL_PTQ1_GLU=1 GGML_METAL_PTQ1_STAGE=1 GGML_METAL_PTQ1_TENSOR=1]
+  MUL_MAT:  101/101 tests passed 0 FAIL; new kernels: mul_mv_ptq1_0_f32_mc_r4_c2_nsg mul_mv_ptq1_0_f32_mc_r4_c3_nsg mul_mv_ptq1_0_f32_mc_r4_c4_nsg mul_mv_ptq1_0_f32_mcs_r2_c2_nsg mul_mv_ptq1_0_f32_mcs_r2_c3_nsg mul_mv_ptq1_0_f32_mcs_r4_c4_nsg mul_mv_ptq1_0_f32_tmv ptq1_0_hilo ptq1_0_stage 
+  MUL_MAT_VEC_FUSION:  44/44 tests passed 0 FAIL; new kernels: mul_mv_ptq1_0_f32_glu_r2_c1_nsg mul_mv_ptq1_0_f32_glu_r2_c2_nsg mul_mv_ptq1_0_f32_glu_r2_c4_nsg mul_mv_ptq1_0_f32_glus_r2_c2_nsg mul_mv_ptq1_0_f32_glus_r2_c3_nsg mul_mv_ptq1_0_f32_glus_r2_c4_nsg mul_mv_ptq1_0_f32_mc_r4_c2_nsg mul_mv_ptq1_0_f32_mc_r4_c4_nsg mul_mv_ptq1_0_f32_tmv ptq1_0_hilo ptq1_0_stage 
+  fixtures m5/decode-shapes.txt:  72/72 tests passed 0 FAIL
+  strict test-metal-ptq1-m5: 52 PASS / 0 FAIL
+=== PTQ1 tensor n>=5 [GGML_METAL_PTQ1_TENSOR=1 GGML_METAL_PTQ1_TENSOR_MIN=5]
+  MUL_MAT:  101/101 tests passed 0 FAIL; new kernels: mul_mv_ptq1_0_f32_tmv ptq1_0_hilo 
+  MUL_MAT_VEC_FUSION:  44/44 tests passed 0 FAIL; new kernels: mul_mv_ptq1_0_f32_tmv ptq1_0_hilo 
+  fixtures m5/decode-shapes.txt:  72/72 tests passed 0 FAIL
+  strict test-metal-ptq1-m5: 52 PASS / 0 FAIL
+=== PTQ1 prefill b128 [GGML_METAL_PTQ1_MM_B128=1]
+  MUL_MAT:  101/101 tests passed 0 FAIL; new kernels: mul_mm_ptq1_0_f32_b128 
+  MUL_MAT_VEC_FUSION:  44/44 tests passed 0 FAIL; new kernels: 
+  fixtures m5/decode-shapes.txt:  72/72 tests passed 0 FAIL
+=== PQ2 baseline [X=0]
+  MUL_MAT:  100/100 tests passed 0 FAIL; new kernels: 
+  MUL_MAT_VEC_FUSION:  48/48 tests passed 0 FAIL; new kernels: 
+  fixtures m5/pq2-shapes.txt:  72/72 tests passed 0 FAIL
+  strict test-metal-pq2-m5: 54 PASS / 0 FAIL
+=== PQ2 stack [GGML_METAL_PQ2_MULTICOL=1 GGML_METAL_PQ2_GLU=1 GGML_METAL_SMALLM=1 GGML_METAL_SMALLM_MM=1]
+  MUL_MAT:  100/100 tests passed 0 FAIL; new kernels: mul_mv_pq2_0_f32_mc_r2_c2_nsg mul_mv_pq2_0_f32_small_nsg 
+  MUL_MAT_VEC_FUSION:  48/48 tests passed 0 FAIL; new kernels: mul_mv_pq2_0_f32_glu_r2_c1_nsg mul_mv_pq2_0_f32_glu_r2_c2_nsg mul_mv_pq2_0_f32_mc_r2_c2_nsg mul_mv_pq2_0_f32_small_nsg 
+  fixtures m5/pq2-shapes.txt:  72/72 tests passed 0 FAIL
+  strict test-metal-pq2-m5: 54 PASS / 0 FAIL
+=== PQ2 stack, max 8 [GGML_METAL_PQ2_MULTICOL=1 GGML_METAL_PQ2_GLU=1 GGML_METAL_PQ2_MC_MAX=8]
+  MUL_MAT:  100/100 tests passed 0 FAIL; new kernels: mul_mv_pq2_0_f32_mc_r2_c2_nsg mul_mv_pq2_0_f32_mc_r4_c3_nsg mul_mv_pq2_0_f32_mc_r4_c4_nsg 
+  MUL_MAT_VEC_FUSION:  48/48 tests passed 0 FAIL; new kernels: mul_mv_pq2_0_f32_glu_r2_c1_nsg mul_mv_pq2_0_f32_glu_r2_c2_nsg mul_mv_pq2_0_f32_glu_r2_c3_nsg mul_mv_pq2_0_f32_glu_r2_c4_nsg mul_mv_pq2_0_f32_mc_r2_c2_nsg mul_mv_pq2_0_f32_mc_r4_c4_nsg 
+  fixtures m5/pq2-shapes.txt:  72/72 tests passed 0 FAIL
+  strict test-metal-pq2-m5: 54 PASS / 0 FAIL
+=== Q1 baseline [X=0]
+  MUL_MAT:  157/157 tests passed 0 FAIL; new kernels: 
+  MUL_MAT_VEC_FUSION:  88/88 tests passed 0 FAIL; new kernels: 
+  strict test-metal-q1-m5: 52 PASS / 0 FAIL
+=== Q1 stack [GGML_METAL_Q1_GLU=1 GGML_METAL_SMALLM=1 GGML_METAL_SMALLM_MM=1]
+  MUL_MAT:  157/157 tests passed 0 FAIL; new kernels: mul_mv_q1_0_f32_small_nsg 
+  MUL_MAT_VEC_FUSION:  88/88 tests passed 0 FAIL; new kernels: mul_mv_q1_0_f32_glu_r2_c3_nsg mul_mv_q1_0_f32_glu_r4_c1_nsg mul_mv_q1_0_f32_glu_r4_c2_nsg mul_mv_q1_0_f32_small_nsg 
+  strict test-metal-q1-m5: 52 PASS / 0 FAIL
+=== Q1 stack, glu max 4 [GGML_METAL_Q1_GLU=1 GGML_METAL_Q1_GLU_MAX=4]
+  MUL_MAT:  157/157 tests passed 0 FAIL; new kernels: 
+  MUL_MAT_VEC_FUSION:  88/88 tests passed 0 FAIL; new kernels: mul_mv_q1_0_f32_glu_r2_c3_nsg mul_mv_q1_0_f32_glu_r2_c4_nsg mul_mv_q1_0_f32_glu_r4_c1_nsg mul_mv_q1_0_f32_glu_r4_c2_nsg 
+  strict test-metal-q1-m5: 52 PASS / 0 FAIL
+=== Q1 prefill K32 [GGML_METAL_Q1_MM_K32_ALIGNED=1]
+  MUL_MAT:  157/157 tests passed 0 FAIL; new kernels: 
+  MUL_MAT_VEC_FUSION:  88/88 tests passed 0 FAIL; new kernels: 
+  strict test-metal-q1-m5: 52 PASS / 0 FAIL
+=== Q1 recommended + swz 1 [GGML_GDN_ROWS_PLAIN=1 GGML_METAL_SMALLM=1 GGML_METAL_SMALLM_MM=1 GGML_METAL_Q1_SWIZZLE_LOG=1]
+  MUL_MAT:  157/157 tests passed 0 FAIL; new kernels: mul_mv_q1_0_f32_small_nsg 
+  MUL_MAT_VEC_FUSION:  88/88 tests passed 0 FAIL; new kernels: mul_mv_q1_0_f32_small_nsg 
+  strict test-metal-q1-m5: 52 PASS / 0 FAIL
+=== BF16 small rows [GGML_METAL_SMALLM_MM=1]
+  MUL_MAT:  152/152 tests passed 0 FAIL; new kernels: 
+  MUL_MAT_VEC_FUSION:  0/0 tests passed 0 FAIL; new kernels: 

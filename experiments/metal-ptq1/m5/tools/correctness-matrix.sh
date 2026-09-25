@@ -10,7 +10,7 @@ run_cfg() {
   local out
   for suite in "MUL_MAT -p ${type}" "MUL_MAT_VEC_FUSION -p ${type}"; do
     out=$(env "${envs[@]}" GGML_TEST_SEED=20260923 $T test -b MTL0 -o $suite 2>&1)
-    echo "  $(echo "$suite" | cut -d' ' -f1): $(echo "$out" | grep -E 'tests passed' | tr -s ' ') $(echo "$out" | grep -c FAIL) FAIL; new kernels: $(echo "$out" | grep -oE 'loaded kernel_(mul_mv_(ptq1_0|pq2_0|q1_0)_f32_(mc|mcs|glu|glus|tmv|small)[a-z0-9_]*|ptq1_0_(stage|hilo)|mul_mm_ptq1_0_f32_b128)' | sed 's/loaded kernel_//' | sed -E 's/_nsg=.*//' | sort -u | tr '\n' ' ')"
+    echo "  $(echo "$suite" | cut -d' ' -f1): $(echo "$out" | grep -E 'tests passed' | tr -s ' ') $(echo "$out" | grep -c FAIL) FAIL; new kernels: $(echo "$out" | grep -oE 'loaded kernel_(mul_mv_(ptq1_0|pq2_0|q1_0)_f32_(mc|mcs|glu|glus|tmv|small)[a-z0-9_]*|ptq1_0_(stage|hilo)|mul_mm_ptq1_0_f32_b128|mul_mm_q1_0_f32_k32[a-z0-9_]*)' | sed 's/loaded kernel_//' | sed -E 's/_nsg=.*//' | sort -u | tr '\n' ' ')"
   done
   for f in "${@:0:0}"; do :; done
   if [ -n "$FIX" ]; then
@@ -36,4 +36,6 @@ FIX=""
 run_cfg "Q1 baseline"         q1_0   build-dev/bin/test-metal-q1-m5 X=0
 run_cfg "Q1 stack"            q1_0   build-dev/bin/test-metal-q1-m5 GGML_METAL_Q1_GLU=1 GGML_METAL_SMALLM=1 GGML_METAL_SMALLM_MM=1
 run_cfg "Q1 stack, glu max 4" q1_0   build-dev/bin/test-metal-q1-m5 GGML_METAL_Q1_GLU=1 GGML_METAL_Q1_GLU_MAX=4
+run_cfg "Q1 prefill K32"      q1_0   build-dev/bin/test-metal-q1-m5 GGML_METAL_Q1_MM_K32_ALIGNED=1
+run_cfg "Q1 recommended + swz 1" q1_0 build-dev/bin/test-metal-q1-m5 GGML_GDN_ROWS_PLAIN=1 GGML_METAL_SMALLM=1 GGML_METAL_SMALLM_MM=1 GGML_METAL_Q1_SWIZZLE_LOG=1
 run_cfg "BF16 small rows"     bf16   "" GGML_METAL_SMALLM_MM=1

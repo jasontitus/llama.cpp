@@ -67,6 +67,8 @@ struct ggml_metal_pipeline_with_params {
 
     bool c4;
     bool cnt;
+
+    int grid_swizzle_log; // mul_mm: 2^log row tiles per x step of the grid (Q1_0 K32 swizzle), else 0
 };
 
 int ggml_metal_pipeline_max_theads_per_threadgroup(struct ggml_metal_pipeline_with_params pipeline);

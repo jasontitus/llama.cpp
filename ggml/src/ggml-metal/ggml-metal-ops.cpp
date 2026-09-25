@@ -3373,7 +3373,11 @@ int ggml_metal_op_mul_mat(ggml_metal_op_t ctx, int idx) {
         const int nr1 = pipeline.nr1;
         const int nsg = pipeline.nsg;
 
-        ggml_metal_encoder_dispatch_threadgroups(enc, ((ne11 + nr1 - 1) / nr1), ((ne01 + nr0 - 1) / nr0), ne12 * ne13, 32, nsg, 1);
+        // grouped grid (Q1_0 K32 swizzle): 2^log row tiles per x step; the selector only groups a whole
+        // number of row tiles
+        const int group_rows = 1 << pipeline.grid_swizzle_log;
+        GGML_ASSERT(((ne01 + nr0 - 1) / nr0) % group_rows == 0);
+        ggml_metal_encoder_dispatch_threadgroups(enc, ((ne11 + nr1 - 1) / nr1) * group_rows, ((ne01 + nr0 - 1) / nr0) / group_rows, ne12 * ne13, 32, nsg, 1);
     } else {
         auto pipeline = ggml_metal_library_get_pipeline_mul_mv(lib, op);
 

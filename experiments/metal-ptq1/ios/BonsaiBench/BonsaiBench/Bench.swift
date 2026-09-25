@@ -39,6 +39,15 @@ enum Presets {
         return a
     }
 
+    /// Q1_0 prompt processing on the static-K32 tensor kernel with a grouped grid (swizzle 1): +7% pp512 on
+    /// M5 Max over the Q1 stack, bitwise equal output there (experiments/metal-ptq1/m5/EXPERIMENTS.md).
+    static var q1Prefill: Arm {
+        var a = recommended(for: "Q1_0")
+        a.name += " + K32 prefill"
+        a.flags["GGML_METAL_Q1_SWIZZLE_LOG"] = "1"
+        return a
+    }
+
     static func tensor(for weightType: String) -> Arm {
         var a = recommended(for: weightType)
         a.name += " + tensor"
@@ -67,6 +76,7 @@ enum Presets {
             pc.name += " + PrismML popcount"
             pc.flags["GGML_METAL_Q1_0_POPCNT"] = "1"
             arms.append(pc)
+            arms.append(q1Prefill)
         }
         return arms + diagnostic(for: weightType)
     }
@@ -122,7 +132,7 @@ struct Observation: Codable {
     var thermalAfter: String
     var thermalMax: String            // the hottest state seen during the run
     var thermalWaitSeconds: Double    // waited for the thermal gate (cooldowns excluded)
-    var gateReached: Bool             // the thermal gate was met within 5 minutes
+    var gateReached: Bool             // the thermal gate was met within the study's thermal wait limit
     var interrupted: Bool             // the app left the foreground during the observation
     var error: String?                // the observation failed (e.g. a Metal command buffer error)
     var callSeconds: [Double]?        // ppK: each timed decode call, to tell a stall from a uniform slowdown
@@ -183,6 +193,7 @@ struct RunResult: Codable {
     var cycles: Int
     var cooldownSeconds: Double
     var waitForNominal: Bool          // thermal gate for a quartet's first run: nominal (else nominal or fair)
+    var thermalWaitLimitSeconds: Double? // how long a run waits for the gate before its quartet is rejected (300 if absent)
     var promptUbatch: Int             // ubatch for ppK: 512 as on the Mac; smaller splits long GPU submissions
     var spreadGate: Double
     var prompt: String
@@ -260,6 +271,7 @@ final class Study {
     }
 
     init(engine: Engine, armA: Arm, armB: Arm, cells: [Cell], cycles: Int, cooldown: Double, waitForNominal: Bool,
+         thermalWaitLimit: Double = 300,
          promptUbatch: Int = 512, gate: Double, attempts: Int, log: @escaping (String) -> Void, progress: @escaping (String) -> Void = { _ in },
          save: @escaping (RunResult) -> Void) {
         self.engine = engine
@@ -275,6 +287,7 @@ final class Study {
                            modelSHA256Verified: VerifiedMark.get(url), armA: armA, armB: armB, cycles: cycles,
                            cooldownSeconds: cooldown, waitForNominal: waitForNominal, promptUbatch: promptUbatch,
                            spreadGate: gate, prompt: benchPrompt)
+        result.thermalWaitLimitSeconds = thermalWaitLimit
     }
 
     private struct Interrupted: Error {}
@@ -292,24 +305,27 @@ final class Study {
     private let thermal = ThermalMonitor()
 
     /// Wait until the app is in front and, after the cooldown, the phone is at or below `limit`: the state a run
-    /// starts in is what the quartet is judged by. Thermal waiting is bounded at 5 minutes.
+    /// starts in is what the quartet is judged by. Thermal waiting is bounded by the study's limit (5 minutes by
+    /// default, an hour in the unattended suite), after which the quartet is rejected.
     private func gate(limit: Int) throws -> (reached: Bool, waited: Double) {
         let start = Date()
+        let maxWait = result.thermalWaitLimitSeconds ?? 300
         var cooled = 0.0
         while true {
             while !AppActivity.shared.state.active {
                 progress("\(here) · paused: the app is not in front")
                 try sleep(1)
             }
-            while thermalRank(thermalStateName()) > limit && Date().timeIntervalSince(start) - cooled < 300 {
-                progress("\(here) · phone is \(thermalStateName()), waiting for it to cool (up to 5 min)")
+            while thermalRank(thermalStateName()) > limit && Date().timeIntervalSince(start) - cooled < maxWait {
+                let waited = Int((Date().timeIntervalSince(start) - cooled) / 60)
+                progress("\(here) · phone is \(thermalStateName()), waiting for \(thermalNames[limit]) (\(waited) of up to \(Int(maxWait / 60)) min)")
                 try sleep(5)
             }
             try sleep(result.cooldownSeconds, "cooldown")
             cooled += result.cooldownSeconds
             let waited = Date().timeIntervalSince(start) - cooled
             if AppActivity.shared.state.active && thermalRank(thermalStateName()) <= limit { return (true, waited) }
-            if waited >= 300 { return (false, waited) }
+            if waited >= maxWait { return (false, waited) }
         }
     }
 
@@ -394,7 +410,7 @@ final class Study {
     /// Why a quartet cannot be accepted because of heat, as soon as that is certain.
     private func thermalReject(_ obs: [Observation]) -> String? {
         if let o = obs.first(where: { !$0.gateReached }) {
-            return "the phone did not cool to the gate within 5 minutes (it was \(o.thermalBefore))"
+            return "the phone did not cool to the gate within \(Int((result.thermalWaitLimitSeconds ?? 300) / 60)) minutes (it was \(o.thermalBefore))"
         }
         if obs.contains(where: { thermalRank($0.thermalMax) >= 2 }) { return "the phone reached serious/critical" }
         let starts = Set(obs.map(\.thermalBefore))
