@@ -41,6 +41,7 @@ final class BenchState: ObservableObject {
     @Published var thermal = thermalStateName()      // live, so it is visible before starting a study
     private var thermalObserver: NSObjectProtocol?
     private var study: Study?
+    private var screen: Screen?
     private var lastLoadHadMTP: Bool?
 
     // Suite: the studies run in order; `suiteStep` is the one running (nil when no suite runs). Its state is
@@ -267,7 +268,7 @@ final class BenchState: ObservableObject {
     /// Start a study with the current settings; `then` runs on the main queue when it has finished, with
     /// whether its results were saved. Returns false (and says why) if it cannot start.
     @discardableResult
-    func start(thermalWaitLimit: Double = 300, then: ((RunResult, Bool) -> Void)? = nil) -> Bool {
+    func start(thermalWaitLimit: Double = 300, attempts: Int = 3, then: ((RunResult, Bool) -> Void)? = nil) -> Bool {
         guard let engine else { status = "Load a model first."; return false }
         guard !running else { return false }
         guard !Downloader.shared.busy else { status = "Wait for downloads and hash checks to finish."; return false }
@@ -290,7 +291,7 @@ final class BenchState: ObservableObject {
         var saveError: String?
         let s = Study(engine: engine, armA: armA, armB: armB, cells: chosen, cycles: cycles, cooldown: cooldown,
                       waitForNominal: waitForNominal, thermalWaitLimit: thermalWaitLimit, promptUbatch: promptUbatch,
-                      gate: gate, attempts: 3,
+                      gate: gate, attempts: attempts,
                       log: { line in Task { @MainActor in self.addLog(line) } },
                       progress: { p in Task { @MainActor in self.progress = p } },
                       save: { r in
@@ -324,6 +325,7 @@ final class BenchState: ObservableObject {
     func stop() {
         suiteStopped = true
         study?.cancelled = true
+        screen?.cancelled = true
         if loading && suiteStep != nil { status = "Stopping the suite once the model has finished loading…" }
     }
 
@@ -386,6 +388,16 @@ final class BenchState: ObservableObject {
         let url = documents.appendingPathComponent(spec.model)
         guard FileManager.default.fileExists(atPath: url.path) else { return skip("\(spec.model) is not in the app") }
         let go = { (engine: Engine) in
+            if let screenSpec = spec.screen {
+                self.whenDownloadsIdle {
+                    let started = self.startScreen(spec, screenSpec, engine) { r, saved in
+                        self.recordScreenOutcome(i, spec, r, saved)
+                        DispatchQueue.main.async { self.suiteNext(i + 1) }
+                    }
+                    if !started { skip("the diagnostic could not start (\(self.status))") }
+                }
+                return
+            }
             let arms = Presets.all(for: engine.weightType, mtp: engine.hasMTP)
             guard let a = arms.first(where: { $0.name == spec.a }), let b = arms.first(where: { $0.name == spec.b }) else {
                 return skip("no arm \"\(spec.a)\" or \"\(spec.b)\" for \(engine.weightType)")
@@ -399,7 +411,7 @@ final class BenchState: ObservableObject {
                 self.waitForNominal = spec.waitForNominal
                 self.gate = spec.gate
                 self.promptUbatch = spec.ubatch
-                let started = self.start(thermalWaitLimit: spec.thermalWaitLimit) { r, saved in
+                let started = self.start(thermalWaitLimit: spec.thermalWaitLimit, attempts: spec.attempts) { r, saved in
                     self.recordOutcome(i, spec, r, saved)
                     DispatchQueue.main.async { self.suiteNext(i + 1) }
                 }
@@ -422,6 +434,64 @@ final class BenchState: ObservableObject {
         guard Downloader.shared.busy else { return go() }
         progress = "Waiting for downloads and hash checks to finish (cancel them below to continue)"
         DispatchQueue.main.asyncAfter(deadline: .now() + 5) { self.whenDownloadsIdle(go) }
+    }
+
+    /// Start a diagnostic screen on the loaded model; its result goes to Documents/bonsaidiag-<time>.json.
+    private func startScreen(_ spec: StudySpec, _ screenSpec: ScreenSpec, _ engine: Engine,
+                             then: @escaping (ScreenResult, Bool) -> Void) -> Bool {
+        guard !running else { return false }
+        running = true
+        log = []
+        result = nil
+        resultURL = nil
+        UIApplication.shared.isIdleTimerDisabled = true
+        let stamp = ISO8601DateFormatter().string(from: Date()).replacingOccurrences(of: ":", with: "-")
+        let url = documents.appendingPathComponent("bonsaidiag-\(stamp).json")
+        var saveError: String?
+        let s = Screen(engine: engine, title: spec.title, spec: screenSpec, cooldown: spec.cooldown,
+                       waitForNominal: spec.waitForNominal, thermalWaitLimit: spec.thermalWaitLimit,
+                       log: { line in Task { @MainActor in self.addLog(line) } },
+                       progress: { p in Task { @MainActor in self.progress = p } },
+                       save: { r in
+                           // atomic, after every run: a screen killed by iOS keeps what it measured
+                           do { try JSONEncoder.pretty.encode(r).write(to: url, options: .atomic); saveError = nil }
+                           catch { saveError = error.localizedDescription }
+                       })
+        screen = s
+        addLog("\(spec.title) · \(modelTitle(spec.model)) · \(screenSpec.configs.count) configurations × \(screenSpec.rounds) rounds")
+        let t = Thread {
+            s.run()
+            DispatchQueue.main.async {
+                self.running = false
+                self.progress = ""
+                self.screen = nil
+                UIApplication.shared.isIdleTimerDisabled = false
+                let what = s.result.error.map { "Stopped by an error: \($0)." } ?? (s.result.cancelled ? "Stopped." : "Done.")
+                self.status = what + (saveError.map { " Could not save the results: \($0)" } ?? " Results saved to Documents/\(url.lastPathComponent).")
+                then(s.result, saveError == nil)
+            }
+        }
+        t.qualityOfService = .userInitiated
+        t.stackSize = 8 << 20
+        t.start()
+        return true
+    }
+
+    private func recordScreenOutcome(_ i: Int, _ spec: StudySpec, _ r: ScreenResult, _ saved: Bool) {
+        let failed = r.runs.filter { $0.error != nil }.count
+        if r.cancelled {
+            suiteNotes.append("\"\(spec.title)\" stopped before it finished; its runs so far are saved.")
+        } else if !saved {
+            suiteOutcome[i] = "failed"
+            suiteNotes.append("\"\(spec.title)\": the results could not be saved.")
+        } else if let e = r.error {
+            suiteOutcome[i] = "failed"
+            suiteNotes.append("\"\(spec.title)\" failed: \(e)")
+        } else {
+            suiteOutcome[i] = "done"
+            suiteNotes.append("\"\(spec.title)\": \(r.oneLine)" + (failed > 0 ? " (\(failed) of \(r.runs.count) runs failed, recorded)." : "."))
+        }
+        saveSuite(step: i)
     }
 
     /// Done only if every cell has an accepted quartet for every cycle; otherwise say what is missing.

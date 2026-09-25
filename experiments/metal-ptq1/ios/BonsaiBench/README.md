@@ -304,6 +304,28 @@ cooldown:
 - PTQ1_0 generation is compute-bound on the phone too: 5.7 tok/s upstream in chat128, against about 9.6
   for Q1_0 in chat128.
 
+**Phone diagnostics (2026-09-25).** "Run the phone diagnostics" runs four studies under the overnight thermal
+gate, each saving `Documents/bonsaidiag-<time>.json` (the A-B-B-A one `bonsaibench-<time>.json`):
+
+1. PTQ1_0 pp512, our stack against upstream, 3 quartets (5 attempts each): is there a slowdown at all? The
+   earlier ~0.70x came only from quartets rejected for heat.
+2. pp512 GPU errors: the default (one long command buffer), the same with the diagnostics recording off,
+   the graph in 4 command buffers (`GGML_METAL_N_CB=4`), and 256-token micro-batches; 10 mirrored rounds.
+   Every command buffer's status, error, host scheduling and GPU times are recorded (`GGML_METAL_CB_STATS`),
+   with the failing call's duration, memory-pressure events, system VM counters and battery state per run.
+3. The GPU time of every op at pp512, upstream and stack (`GGML_METAL_PROFILE_OPS`; serialized, so only the
+   op tables compare).
+4. The stack with the flags that act at 512 tokens left out one at a time, the three 2-8-token kernels left out
+   together, and upstream against itself as the null; 4 mirrored rounds, a failed run retried once.
+
+A screen stops with "check failed" if a configuration did not take effect (no stats written, a different
+command-buffer count, no profile).
+
+The lead for the GPU errors, from the earlier studies: 14 of the 16 failed pp512 calls ended 5.6-5.9 s after they
+started, in every arm and both models, while normal PTQ1 calls take 6.4-7.4 s; the failing command buffer is
+always the long one holding ~90% of the graph (about 5 s of GPU time by then). That points to a limit of about 5
+seconds on one command buffer, which shorter command buffers or micro-batches would stay under.
+
 **Overnight suite, 2026-09-25** (`../results/overnight-2026-09-25/`; every run started at nominal temperature,
 the app waiting up to an hour for it; all nine studies complete, no quartet lost to heat; tokens/s, A -> B):
 
@@ -327,7 +349,7 @@ the app waiting up to an hour for it; all nine studies complete, no quartet lost
 - Both 7.2 GB PQ2_0 files fit: the app footprint stayed at 0.4 GB (weights memory-mapped) with 6.0 GB still
   available. MTP studies peaked at 0.64 GB.
 - pp512 GPU errors (below): 4 failed runs in the PTQ1 rows study, none in the Q1 K32 study.
-- Rows mode alone is neutral at pp512 (0.988x), so the PTQ1 stack's ~0.70x there is not rows mode.
+- Rows mode alone is neutral at pp512 (0.988x).
 - Compared with the evening studies below, which allowed runs to start at fair: similar ratios, far fewer
   rejected quartets.
 
@@ -345,7 +367,7 @@ the app waiting up to an hour for it; all nine studies complete, no quartet lost
 
 **Rows mode alone at pp512 on PTQ1_0** (`iphone17promax-ptq1-pp512-only-rows-2026-09-25T02-36-41Z.json`): one
 accepted quartet, 0.97x; 7 runs failed with the GPU error below, in both arms including upstream. With
-`SMALLM_MM` alone at 0.975x, neither flag explains the stack's ~0.70x by itself.
+`SMALLM_MM` alone at 0.975x, neither flag that acts at 512 tokens slows it.
 
 **512-token prompts fail intermittently on the phone.** In the two studies above, about 1 in 4 pp512 runs
 stopped with `Discarded (victim of GPU error/recovery) (00000005:kIOGPUCommandBufferCallbackErrorInnocentVictim)`,
@@ -389,9 +411,11 @@ bottleneck. These batch shapes are what MTP verification and concurrent requests
   - Use a 30-60 s cooldown for the generation cells on a phone.
 - **Memory is not a limit for Q1_0.** The footprint stayed at 0.42-0.44 GB: weights are memory-mapped from
   flash and not counted, and iOS allowed 6.0 GB more.
-- **PTQ1_0 pp512 is ~0.70x with the full stack on the phone** (70.9-71.5 vs 47.7-51.8 tok/s; per-call
-  7.0-7.4 s vs 9.0-10.8 s). The M5 gives the opposite: stack 1.046x, rows mode alone 1.043x, `SMALLM_MM`
-  alone 0.999x (llama-bench, 2 interleaved rounds).
+- **PTQ1_0 pp512 looked ~0.70x with the full stack on the phone** (70.9-71.5 vs 47.7-51.8 tok/s; per-call
+  7.0-7.4 s vs 9.0-10.8 s), but only in two quartets that were rejected because the phone reached serious
+  during the stack runs; their calls slowed within each run, which is heat, so this is not an established
+  slowdown (correction, 2026-09-25). The M5 gives stack 1.046x, rows mode alone 1.043x, `SMALLM_MM` alone
+  0.999x (llama-bench, 2 interleaved rounds).
   - On the phone, `SMALLM_MM` alone measured 0.975x (2 quartets), so it is not the main cause.
   - The PTQ1 multi-column, GLU and staging paths stop at 8 columns and do not act at 512. That leaves rows
     mode (`GDN_ROWS_PLAIN`) as the suspect; the first quick test checks it.

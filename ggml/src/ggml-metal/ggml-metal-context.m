@@ -11,6 +11,9 @@
 
 #import <Metal/Metal.h>
 
+#include <mach/mach_time.h>
+#include <stdatomic.h>
+
 #undef MIN
 #undef MAX
 #define MIN(a, b) ((a) < (b) ? (a) : (b))
@@ -79,6 +82,13 @@ struct ggml_metal {
     // error state - set when a command buffer fails during synchronize
     // once set, graph_compute will return GGML_STATUS_FAILED until the backend is recreated
     bool has_error;
+
+    // research diagnostics: GGML_METAL_CB_STATS=<file> appends one JSON line per graph with every command
+    // buffer's status, error (and which encoder faulted) and host/GPU timing; NULL when off
+    char *  cb_stats_path;
+    bool    cb_stats_pending;   // a graph was submitted and its stats are not written yet
+    int64_t cb_stats_graph;     // graphs written so far
+    int     cb_stats_ctx;       // this context's number in the process
 };
 
 ggml_metal_t ggml_metal_init(ggml_metal_device_t dev) {
@@ -144,6 +154,13 @@ ggml_metal_t ggml_metal_init(ggml_metal_device_t dev) {
 
     res->d_queue = dispatch_queue_create("ggml-metal", DISPATCH_QUEUE_CONCURRENT);
 
+    {
+        static atomic_int n_ctx = 0;
+        const char * p = getenv("GGML_METAL_CB_STATS");
+        res->cb_stats_path = p && p[0] ? strdup(p) : NULL;
+        res->cb_stats_ctx  = atomic_fetch_add(&n_ctx, 1);
+    }
+
     res->use_fusion      = getenv("GGML_METAL_FUSION_DISABLE") == nil;
     res->use_concurrency = getenv("GGML_METAL_CONCURRENCY_DISABLE") == nil;
 
@@ -200,7 +217,7 @@ ggml_metal_t ggml_metal_init(ggml_metal_device_t dev) {
 void ggml_metal_free(ggml_metal_t ctx) {
     GGML_LOG_INFO("%s: deallocating\n", __func__);
 
-    for (int i = 0; i < GGML_METAL_MAX_COMMAND_BUFFERS; ++i) {
+    for (int i = 0; i <= GGML_METAL_MAX_COMMAND_BUFFERS; ++i) {
         if (ctx->cmd_bufs[i].obj) {
             [ctx->cmd_bufs[i].obj release];
         }
@@ -240,6 +257,8 @@ void ggml_metal_free(ggml_metal_t ctx) {
 
     ggml_metal_device_event_free(ctx->dev, ctx->ev_cpy);
 
+    free(ctx->cb_stats_path);
+
     ggml_metal_research_release();
     free(ctx);
 }
@@ -248,11 +267,148 @@ const char * ggml_metal_get_name(ggml_metal_t ctx) {
     return ctx->name;
 }
 
+// GGML_METAL_CB_STATS: a command buffer for a graph. With stats on it also records which encoder faulted.
+static id<MTLCommandBuffer> ggml_metal_graph_cmd_buf(ggml_metal_t ctx, id<MTLCommandQueue> queue) {
+    if (ctx->cb_stats_path) {
+        MTLCommandBufferDescriptor * desc = [MTLCommandBufferDescriptor new];
+        desc.retainedReferences = NO;
+        desc.errorOptions = MTLCommandBufferErrorOptionEncoderExecutionStatus;
+        id<MTLCommandBuffer> cmd_buf = [queue commandBufferWithDescriptor:desc];
+        [desc release];
+        return cmd_buf;
+    }
+    return [queue commandBufferWithUnretainedReferences];
+}
+
+// host time in seconds, on the clock of MTLCommandBuffer's kernelStartTime/GPUStartTime
+static double ggml_metal_host_seconds(void) {
+    static mach_timebase_info_data_t tb;
+    if (tb.denom == 0) {
+        mach_timebase_info(&tb);
+    }
+    return (double) mach_absolute_time() * tb.numer / tb.denom / 1e9;
+}
+
+static void ggml_metal_json_string(FILE * f, const char * s) {
+    fputc('"', f);
+    for (; s && *s; ++s) {
+        const unsigned char c = (unsigned char) *s;
+        if (c == '"' || c == '\\') {
+            fputc('\\', f); fputc(c, f);
+        } else if (c < 0x20) {
+            fprintf(f, "\\u%04x", c);
+        } else {
+            fputc(c, f);
+        }
+    }
+    fputc('"', f);
+}
+
+// One JSON line for the last submitted graph. Times are ms from t0, the earliest host scheduling time
+// (kernelStartTime) of the graph's command buffers: ks = scheduled by the host, gs/ge = GPU start/end (-1 if not
+// recorded). "t0" is that time in host seconds (the mach_absolute_time clock Metal uses) and "now"/"unix" the host and Unix
+// times of writing, so lines can be matched to other logs; "ctx" tells contexts apart. For a failed command
+// buffer: the NSError code, domain and description, and each of its encoders' state (0 unknown, 1 completed,
+// 2 affected, 3 pending, 4 faulted) with its number of debug signposts and the last few of them.
+static void ggml_metal_cb_stats_write(ggml_metal_t ctx) {
+    ctx->cb_stats_pending = false;
+    @autoreleasepool {
+    const int n_cb = ctx->n_cb;
+    // completions can arrive out of order during GPU error recovery: wait for every committed command buffer
+    for (int i = 0; i <= n_cb; ++i) {
+        id<MTLCommandBuffer> cmd_buf = ctx->cmd_bufs[i].obj;
+        if (cmd_buf && cmd_buf.status >= MTLCommandBufferStatusCommitted) {
+            [cmd_buf waitUntilCompleted];
+        }
+    }
+    FILE * f = fopen(ctx->cb_stats_path, "a");
+    if (!f) {
+        GGML_LOG_ERROR("%s: cannot open GGML_METAL_CB_STATS file '%s'; command buffer stats are off\n", __func__, ctx->cb_stats_path);
+        free(ctx->cb_stats_path);
+        ctx->cb_stats_path = NULL;
+        return;
+    }
+    double t0 = 0;
+    for (int i = 0; i <= n_cb; ++i) {
+        id<MTLCommandBuffer> cmd_buf = ctx->cmd_bufs[i].obj;
+        if (cmd_buf && cmd_buf.kernelStartTime > 0 && (t0 == 0 || cmd_buf.kernelStartTime < t0)) {
+            t0 = cmd_buf.kernelStartTime;
+        }
+    }
+    if (t0 == 0) {
+        for (int i = 0; i <= n_cb; ++i) {
+            id<MTLCommandBuffer> cmd_buf = ctx->cmd_bufs[i].obj;
+            if (cmd_buf && cmd_buf.GPUStartTime > 0 && (t0 == 0 || cmd_buf.GPUStartTime < t0)) {
+                t0 = cmd_buf.GPUStartTime;
+            }
+        }
+    }
+    const double ms = 1e3;
+    fprintf(f, "{\"graph\":%lld,\"ctx\":%d,\"t0\":%.6f,\"now\":%.6f,\"unix\":%.3f,\"n_nodes\":%d,\"n_cb\":%d,\"cbs\":[",
+            (long long) ctx->cb_stats_graph++, ctx->cb_stats_ctx, t0, ggml_metal_host_seconds(), [[NSDate date] timeIntervalSince1970],
+            ctx->n_nodes_0 + ctx->n_nodes_1, n_cb);
+    bool first = true;
+    // the main thread's command buffer (index n_cb) runs first
+    for (int k = 0; k <= n_cb; ++k) {
+        const int i = k == 0 ? n_cb : k - 1;
+        id<MTLCommandBuffer> cmd_buf = ctx->cmd_bufs[i].obj;
+        if (!cmd_buf) {
+            continue;
+        }
+        int nodes = ctx->n_nodes_0;
+        if (i < n_cb) {
+            const int start = i*ctx->n_nodes_per_cb;
+            const int end   = MIN(i == n_cb - 1 ? ctx->n_nodes_1 : (i + 1)*ctx->n_nodes_per_cb, ctx->n_nodes_1);
+            nodes = MAX(0, end - start);
+        }
+        const double ks = cmd_buf.kernelStartTime > 0 && t0 > 0 ? (cmd_buf.kernelStartTime - t0)*ms : -1;
+        const double gs = cmd_buf.GPUStartTime    > 0 && t0 > 0 ? (cmd_buf.GPUStartTime    - t0)*ms : -1;
+        const double ge = cmd_buf.GPUEndTime      > 0 && t0 > 0 ? (cmd_buf.GPUEndTime      - t0)*ms : -1;
+        fprintf(f, "%s{\"i\":%d,\"main\":%s,\"nodes\":%d,\"status\":%d,\"ks\":%.3f,\"gs\":%.3f,\"ge\":%.3f",
+                first ? "" : ",", i, i == n_cb ? "true" : "false", nodes, (int) cmd_buf.status, ks, gs, ge);
+        first = false;
+        NSError * err = cmd_buf.error;
+        if (err) {
+            fprintf(f, ",\"code\":%ld,\"domain\":", (long) err.code);
+            ggml_metal_json_string(f, [err.domain UTF8String]);
+            fprintf(f, ",\"err\":");
+            ggml_metal_json_string(f, [err.localizedDescription UTF8String]);
+            NSArray * infos = err.userInfo[MTLCommandBufferEncoderInfoErrorKey];
+            if ([infos isKindOfClass:[NSArray class]]) {
+                fprintf(f, ",\"enc\":[");
+                for (NSUInteger j = 0; j < infos.count; ++j) {
+                    id<MTLCommandBufferEncoderInfo> info = infos[j];
+                    NSArray<NSString *> * posts = info.debugSignposts;
+                    fprintf(f, "%s{\"state\":%d,\"label\":", j ? "," : "", (int) info.errorState);
+                    ggml_metal_json_string(f, [info.label UTF8String]);
+                    fprintf(f, ",\"signposts\":%lu,\"last\":[", (unsigned long) posts.count);
+                    const NSUInteger n_last = MIN(posts.count, (NSUInteger) 8);
+                    for (NSUInteger q = posts.count - n_last; q < posts.count; ++q) {
+                        fprintf(f, "%s", q > posts.count - n_last ? "," : "");
+                        ggml_metal_json_string(f, [posts[q] UTF8String]);
+                    }
+                    fprintf(f, "]}");
+                }
+                fprintf(f, "]");
+            }
+        }
+        fprintf(f, "}");
+    }
+    fprintf(f, "]}\n");
+    fclose(f);
+    }
+}
+
 void ggml_metal_synchronize(ggml_metal_t ctx) {
     // wait for any backend operations to finish
     if (ctx->cmd_buf_last) {
         [ctx->cmd_buf_last waitUntilCompleted];
         ctx->cmd_buf_last = nil;
+    }
+
+    // every command buffer of the graph is done (one queue, in order): record them before any early return
+    if (ctx->cb_stats_path && ctx->cb_stats_pending) {
+        ggml_metal_cb_stats_write(ctx);
     }
 
     // check status of all command buffers
@@ -514,6 +670,14 @@ enum ggml_status ggml_metal_graph_compute(ggml_metal_t ctx, struct ggml_cgraph *
         return GGML_STATUS_SUCCESS;
     }
 
+    // GGML_METAL_CB_STATS: the command buffers below are reused, so finish and record the previous graph first
+    if (ctx->cb_stats_path && ctx->cb_stats_pending) {
+        if (ctx->cmd_buf_last) {
+            [ctx->cmd_buf_last waitUntilCompleted];
+        }
+        ggml_metal_cb_stats_write(ctx);
+    }
+
     // number of nodes encoded by the main thread (empirically determined)
     const int n_main = MAX(64, 0.1*gf->n_nodes);
 
@@ -582,7 +746,7 @@ enum ggml_status ggml_metal_graph_compute(ggml_metal_t ctx, struct ggml_cgraph *
         // the main thread commits the first few commands immediately
         // cmd_buf[n_cb]
         {
-            id<MTLCommandBuffer> cmd_buf = [queue commandBufferWithUnretainedReferences];
+            id<MTLCommandBuffer> cmd_buf = ggml_metal_graph_cmd_buf(ctx, queue);
             [cmd_buf retain];
 
             if (ctx->cmd_bufs[n_cb].obj) {
@@ -601,7 +765,7 @@ enum ggml_status ggml_metal_graph_compute(ggml_metal_t ctx, struct ggml_cgraph *
         // prepare the rest of the command buffers asynchronously (optional)
         // cmd_buf[0.. n_cb)
         for (int cb_idx = 0; cb_idx < n_cb; ++cb_idx) {
-            id<MTLCommandBuffer> cmd_buf = [queue commandBufferWithUnretainedReferences];
+            id<MTLCommandBuffer> cmd_buf = ggml_metal_graph_cmd_buf(ctx, queue);
             [cmd_buf retain];
 
             if (ctx->cmd_bufs[cb_idx].obj) {
@@ -621,6 +785,10 @@ enum ggml_status ggml_metal_graph_compute(ggml_metal_t ctx, struct ggml_cgraph *
         }
 
         dispatch_apply(n_cb, ctx->d_queue, ctx->encode_async);
+
+        if (ctx->cb_stats_path) {
+            ctx->cb_stats_pending = true;
+        }
 
         // for debugging: block until graph is computed
         //[ctx->cmd_buf_last waitUntilCompleted];

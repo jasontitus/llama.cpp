@@ -32,7 +32,7 @@ struct ContentView: View {
                             Button("Stop", role: .destructive) { state.stop() }
                         } else {
                             let total = state.suite.indices.filter { state.suiteIncluded.contains($0) }.reduce(0.0) { $0 + state.suite[$1].estimatedSeconds }
-                            Button("Run everything we still need (~\(durationText(total)) plus cooling)") { state.startSuite() }
+                            Button("Run the phone diagnostics (~\(durationText(total)) plus cooling)") { state.startSuite() }
                                 .buttonStyle(.borderedProminent)
                                 .disabled(state.running || state.loading || downloads.busy || state.suiteIncluded.isEmpty)
                             if let r = state.suiteResumeAt {
@@ -99,7 +99,7 @@ struct ContentView: View {
                             .frame(width: 22)
                             VStack(alignment: .leading, spacing: 2) {
                                 Text("\(i + 1). \(spec.title)" + (state.suiteOutcome[i].map { " (\($0))" } ?? ""))
-                                Text("B = \(spec.b) vs A = \(spec.a) · \(spec.cells.joined(separator: ", ")) · \(spec.cycles) quartets, \(Int(spec.cooldown)) s cooldown\(spec.ubatch != 512 ? " · micro-batch \(spec.ubatch)" : "") · ~\(durationText(spec.estimatedSeconds))" + (have ? "" : " · model not in the app"))
+                                Text("\(spec.detail) · ~\(durationText(spec.estimatedSeconds))" + (have ? "" : " · model not in the app"))
                                     .font(.caption).foregroundStyle(.secondary)
                             }
                             Spacer()
@@ -113,7 +113,7 @@ struct ContentView: View {
                     ForEach(state.suiteNotes, id: \.self) { Text($0).font(.caption).foregroundStyle(.orange) }
                     }
                 } header: {
-                    Text("Everything we still need: the studies")
+                    Text("The phone diagnostics: the studies")
                 } footer: {
                     Text("Started with the button at the top. Switch a study off to skip it; a study whose model is not in the app is skipped.")
                 }

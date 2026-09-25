@@ -577,6 +577,18 @@ static void ggml_backend_metal_set_n_cb(ggml_backend_t backend, int n_cb) {
     ggml_metal_set_n_cb(ctx, n_cb);
 }
 
+// research diagnostics: GGML_METAL_N_CB=1..8 splits a graph over that many command buffers (plus the main
+// thread's) instead of one; shorter command buffers, for testing GPU timeouts on phones. Read from the context's
+// research profile, which ggml_metal_init has acquired.
+static int ggml_backend_metal_research_n_cb() {
+    const int n_cb = GGML_METAL_ENV_INT("GGML_METAL_N_CB", 1);
+    if (n_cb >= 1 && n_cb <= 8) {
+        return n_cb;
+    }
+    GGML_LOG_WARN("%s: GGML_METAL_N_CB=%d is not 1..8; using %d\n", __func__, n_cb, n_cb > 8 ? 8 : 1);
+    return n_cb > 8 ? 8 : 1;
+}
+
 static ggml_backend_i ggml_backend_metal_i = {
     /* .get_name                = */ ggml_backend_metal_name,
     /* .free                    = */ ggml_backend_metal_free,
@@ -620,7 +632,7 @@ ggml_backend_t ggml_backend_metal_init(void) {
         /* .context   = */ ctx,
     };
 
-    ggml_backend_metal_set_n_cb(backend, 1);
+    ggml_backend_metal_set_n_cb(backend, ggml_backend_metal_research_n_cb());
 
     return backend;
 }
@@ -715,7 +727,7 @@ static ggml_backend_t ggml_backend_metal_device_init_backend(ggml_backend_dev_t 
         /* .context   = */ ctx,
     };
 
-    ggml_backend_metal_set_n_cb(backend, 1);
+    ggml_backend_metal_set_n_cb(backend, ggml_backend_metal_research_n_cb());
 
     return backend;
 

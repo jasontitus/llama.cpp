@@ -27,6 +27,7 @@
 		91E058E10AEA7522A96D47F9 /* ngram-mod.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 462BACAD89C184DF3A4F6650 /* ngram-mod.cpp */; };
 		A19113653643E61358BAF794 /* BonsaiBenchApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8E9177C2A28F303E12F6EA4F /* BonsaiBenchApp.swift */; };
 		B10F63A2C66F6B80DB2E388E /* unicode.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 0B7B4A6D4FCC7D736157E943 /* unicode.cpp */; };
+		CED7AA25BE0E0B99E1F6E1DF /* Diagnose.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3B15DD74583065E0E340BBC0 /* Diagnose.swift */; };
 		D23226F2106AD2A2C2318E3E /* fit.cpp in Sources */ = {isa = PBXBuildFile; fileRef = F18ABDDFD74218ECE2EB9AE2 /* fit.cpp */; };
 		F2136502010231CCF1211FE7 /* reasoning-budget.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 26B44A16246766167807E4BA /* reasoning-budget.cpp */; };
 /* End PBXBuildFile section */
@@ -57,6 +58,7 @@
 		26B44A16246766167807E4BA /* reasoning-budget.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; name = "reasoning-budget.cpp"; path = "../../../../common/reasoning-budget.cpp"; sourceTree = "<group>"; };
 		270F78A8A8F6DEB718FFBF68 /* BonsaiBench-Bridging-Header.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = "BonsaiBench-Bridging-Header.h"; sourceTree = "<group>"; };
 		34FCCB252A3958E7A2EA50A7 /* BonsaiMTP.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = BonsaiMTP.h; sourceTree = "<group>"; };
+		3B15DD74583065E0E340BBC0 /* Diagnose.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Diagnose.swift; sourceTree = "<group>"; };
 		3C9ECD5BE1C03AC04BE906E6 /* BonsaiBench.app */ = {isa = PBXFileReference; includeInIndex = 0; lastKnownFileType = wrapper.application; path = BonsaiBench.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		462BACAD89C184DF3A4F6650 /* ngram-mod.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; name = "ngram-mod.cpp"; path = "../../../../common/ngram-mod.cpp"; sourceTree = "<group>"; };
 		49841A2BED5A498B7E6094B5 /* build-info.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = "build-info.cpp"; sourceTree = "<group>"; };
@@ -151,6 +153,7 @@
 				8E9177C2A28F303E12F6EA4F /* BonsaiBenchApp.swift */,
 				526CE7B87EA48DCF0C8A8CA7 /* ContentView.swift */,
 				B7D2A595F3381EF1776992A6 /* DeviceInfo.swift */,
+				3B15DD74583065E0E340BBC0 /* Diagnose.swift */,
 				0B98262F7A8E003534A325F9 /* Downloads.swift */,
 				84662EE001062C38068950F6 /* Engine.swift */,
 				EC892D783CB72DE085265E82 /* Info.plist */,
@@ -277,6 +280,7 @@
 				502A6F8E1851F32D96F6AB2C /* BonsaiMTP.cpp in Sources */,
 				4529F7A2FBDC33143A4EDB98 /* ContentView.swift in Sources */,
 				45B9A324E7DC5F666074B6FA /* DeviceInfo.swift in Sources */,
+				CED7AA25BE0E0B99E1F6E1DF /* Diagnose.swift in Sources */,
 				29820508D09BFC2918878273 /* Downloads.swift in Sources */,
 				5836F629AA44E2E22CB8B345 /* Engine.swift in Sources */,
 				5AFCDAF568C869B512253B9C /* Suite.swift in Sources */,

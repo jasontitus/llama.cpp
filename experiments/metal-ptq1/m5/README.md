@@ -74,10 +74,11 @@ within 1.1%, so the M5 numbers stand for the current branch.
     studies completed with no quartet lost to heat. An evening run that allowed fair starts lost most of
     its generation quartets to heat.
   - Both 7.2 GB PQ2_0 models fit (memory-mapped, 0.4 GB app footprint).
-  - **Open issue:** 512-token prompt processing on PTQ1_0 is about 30% slower with the flags on the phone,
-    reproducible (M5: 1.046x faster). Neither flag that acts at 512 tokens explains it alone: `SMALLM_MM`
-    measured 0.975x and rows mode 0.988x (3 quartets) on the phone, so the next suspect is how the PTQ1
-    flags combine at 512 tokens on the A19.
+  - **Correction:** the "PTQ1_0 pp512 is ~30% slower with the flags on the phone" reported earlier is not
+    established. It came only from two quartets rejected because the phone reached serious during the stack
+    runs, whose calls slowed from 7.3 s to 10.8 s within the run (heat). Measured cleanly, the two flags that
+    act at 512 tokens are neutral on the phone (`SMALLM_MM` 0.975x, rows mode 0.988x), and on the M5 the stack
+    is 1.046x. The app's diagnostics now measure the full stack at pp512 under the overnight thermal gate.
   - 512-token prompt runs sometimes fail on the phone with an iOS GPU error, in every arm including plain
     upstream (evening: about 1 in 4 runs; overnight, starting cool: 4 PTQ1 runs, no Q1 runs); see the app's
     README.
