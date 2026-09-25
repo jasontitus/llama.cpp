@@ -1,0 +1,760 @@
+{
+  "armA" : {
+    "draft" : 0,
+    "flags" : {
+      "GGML_GDN_ROWS_PLAIN" : "1",
+      "GGML_METAL_SMALLM" : "1",
+      "GGML_METAL_SMALLM_MM" : "1"
+    },
+    "name" : "M5 stack (Q1)"
+  },
+  "armB" : {
+    "draft" : 0,
+    "flags" : {
+      "GGML_GDN_ROWS_PLAIN" : "1",
+      "GGML_METAL_Q1_SWIZZLE_LOG" : "1",
+      "GGML_METAL_SMALLM" : "1",
+      "GGML_METAL_SMALLM_MM" : "1"
+    },
+    "name" : "M5 stack (Q1) + K32 prefill"
+  },
+  "build" : {
+    "appDirtyFiles" : "10",
+    "frameworkDirtyFiles" : "6",
+    "frameworkRevision" : "e610dc16b532660200baa87aa2514cc87cf603b3",
+    "frameworkSHA256" : "0c92bbe97f2a5f1855060fbecdb5b5e169432a0ef6e12cf99c3de10037dcc313",
+    "sourceRevision" : "e610dc16b532660200baa87aa2514cc87cf603b3"
+  },
+  "cancelled" : false,
+  "cooldownSeconds" : 40,
+  "cycles" : 3,
+  "device" : {
+    "appAvailableMemoryBytes" : 6315208248,
+    "gpuName" : "Apple A19 Pro GPU",
+    "highestAppleFamily" : 10,
+    "lowPowerMode" : false,
+    "machine" : "iPhone18,2",
+    "physicalMemoryBytes" : 12263424000,
+    "systemVersion" : "Version 27.0 (Build 24A437)",
+    "thermalState" : "nominal"
+  },
+  "finished" : "2026-09-25T05:30:27Z",
+  "launchEnvironment" : {
+
+  },
+  "minAvailableBytes" : 6010858680,
+  "model" : "Bonsai-27B-Q1_0.gguf",
+  "modelBytes" : 3803452480,
+  "modelDescription" : "qwen35 27B Q1_0",
+  "modelSHA256Verified" : "17ef842e47450caeb8eaa3ebfbbab5d2f2278b62b79be107985fb69a2f819aa0",
+  "peakFootprintBytes" : 431592264,
+  "prompt" : "<|im_start|>user\nWrite a Python function that merges two sorted lists into one sorted list, with a docstring.<|im_end|>\n<|im_start|>assistant\n<think>\n\n<\/think>\n\n",
+  "promptUbatch" : 512,
+  "quartets" : [
+    {
+      "accepted" : true,
+      "attempt" : 1,
+      "cell" : "pp512",
+      "cycle" : 0,
+      "observations" : [
+        {
+          "arm" : "M5 stack (Q1)",
+          "availableBytes" : 6027472176,
+          "callSeconds" : [
+            6.637413,
+            6.827798542
+          ],
+          "footprintBytes" : 414978768,
+          "gateReached" : true,
+          "interrupted" : false,
+          "libraryMessages" : [
+            "pipeline: kernel_mul_mm_q1_0_f32"
+          ],
+          "position" : 0,
+          "startedAt" : "2026-09-25T04:55:28Z",
+          "thermalAfter" : "nominal",
+          "thermalBefore" : "nominal",
+          "thermalMax" : "nominal",
+          "thermalWaitSeconds" : 0.005059957504272461,
+          "tokensPerSecond" : 76.04782121736385,
+          "warmupCallSeconds" : [
+            6.211117042
+          ]
+        },
+        {
+          "arm" : "M5 stack (Q1) + K32 prefill",
+          "availableBytes" : 6030552368,
+          "callSeconds" : [
+            5.690796667,
+            5.857078375
+          ],
+          "footprintBytes" : 411898576,
+          "gateReached" : true,
+          "interrupted" : false,
+          "libraryMessages" : [
+            "pipeline: kernel_mul_mm_q1_0_f32_k32_swizzle1"
+          ],
+          "position" : 1,
+          "startedAt" : "2026-09-25T04:56:28Z",
+          "thermalAfter" : "nominal",
+          "thermalBefore" : "nominal",
+          "thermalMax" : "nominal",
+          "thermalWaitSeconds" : 0.0050220489501953125,
+          "tokensPerSecond" : 88.67432287547955,
+          "warmupCallSeconds" : [
+            5.640158417
+          ]
+        },
+        {
+          "arm" : "M5 stack (Q1) + K32 prefill",
+          "availableBytes" : 6032141616,
+          "callSeconds" : [
+            5.687599125,
+            5.798751375
+          ],
+          "footprintBytes" : 410309328,
+          "gateReached" : true,
+          "interrupted" : false,
+          "libraryMessages" : [
+
+          ],
+          "position" : 2,
+          "startedAt" : "2026-09-25T04:57:25Z",
+          "thermalAfter" : "nominal",
+          "thermalBefore" : "nominal",
+          "thermalMax" : "nominal",
+          "thermalWaitSeconds" : 0.005023002624511719,
+          "tokensPerSecond" : 89.14929071683821,
+          "warmupCallSeconds" : [
+            5.639027459
+          ]
+        },
+        {
+          "arm" : "M5 stack (Q1)",
+          "availableBytes" : 6032207152,
+          "callSeconds" : [
+            5.989575083,
+            6.1728835
+          ],
+          "footprintBytes" : 410243792,
+          "gateReached" : true,
+          "interrupted" : false,
+          "libraryMessages" : [
+
+          ],
+          "position" : 3,
+          "startedAt" : "2026-09-25T04:58:22Z",
+          "thermalAfter" : "nominal",
+          "thermalBefore" : "nominal",
+          "thermalMax" : "nominal",
+          "thermalWaitSeconds" : 0.005020022392272949,
+          "tokensPerSecond" : 84.19350355949328,
+          "warmupCallSeconds" : [
+            5.949891667
+          ]
+        }
+      ],
+      "ratio" : 1.109723810883021,
+      "spread" : 1.1071126327057683
+    },
+    {
+      "accepted" : true,
+      "attempt" : 1,
+      "cell" : "pp128",
+      "cycle" : 0,
+      "observations" : [
+        {
+          "arm" : "M5 stack (Q1)",
+          "availableBytes" : 6048542000,
+          "callSeconds" : [
+            1.314464625,
+            1.323361833,
+            1.330008167,
+            1.331416083,
+            1.3199565
+          ],
+          "footprintBytes" : 393908944,
+          "gateReached" : true,
+          "interrupted" : false,
+          "libraryMessages" : [
+
+          ],
+          "position" : 0,
+          "startedAt" : "2026-09-25T04:59:21Z",
+          "thermalAfter" : "nominal",
+          "thermalBefore" : "nominal",
+          "thermalMax" : "nominal",
+          "thermalWaitSeconds" : 0.005023002624511719,
+          "tokensPerSecond" : 96.68831627245231,
+          "warmupCallSeconds" : [
+            1.316670916
+          ]
+        },
+        {
+          "arm" : "M5 stack (Q1) + K32 prefill",
+          "availableBytes" : 6046346544,
+          "callSeconds" : [
+            1.453011167,
+            1.486168834,
+            1.510616,
+            1.569445166,
+            1.576639959
+          ],
+          "footprintBytes" : 396104400,
+          "gateReached" : true,
+          "interrupted" : false,
+          "libraryMessages" : [
+
+          ],
+          "position" : 1,
+          "startedAt" : "2026-09-25T05:00:09Z",
+          "thermalAfter" : "nominal",
+          "thermalBefore" : "nominal",
+          "thermalMax" : "nominal",
+          "thermalWaitSeconds" : 0.0011839866638183594,
+          "tokensPerSecond" : 84.25618955638195,
+          "warmupCallSeconds" : [
+            1.30436225
+          ]
+        },
+        {
+          "arm" : "M5 stack (Q1) + K32 prefill",
+          "availableBytes" : 6045592880,
+          "callSeconds" : [
+            1.283719334,
+            1.35304875,
+            1.40464575,
+            1.444331291,
+            1.4736505
+          ],
+          "footprintBytes" : 396858064,
+          "gateReached" : true,
+          "interrupted" : false,
+          "libraryMessages" : [
+
+          ],
+          "position" : 2,
+          "startedAt" : "2026-09-25T05:00:58Z",
+          "thermalAfter" : "nominal",
+          "thermalBefore" : "nominal",
+          "thermalMax" : "nominal",
+          "thermalWaitSeconds" : 0.0001550912857055664,
+          "tokensPerSecond" : 91.96200855444255,
+          "warmupCallSeconds" : [
+            1.266905917
+          ]
+        },
+        {
+          "arm" : "M5 stack (Q1)",
+          "availableBytes" : 6047051056,
+          "callSeconds" : [
+            1.34604925,
+            1.344306084,
+            1.388119542,
+            1.42141575,
+            1.461873167
+          ],
+          "footprintBytes" : 395399888,
+          "gateReached" : true,
+          "interrupted" : false,
+          "libraryMessages" : [
+
+          ],
+          "position" : 3,
+          "startedAt" : "2026-09-25T05:01:46Z",
+          "thermalAfter" : "nominal",
+          "thermalBefore" : "nominal",
+          "thermalMax" : "nominal",
+          "thermalWaitSeconds" : 0.0012630224227905273,
+          "tokensPerSecond" : 91.93072603863908,
+          "warmupCallSeconds" : [
+            1.335294917
+          ]
+        }
+      ],
+      "ratio" : 0.9342545479590866,
+      "spread" : 1.0914570079495949
+    },
+    {
+      "accepted" : true,
+      "attempt" : 1,
+      "cell" : "pp512",
+      "cycle" : 1,
+      "observations" : [
+        {
+          "arm" : "M5 stack (Q1)",
+          "availableBytes" : 6032092464,
+          "callSeconds" : [
+            6.303470958,
+            6.578681833
+          ],
+          "footprintBytes" : 410358480,
+          "gateReached" : true,
+          "interrupted" : false,
+          "libraryMessages" : [
+
+          ],
+          "position" : 0,
+          "startedAt" : "2026-09-25T05:02:35Z",
+          "thermalAfter" : "nominal",
+          "thermalBefore" : "nominal",
+          "thermalMax" : "nominal",
+          "thermalWaitSeconds" : 0.0023059844970703125,
+          "tokensPerSecond" : 79.4898194900629,
+          "warmupCallSeconds" : [
+            6.035092792
+          ]
+        },
+        {
+          "arm" : "M5 stack (Q1) + K32 prefill",
+          "availableBytes" : 6032108848,
+          "callSeconds" : [
+            5.965358166,
+            6.191676917
+          ],
+          "footprintBytes" : 410342096,
+          "gateReached" : true,
+          "interrupted" : false,
+          "libraryMessages" : [
+
+          ],
+          "position" : 1,
+          "startedAt" : "2026-09-25T05:03:34Z",
+          "thermalAfter" : "nominal",
+          "thermalBefore" : "nominal",
+          "thermalMax" : "nominal",
+          "thermalWaitSeconds" : 4.303455352783203e-05,
+          "tokensPerSecond" : 84.23106398960122,
+          "warmupCallSeconds" : [
+            5.663510667
+          ]
+        },
+        {
+          "arm" : "M5 stack (Q1) + K32 prefill",
+          "availableBytes" : 6032010544,
+          "callSeconds" : [
+            5.78024275,
+            6.03559125
+          ],
+          "footprintBytes" : 410440400,
+          "gateReached" : true,
+          "interrupted" : false,
+          "libraryMessages" : [
+
+          ],
+          "position" : 2,
+          "startedAt" : "2026-09-25T05:06:02Z",
+          "thermalAfter" : "nominal",
+          "thermalBefore" : "nominal",
+          "thermalMax" : "nominal",
+          "thermalWaitSeconds" : 50.04592990875244,
+          "tokensPerSecond" : 86.66337052467054,
+          "warmupCallSeconds" : [
+            5.639778667
+          ]
+        },
+        {
+          "arm" : "M5 stack (Q1)",
+          "availableBytes" : 6032059696,
+          "callSeconds" : [
+            6.463366417,
+            7.210464125
+          ],
+          "footprintBytes" : 410391248,
+          "gateReached" : true,
+          "interrupted" : false,
+          "libraryMessages" : [
+
+          ],
+          "position" : 3,
+          "startedAt" : "2026-09-25T05:07:00Z",
+          "thermalAfter" : "nominal",
+          "thermalBefore" : "nominal",
+          "thermalMax" : "nominal",
+          "thermalWaitSeconds" : 0.002042055130004883,
+          "tokensPerSecond" : 74.88757425029672,
+          "warmupCallSeconds" : [
+            6.06503675
+          ]
+        }
+      ],
+      "ratio" : 1.106991317664628,
+      "spread" : 1.0614553921106336
+    },
+    {
+      "accepted" : true,
+      "attempt" : 1,
+      "cell" : "pp128",
+      "cycle" : 1,
+      "observations" : [
+        {
+          "arm" : "M5 stack (Q1)",
+          "availableBytes" : 6048312624,
+          "callSeconds" : [
+            1.332933333,
+            1.343820166,
+            1.346633375,
+            1.377024625,
+            1.381652667
+          ],
+          "footprintBytes" : 394138320,
+          "gateReached" : true,
+          "interrupted" : false,
+          "libraryMessages" : [
+
+          ],
+          "position" : 0,
+          "startedAt" : "2026-09-25T05:09:35Z",
+          "thermalAfter" : "nominal",
+          "thermalBefore" : "nominal",
+          "thermalMax" : "nominal",
+          "thermalWaitSeconds" : 55.04947292804718,
+          "tokensPerSecond" : 94.36655040930795,
+          "warmupCallSeconds" : [
+            1.333308958
+          ]
+        },
+        {
+          "arm" : "M5 stack (Q1) + K32 prefill",
+          "availableBytes" : 6048345392,
+          "callSeconds" : [
+            1.25117675,
+            1.258881916,
+            1.249141875,
+            1.271304375,
+            1.295889333
+          ],
+          "footprintBytes" : 394105552,
+          "gateReached" : true,
+          "interrupted" : false,
+          "libraryMessages" : [
+
+          ],
+          "position" : 1,
+          "startedAt" : "2026-09-25T05:10:23Z",
+          "thermalAfter" : "nominal",
+          "thermalBefore" : "nominal",
+          "thermalMax" : "nominal",
+          "thermalWaitSeconds" : 0.0018340349197387695,
+          "tokensPerSecond" : 101.16347081928438,
+          "warmupCallSeconds" : [
+            1.248607916
+          ]
+        },
+        {
+          "arm" : "M5 stack (Q1) + K32 prefill",
+          "availableBytes" : 6049164592,
+          "callSeconds" : [
+            1.250840542,
+            1.254560916,
+            1.250550291,
+            1.267589209,
+            1.289635125
+          ],
+          "footprintBytes" : 393286352,
+          "gateReached" : true,
+          "interrupted" : false,
+          "libraryMessages" : [
+
+          ],
+          "position" : 2,
+          "startedAt" : "2026-09-25T05:11:11Z",
+          "thermalAfter" : "nominal",
+          "thermalBefore" : "nominal",
+          "thermalMax" : "nominal",
+          "thermalWaitSeconds" : 0.004830002784729004,
+          "tokensPerSecond" : 101.37528109240922,
+          "warmupCallSeconds" : [
+            1.247231667
+          ]
+        },
+        {
+          "arm" : "M5 stack (Q1)",
+          "availableBytes" : 6048279856,
+          "callSeconds" : [
+            1.354435584,
+            1.352309375,
+            1.393118584,
+            1.4326155,
+            1.460587375
+          ],
+          "footprintBytes" : 394171088,
+          "gateReached" : true,
+          "interrupted" : false,
+          "libraryMessages" : [
+
+          ],
+          "position" : 3,
+          "startedAt" : "2026-09-25T05:11:59Z",
+          "thermalAfter" : "nominal",
+          "thermalBefore" : "nominal",
+          "thermalMax" : "nominal",
+          "thermalWaitSeconds" : 0.005014896392822266,
+          "tokensPerSecond" : 91.51922229033232,
+          "warmupCallSeconds" : [
+            1.352698542
+          ]
+        }
+      ],
+      "ratio" : 1.0895871640427357,
+      "spread" : 1.031111804140368
+    },
+    {
+      "accepted" : true,
+      "attempt" : 1,
+      "cell" : "pp128",
+      "cycle" : 2,
+      "observations" : [
+        {
+          "arm" : "M5 stack (Q1)",
+          "availableBytes" : 6049164592,
+          "callSeconds" : [
+            1.365995416,
+            1.392388792,
+            1.547250917,
+            1.593459958,
+            1.583283125
+          ],
+          "footprintBytes" : 393286352,
+          "gateReached" : true,
+          "interrupted" : false,
+          "libraryMessages" : [
+
+          ],
+          "position" : 0,
+          "startedAt" : "2026-09-25T05:12:47Z",
+          "thermalAfter" : "nominal",
+          "thermalBefore" : "nominal",
+          "thermalMax" : "nominal",
+          "thermalWaitSeconds" : 0.0050269365310668945,
+          "tokensPerSecond" : 85.53430235800238,
+          "warmupCallSeconds" : [
+            1.354931917
+          ]
+        },
+        {
+          "arm" : "M5 stack (Q1) + K32 prefill",
+          "availableBytes" : 6049000752,
+          "callSeconds" : [
+            1.29218975,
+            1.3690585,
+            1.42534675,
+            1.466244084,
+            1.528145208
+          ],
+          "footprintBytes" : 393450192,
+          "gateReached" : true,
+          "interrupted" : false,
+          "libraryMessages" : [
+
+          ],
+          "position" : 1,
+          "startedAt" : "2026-09-25T05:13:36Z",
+          "thermalAfter" : "nominal",
+          "thermalBefore" : "nominal",
+          "thermalMax" : "nominal",
+          "thermalWaitSeconds" : 0.0016700029373168945,
+          "tokensPerSecond" : 90.38291480508767,
+          "warmupCallSeconds" : [
+            1.281439458
+          ]
+        },
+        {
+          "arm" : "M5 stack (Q1) + K32 prefill",
+          "availableBytes" : 6043970864,
+          "callSeconds" : [
+            1.28201425,
+            1.333720375,
+            1.381844625,
+            1.414229417,
+            1.395345542
+          ],
+          "footprintBytes" : 398480080,
+          "gateReached" : true,
+          "interrupted" : false,
+          "libraryMessages" : [
+
+          ],
+          "position" : 2,
+          "startedAt" : "2026-09-25T05:14:25Z",
+          "thermalAfter" : "nominal",
+          "thermalBefore" : "nominal",
+          "thermalMax" : "nominal",
+          "thermalWaitSeconds" : 0.0050280094146728516,
+          "tokensPerSecond" : 94.01873093367436,
+          "warmupCallSeconds" : [
+            1.275162958
+          ]
+        },
+        {
+          "arm" : "M5 stack (Q1)",
+          "availableBytes" : 6046739760,
+          "callSeconds" : [
+            1.356837708,
+            1.414758,
+            1.477938208,
+            1.535485583,
+            1.577237167
+          ],
+          "footprintBytes" : 395711184,
+          "gateReached" : true,
+          "interrupted" : false,
+          "libraryMessages" : [
+
+          ],
+          "position" : 3,
+          "startedAt" : "2026-09-25T05:15:13Z",
+          "thermalAfter" : "nominal",
+          "thermalBefore" : "nominal",
+          "thermalMax" : "nominal",
+          "thermalWaitSeconds" : 0.001466989517211914,
+          "tokensPerSecond" : 86.92986797860709,
+          "warmupCallSeconds" : [
+            1.3563395
+          ]
+        }
+      ],
+      "ratio" : 1.0692171329201503,
+      "spread" : 1.0402268076486292
+    },
+    {
+      "accepted" : true,
+      "attempt" : 1,
+      "cell" : "pp512",
+      "cycle" : 2,
+      "observations" : [
+        {
+          "arm" : "M5 stack (Q1)",
+          "availableBytes" : 6027554096,
+          "callSeconds" : [
+            6.867297625,
+            7.026126583
+          ],
+          "footprintBytes" : 414896848,
+          "gateReached" : true,
+          "interrupted" : false,
+          "libraryMessages" : [
+
+          ],
+          "position" : 0,
+          "startedAt" : "2026-09-25T05:16:02Z",
+          "thermalAfter" : "fair",
+          "thermalBefore" : "nominal",
+          "thermalMax" : "fair",
+          "thermalWaitSeconds" : 0.0007530450820922852,
+          "tokensPerSecond" : 73.70393249853903,
+          "warmupCallSeconds" : [
+            6.12170475
+          ]
+        },
+        {
+          "arm" : "M5 stack (Q1) + K32 prefill",
+          "availableBytes" : 6010858680,
+          "callSeconds" : [
+            5.688588,
+            5.824467625
+          ],
+          "footprintBytes" : 431592264,
+          "gateReached" : true,
+          "interrupted" : false,
+          "libraryMessages" : [
+
+          ],
+          "position" : 1,
+          "startedAt" : "2026-09-25T05:28:13Z",
+          "thermalAfter" : "nominal",
+          "thermalBefore" : "nominal",
+          "thermalMax" : "nominal",
+          "thermalWaitSeconds" : 670.4646499156952,
+          "tokensPerSecond" : 88.94250434927434,
+          "warmupCallSeconds" : [
+            6.435382541
+          ]
+        },
+        {
+          "arm" : "M5 stack (Q1) + K32 prefill",
+          "availableBytes" : 6015872184,
+          "callSeconds" : [
+            5.80444575,
+            5.971714208
+          ],
+          "footprintBytes" : 426578760,
+          "gateReached" : true,
+          "interrupted" : false,
+          "libraryMessages" : [
+
+          ],
+          "position" : 2,
+          "startedAt" : "2026-09-25T05:29:11Z",
+          "thermalAfter" : "nominal",
+          "thermalBefore" : "nominal",
+          "thermalMax" : "nominal",
+          "thermalWaitSeconds" : 0.0050269365310668945,
+          "tokensPerSecond" : 86.95534059083133,
+          "warmupCallSeconds" : [
+            5.65949625
+          ]
+        },
+        {
+          "arm" : "M5 stack (Q1)",
+          "availableBytes" : 6015872184,
+          "callSeconds" : [
+            6.154829709,
+            6.384319292
+          ],
+          "footprintBytes" : 426578760,
+          "gateReached" : true,
+          "interrupted" : false,
+          "libraryMessages" : [
+
+          ],
+          "position" : 3,
+          "startedAt" : "2026-09-25T05:30:09Z",
+          "thermalAfter" : "nominal",
+          "thermalBefore" : "nominal",
+          "thermalMax" : "nominal",
+          "thermalWaitSeconds" : 0.0050220489501953125,
+          "tokensPerSecond" : 81.66423414526263,
+          "warmupCallSeconds" : [
+            5.963922916
+          ]
+        }
+      ],
+      "ratio" : 1.1321356796554762,
+      "spread" : 1.10800375742341
+    }
+  ],
+  "spreadGate" : 1.2,
+  "started" : "2026-09-25T04:54:48Z",
+  "summaries" : [
+    {
+      "aMean" : 78.3311475268364,
+      "acceptedQuartets" : 3,
+      "bMean" : 87.4359821744492,
+      "cell" : "pp512",
+      "complete" : true,
+      "mtpTokenDifferenceQuartets" : 0,
+      "rejectedQuartets" : 0,
+      "speedupGeomean" : 1.11622702306349,
+      "speedupMax" : 1.1321356796554762,
+      "speedupMin" : 1.106991317664628,
+      "tokenMismatchQuartets" : 0
+    },
+    {
+      "aMean" : 91.16149755789019,
+      "acceptedQuartets" : 3,
+      "bMean" : 93.85976596021335,
+      "cell" : "pp128",
+      "complete" : true,
+      "mtpTokenDifferenceQuartets" : 0,
+      "rejectedQuartets" : 0,
+      "speedupGeomean" : 1.0286422761403844,
+      "speedupMax" : 1.0895871640427357,
+      "speedupMin" : 0.9342545479590866,
+      "tokenMismatchQuartets" : 0
+    }
+  ],
+  "thermalWaitLimitSeconds" : 3600,
+  "tool" : "BonsaiBench 3",
+  "waitForNominal" : true
+}

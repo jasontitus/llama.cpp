@@ -1,0 +1,339 @@
+2026-09-25T04:54:48Z Bonsai 1 binary (Q1_0) · A = M5 stack (Q1) · B = M5 stack (Q1) + K32 prefill
+2026-09-25T04:55:48Z pp512 M5 stack (Q1) 1A 76.05 tok/s  [nominal]
+2026-09-25T04:55:48Z   lib: pipeline: kernel_mul_mm_q1_0_f32
+2026-09-25T04:56:45Z pp512 M5 stack (Q1) + K32 prefill 2B 88.67 tok/s  [nominal]
+2026-09-25T04:56:45Z   lib: pipeline: kernel_mul_mm_q1_0_f32_k32_swizzle1
+2026-09-25T04:57:42Z pp512 M5 stack (Q1) + K32 prefill 3B 89.15 tok/s  [nominal]
+2026-09-25T04:58:41Z pp512 M5 stack (Q1) 4A 84.19 tok/s  [nominal]
+2026-09-25T04:58:41Z pp512 cycle 1: B/A 1.110 spread 1.107
+2026-09-25T04:59:29Z pp128 M5 stack (Q1) 1A 96.69 tok/s  [nominal]
+2026-09-25T05:00:18Z pp128 M5 stack (Q1) + K32 prefill 2B 84.26 tok/s  [nominal]
+2026-09-25T05:01:06Z pp128 M5 stack (Q1) + K32 prefill 3B 91.96 tok/s  [nominal]
+2026-09-25T05:01:55Z pp128 M5 stack (Q1) 4A 91.93 tok/s  [nominal]
+2026-09-25T05:01:55Z pp128 cycle 1: B/A 0.934 spread 1.091
+2026-09-25T05:02:54Z pp512 M5 stack (Q1) 1A 79.49 tok/s  [nominal]
+2026-09-25T05:03:52Z pp512 M5 stack (Q1) + K32 prefill 2B 84.23 tok/s  [nominal]
+2026-09-25T05:06:20Z pp512 M5 stack (Q1) + K32 prefill 3B 86.66 tok/s  [nominal]
+2026-09-25T05:07:20Z pp512 M5 stack (Q1) 4A 74.89 tok/s  [nominal]
+2026-09-25T05:07:20Z pp512 cycle 2: B/A 1.107 spread 1.061
+2026-09-25T05:09:43Z pp128 M5 stack (Q1) 1A 94.37 tok/s  [nominal]
+2026-09-25T05:10:31Z pp128 M5 stack (Q1) + K32 prefill 2B 101.16 tok/s  [nominal]
+2026-09-25T05:11:19Z pp128 M5 stack (Q1) + K32 prefill 3B 101.38 tok/s  [nominal]
+2026-09-25T05:12:07Z pp128 M5 stack (Q1) 4A 91.52 tok/s  [nominal]
+2026-09-25T05:12:07Z pp128 cycle 2: B/A 1.090 spread 1.031
+2026-09-25T05:12:56Z pp128 M5 stack (Q1) 1A 85.53 tok/s  [nominal]
+2026-09-25T05:13:45Z pp128 M5 stack (Q1) + K32 prefill 2B 90.38 tok/s  [nominal]
+2026-09-25T05:14:33Z pp128 M5 stack (Q1) + K32 prefill 3B 94.02 tok/s  [nominal]
+2026-09-25T05:15:22Z pp128 M5 stack (Q1) 4A 86.93 tok/s  [nominal]
+2026-09-25T05:15:22Z pp128 cycle 3: B/A 1.069 spread 1.040
+2026-09-25T05:16:23Z pp512 M5 stack (Q1) 1A 73.70 tok/s  [nominal→fair]
+2026-09-25T05:28:31Z pp512 M5 stack (Q1) + K32 prefill 2B 88.94 tok/s  [nominal]
+2026-09-25T05:29:29Z pp512 M5 stack (Q1) + K32 prefill 3B 86.96 tok/s  [nominal]
+2026-09-25T05:30:27Z pp512 M5 stack (Q1) 4A 81.66 tok/s  [nominal]
+2026-09-25T05:30:27Z pp512 cycle 3: B/A 1.132 spread 1.108
+2026-09-25T05:30:33Z Bonsai 2 ternary (PTQ1_0) · A = upstream · B = only GDN_ROWS_PLAIN
+2026-09-25T05:31:53Z pp512 upstream 1A 75.12 tok/s  [nominal]
+2026-09-25T05:31:53Z   lib: pipeline: kernel_mul_mm_ptq1_0_f32
+2026-09-25T05:31:53Z   lib: pipeline: kernel_mul_mm_bf16_f32
+2026-09-25T05:42:16Z pp512 only GDN_ROWS_PLAIN 2B 0.00 tok/s  [nominal]
+2026-09-25T05:42:16Z   FAILED: llama_decode failed (-3)
+2026-09-25T05:42:16Z   lib: ggml_metal_synchronize: error: command buffer 0 failed with status 5
+2026-09-25T05:42:16Z   lib: error: Discarded (victim of GPU error/recovery) (00000005:kIOGPUCommandBufferCallbackErrorInnocentVictim)
+2026-09-25T05:42:16Z   lib: ggml_metal_synchronize: error: command buffer 0 failed with status 5
+2026-09-25T05:42:16Z   lib: error: Discarded (victim of GPU error/recovery) (00000005:kIOGPUCommandBufferCallbackErrorInnocentVictim)
+2026-09-25T05:42:16Z   lib: ggml_metal_synchronize: error: command buffer 0 failed with status 5
+2026-09-25T05:42:16Z   lib: error: Discarded (victim of GPU error/recovery) (00000005:kIOGPUCommandBufferCallbackErrorInnocentVictim)
+2026-09-25T05:43:22Z pp512 only GDN_ROWS_PLAIN 3B 0.00 tok/s  [nominal]
+2026-09-25T05:43:22Z   FAILED: llama_decode failed (-3)
+2026-09-25T05:43:22Z   lib: ggml_metal_synchronize: error: command buffer 0 failed with status 5
+2026-09-25T05:43:22Z   lib: error: Discarded (victim of GPU error/recovery) (00000005:kIOGPUCommandBufferCallbackErrorInnocentVictim)
+2026-09-25T05:43:22Z   lib: ggml_metal_synchronize: error: command buffer 0 failed with status 5
+2026-09-25T05:43:22Z   lib: error: Discarded (victim of GPU error/recovery) (00000005:kIOGPUCommandBufferCallbackErrorInnocentVictim)
+2026-09-25T05:43:22Z   lib: ggml_metal_synchronize: error: command buffer 0 failed with status 5
+2026-09-25T05:43:22Z   lib: error: Discarded (victim of GPU error/recovery) (00000005:kIOGPUCommandBufferCallbackErrorInnocentVictim)
+2026-09-25T05:44:43Z pp512 upstream 4A 72.23 tok/s  [nominal]
+2026-09-25T05:44:43Z pp512 cycle 1: B/A nan spread inf  REJECTED: an observation failed
+2026-09-25T05:48:44Z pp512 upstream 1A 71.75 tok/s  [nominal]
+2026-09-25T05:50:07Z pp512 only GDN_ROWS_PLAIN 2B 66.89 tok/s  [nominal]
+2026-09-25T05:54:43Z pp512 only GDN_ROWS_PLAIN 3B 72.44 tok/s  [nominal]
+2026-09-25T05:56:04Z pp512 upstream 4A 73.10 tok/s  [nominal]
+2026-09-25T05:56:04Z pp512 cycle 1: B/A 0.962 spread 1.083
+2026-09-25T05:57:16Z pp512 upstream 1A 0.00 tok/s  [nominal]
+2026-09-25T05:57:16Z   FAILED: llama_decode failed (-3)
+2026-09-25T05:57:16Z   lib: ggml_metal_synchronize: error: command buffer 0 failed with status 5
+2026-09-25T05:57:16Z   lib: error: Discarded (victim of GPU error/recovery) (00000005:kIOGPUCommandBufferCallbackErrorInnocentVictim)
+2026-09-25T05:57:16Z   lib: ggml_metal_synchronize: error: command buffer 0 failed with status 5
+2026-09-25T05:57:16Z   lib: error: Discarded (victim of GPU error/recovery) (00000005:kIOGPUCommandBufferCallbackErrorInnocentVictim)
+2026-09-25T05:57:16Z   lib: ggml_metal_synchronize: error: command buffer 0 failed with status 5
+2026-09-25T05:57:16Z   lib: error: Discarded (victim of GPU error/recovery) (00000005:kIOGPUCommandBufferCallbackErrorInnocentVictim)
+2026-09-25T05:58:37Z pp512 only GDN_ROWS_PLAIN 2B 71.35 tok/s  [nominal]
+2026-09-25T05:59:58Z pp512 only GDN_ROWS_PLAIN 3B 71.20 tok/s  [nominal]
+2026-09-25T06:01:19Z pp512 upstream 4A 73.93 tok/s  [nominal]
+2026-09-25T06:01:19Z pp512 cycle 2: B/A nan spread inf  REJECTED: an observation failed
+2026-09-25T06:02:41Z pp512 upstream 1A 66.46 tok/s  [nominal]
+2026-09-25T06:06:12Z pp512 only GDN_ROWS_PLAIN 2B 71.04 tok/s  [nominal]
+2026-09-25T06:07:33Z pp512 only GDN_ROWS_PLAIN 3B 72.63 tok/s  [nominal]
+2026-09-25T06:08:54Z pp512 upstream 4A 73.69 tok/s  [nominal]
+2026-09-25T06:08:54Z pp512 cycle 2: B/A 1.025 spread 1.109
+2026-09-25T06:10:14Z pp512 upstream 1A 74.89 tok/s  [nominal]
+2026-09-25T06:11:35Z pp512 only GDN_ROWS_PLAIN 2B 72.29 tok/s  [nominal]
+2026-09-25T06:12:55Z pp512 only GDN_ROWS_PLAIN 3B 0.00 tok/s  [nominal]
+2026-09-25T06:12:55Z   FAILED: llama_decode failed (-3)
+2026-09-25T06:12:55Z   lib: ggml_metal_synchronize: error: command buffer 0 failed with status 5
+2026-09-25T06:12:55Z   lib: error: Discarded (victim of GPU error/recovery) (00000005:kIOGPUCommandBufferCallbackErrorInnocentVictim)
+2026-09-25T06:12:55Z   lib: ggml_metal_synchronize: error: command buffer 0 failed with status 5
+2026-09-25T06:12:55Z   lib: error: Discarded (victim of GPU error/recovery) (00000005:kIOGPUCommandBufferCallbackErrorInnocentVictim)
+2026-09-25T06:12:55Z   lib: ggml_metal_synchronize: error: command buffer 0 failed with status 5
+2026-09-25T06:12:55Z   lib: error: Discarded (victim of GPU error/recovery) (00000005:kIOGPUCommandBufferCallbackErrorInnocentVictim)
+2026-09-25T06:14:15Z pp512 upstream 4A 73.56 tok/s  [nominal]
+2026-09-25T06:14:15Z pp512 cycle 3: B/A nan spread inf  REJECTED: an observation failed
+2026-09-25T06:17:21Z pp512 upstream 1A 74.62 tok/s  [nominal]
+2026-09-25T06:18:41Z pp512 only GDN_ROWS_PLAIN 2B 73.40 tok/s  [nominal]
+2026-09-25T06:20:02Z pp512 only GDN_ROWS_PLAIN 3B 73.81 tok/s  [nominal]
+2026-09-25T06:21:22Z pp512 upstream 4A 75.72 tok/s  [nominal]
+2026-09-25T06:21:22Z pp512 cycle 3: B/A 0.979 spread 1.015
+2026-09-25T06:21:30Z Bonsai 2 ternary (PTQ1_0) + MTP head · A = upstream · B = M5 stack (PTQ1) + MTP
+2026-09-25T06:22:57Z gen128 upstream 1A 6.04 tok/s  [nominal]
+2026-09-25T06:22:57Z   lib: pipeline: kernel_mul_mm_ptq1_0_f32
+2026-09-25T06:25:42Z gen128 M5 stack (PTQ1) + MTP 2B 8.09 tok/s  [nominal]
+2026-09-25T06:25:42Z   lib: pipeline: kernel_mul_mm_q6_K_f32
+2026-09-25T06:25:42Z   lib: pipeline: kernel_mul_mm_q8_0_f32
+2026-09-25T06:27:04Z gen128 M5 stack (PTQ1) + MTP 3B 7.58 tok/s  [nominal]
+2026-09-25T06:29:51Z gen128 upstream 4A 6.03 tok/s  [nominal]
+2026-09-25T06:29:51Z gen128 cycle 1: B/A 1.299 spread 1.067
+2026-09-25T06:31:18Z gen128 upstream 1A 5.86 tok/s  [nominal]
+2026-09-25T06:34:09Z gen128 M5 stack (PTQ1) + MTP 2B 8.14 tok/s  [nominal]
+2026-09-25T06:35:33Z gen128 M5 stack (PTQ1) + MTP 3B 6.59 tok/s  [nominal]
+2026-09-25T06:41:10Z gen128 upstream 4A 6.06 tok/s  [nominal]
+2026-09-25T06:41:10Z gen128 cycle 2: B/A 1.237 spread 1.235  REJECTED: spread 1.235 over the gate
+2026-09-25T06:42:37Z gen128 upstream 1A 6.20 tok/s  [nominal]
+2026-09-25T06:43:59Z gen128 M5 stack (PTQ1) + MTP 2B 7.22 tok/s  [nominal]
+2026-09-25T06:46:48Z gen128 M5 stack (PTQ1) + MTP 3B 6.79 tok/s  [nominal]
+2026-09-25T06:53:00Z gen128 upstream 4A 6.05 tok/s  [nominal]
+2026-09-25T06:53:00Z gen128 cycle 2: B/A 1.144 spread 1.063
+2026-09-25T06:54:28Z gen128 upstream 1A 5.83 tok/s  [nominal]
+2026-09-25T06:57:43Z gen128 M5 stack (PTQ1) + MTP 2B 8.68 tok/s  [nominal]
+2026-09-25T06:59:02Z gen128 M5 stack (PTQ1) + MTP 3B 8.52 tok/s  [nominal]
+2026-09-25T07:00:29Z gen128 upstream 4A 6.02 tok/s  [nominal]
+2026-09-25T07:00:29Z gen128 cycle 3: B/A 1.451 spread 1.032
+2026-09-25T07:00:33Z Bonsai 2 ternary (PTQ1_0) · A = upstream · B = M5 stack (PTQ1)
+2026-09-25T07:01:55Z tg128 upstream 1A 6.36 tok/s  [nominal]
+2026-09-25T07:03:18Z tg128 M5 stack (PTQ1) 2B 6.13 tok/s  [nominal]
+2026-09-25T07:06:00Z tg128 M5 stack (PTQ1) 3B 6.45 tok/s  [nominal]
+2026-09-25T07:09:13Z tg128 upstream 4A 6.26 tok/s  [nominal]
+2026-09-25T07:09:13Z tg128 cycle 1: B/A 0.998 spread 1.052
+2026-09-25T07:10:40Z chat128 upstream 1A 5.97 tok/s  [nominal]
+2026-09-25T07:13:34Z chat128 M5 stack (PTQ1) 2B 6.50 tok/s  [nominal]
+2026-09-25T07:14:58Z chat128 M5 stack (PTQ1) 3B 6.29 tok/s  [nominal]
+2026-09-25T07:18:34Z chat128 upstream 4A 6.08 tok/s  [nominal]
+2026-09-25T07:18:34Z chat128 cycle 1: B/A 1.061 spread 1.033
+2026-09-25T07:19:59Z tg128 upstream 1A 5.83 tok/s  [nominal]
+2026-09-25T07:23:20Z tg128 M5 stack (PTQ1) 2B 6.63 tok/s  [nominal]
+2026-09-25T07:24:40Z tg128 M5 stack (PTQ1) 3B 7.20 tok/s  [nominal]
+2026-09-25T07:26:02Z tg128 upstream 4A 6.52 tok/s  [nominal]
+2026-09-25T07:26:02Z tg128 cycle 2: B/A 1.120 spread 1.119
+2026-09-25T07:27:27Z chat128 upstream 1A 6.38 tok/s  [nominal]
+2026-09-25T07:28:51Z chat128 M5 stack (PTQ1) 2B 6.33 tok/s  [nominal]
+2026-09-25T07:31:35Z chat128 M5 stack (PTQ1) 3B 6.50 tok/s  [nominal]
+2026-09-25T07:33:09Z chat128 upstream 4A 4.48 tok/s  [nominal]
+2026-09-25T07:33:09Z chat128 cycle 2: B/A 1.182 spread 1.423  REJECTED: spread 1.423 over the gate
+2026-09-25T07:36:31Z chat128 upstream 1A 5.88 tok/s  [nominal]
+2026-09-25T07:37:55Z chat128 M5 stack (PTQ1) 2B 6.27 tok/s  [nominal]
+2026-09-25T07:40:40Z chat128 M5 stack (PTQ1) 3B 6.41 tok/s  [nominal]
+2026-09-25T07:42:07Z chat128 upstream 4A 5.82 tok/s  [nominal]
+2026-09-25T07:42:07Z chat128 cycle 2: B/A 1.084 spread 1.023
+2026-09-25T07:44:54Z chat128 upstream 1A 5.58 tok/s  [nominal]
+2026-09-25T07:48:45Z chat128 M5 stack (PTQ1) 2B 5.97 tok/s  [nominal]
+2026-09-25T07:54:06Z chat128 M5 stack (PTQ1) 3B 6.11 tok/s  [nominal]
+2026-09-25T07:57:39Z chat128 upstream 4A 5.61 tok/s  [nominal]
+2026-09-25T07:57:39Z chat128 cycle 3: B/A 1.079 spread 1.024
+2026-09-25T08:00:59Z tg128 upstream 1A 5.61 tok/s  [nominal]
+2026-09-25T08:07:15Z tg128 M5 stack (PTQ1) 2B 6.22 tok/s  [nominal]
+2026-09-25T08:10:18Z tg128 M5 stack (PTQ1) 3B 6.05 tok/s  [nominal]
+2026-09-25T08:12:56Z tg128 upstream 4A 5.08 tok/s  [nominal]
+2026-09-25T08:12:56Z tg128 cycle 3: B/A 1.147 spread 1.104
+2026-09-25T08:12:56Z Bonsai 2 ternary (PTQ1_0) · A = upstream · B = M5 stack (PTQ1)
+2026-09-25T08:19:34Z pp4 upstream 1A 4.76 tok/s  [nominal]
+2026-09-25T08:20:18Z pp4 M5 stack (PTQ1) 2B 10.75 tok/s  [nominal]
+2026-09-25T08:21:02Z pp4 M5 stack (PTQ1) 3B 10.30 tok/s  [nominal]
+2026-09-25T08:21:50Z pp4 upstream 4A 3.97 tok/s  [nominal]
+2026-09-25T08:21:50Z pp4 cycle 1: B/A 2.411 spread 1.199
+2026-09-25T08:26:54Z pp8 upstream 1A 5.12 tok/s  [nominal]
+2026-09-25T08:27:40Z pp8 M5 stack (PTQ1) 2B 11.63 tok/s  [nominal]
+2026-09-25T08:28:25Z pp8 M5 stack (PTQ1) 3B 11.63 tok/s  [nominal]
+2026-09-25T08:29:14Z pp8 upstream 4A 5.09 tok/s  [nominal]
+2026-09-25T08:29:14Z pp8 cycle 1: B/A 2.278 spread 1.004
+2026-09-25T08:29:59Z pp2 upstream 1A 2.86 tok/s  [nominal]
+2026-09-25T08:30:43Z pp2 M5 stack (PTQ1) 2B 11.93 tok/s  [nominal]
+2026-09-25T08:31:27Z pp2 M5 stack (PTQ1) 3B 11.94 tok/s  [nominal]
+2026-09-25T08:32:12Z pp2 upstream 4A 2.91 tok/s  [nominal]
+2026-09-25T08:32:12Z pp2 cycle 1: B/A 4.131 spread 1.018
+2026-09-25T08:32:58Z pp4 upstream 1A 5.05 tok/s  [nominal]
+2026-09-25T08:33:42Z pp4 M5 stack (PTQ1) 2B 10.58 tok/s  [nominal]
+2026-09-25T08:39:01Z pp4 M5 stack (PTQ1) 3B 12.34 tok/s  [nominal]
+2026-09-25T08:39:47Z pp4 upstream 4A 4.86 tok/s  [nominal]
+2026-09-25T08:39:47Z pp4 cycle 2: B/A 2.311 spread 1.167
+2026-09-25T08:40:38Z pp8 upstream 1A 4.58 tok/s  [nominal]
+2026-09-25T08:41:23Z pp8 M5 stack (PTQ1) 2B 10.67 tok/s  [nominal]
+2026-09-25T08:44:18Z pp8 M5 stack (PTQ1) 3B 11.75 tok/s  [nominal]
+2026-09-25T08:45:08Z pp8 upstream 4A 4.80 tok/s  [nominal]
+2026-09-25T08:45:08Z pp8 cycle 2: B/A 2.389 spread 1.102
+2026-09-25T08:45:54Z pp2 upstream 1A 2.76 tok/s  [nominal]
+2026-09-25T08:46:38Z pp2 M5 stack (PTQ1) 2B 11.51 tok/s  [nominal]
+2026-09-25T08:47:22Z pp2 M5 stack (PTQ1) 3B 11.73 tok/s  [nominal]
+2026-09-25T08:48:07Z pp2 upstream 4A 2.88 tok/s  [nominal]
+2026-09-25T08:48:07Z pp2 cycle 2: B/A 4.115 spread 1.043
+2026-09-25T08:48:56Z pp8 upstream 1A 5.09 tok/s  [nominal]
+2026-09-25T08:49:41Z pp8 M5 stack (PTQ1) 2B 11.69 tok/s  [nominal]
+2026-09-25T08:50:27Z pp8 M5 stack (PTQ1) 3B 11.72 tok/s  [nominal]
+2026-09-25T08:51:16Z pp8 upstream 4A 5.22 tok/s  [nominal]
+2026-09-25T08:51:16Z pp8 cycle 3: B/A 2.269 spread 1.026
+2026-09-25T08:52:02Z pp4 upstream 1A 5.09 tok/s  [nominal]
+2026-09-25T08:52:46Z pp4 M5 stack (PTQ1) 2B 12.84 tok/s  [nominal]
+2026-09-25T08:53:30Z pp4 M5 stack (PTQ1) 3B 12.87 tok/s  [nominal]
+2026-09-25T08:54:16Z pp4 upstream 4A 5.20 tok/s  [nominal]
+2026-09-25T08:54:16Z pp4 cycle 3: B/A 2.499 spread 1.022
+2026-09-25T08:55:01Z pp2 upstream 1A 2.93 tok/s  [nominal]
+2026-09-25T08:55:45Z pp2 M5 stack (PTQ1) 2B 12.03 tok/s  [nominal]
+2026-09-25T08:56:29Z pp2 M5 stack (PTQ1) 3B 11.98 tok/s  [nominal]
+2026-09-25T08:57:14Z pp2 upstream 4A 2.95 tok/s  [nominal]
+2026-09-25T08:57:14Z pp2 cycle 3: B/A 4.083 spread 1.007
+2026-09-25T08:57:22Z Bonsai 2 ternary (PTQ1_0) + MTP head · A = upstream + MTP · B = M5 stack (PTQ1) + MTP
+2026-09-25T09:00:05Z gen128 upstream + MTP 1A 2.00 tok/s  [nominal→fair]
+2026-09-25T09:03:37Z gen128 M5 stack (PTQ1) + MTP 2B 7.58 tok/s  [nominal]
+2026-09-25T09:05:28Z gen128 M5 stack (PTQ1) + MTP 3B 8.02 tok/s  [nominal]
+2026-09-25T09:08:13Z gen128 upstream + MTP 4A 1.97 tok/s  [nominal→fair]
+2026-09-25T09:08:13Z gen128 cycle 1: B/A 3.931 spread 1.059
+2026-09-25T09:13:38Z gen128 upstream + MTP 1A 1.97 tok/s  [nominal→fair]
+2026-09-25T09:18:38Z gen128 M5 stack (PTQ1) + MTP 2B 8.25 tok/s  [nominal]
+2026-09-25T09:20:33Z gen128 M5 stack (PTQ1) + MTP 3B 6.43 tok/s  [nominal]
+2026-09-25T09:26:02Z gen128 upstream + MTP 4A 1.99 tok/s  [nominal→fair]
+2026-09-25T09:26:02Z gen128 cycle 2: B/A 3.704 spread 1.283  REJECTED: spread 1.283 over the gate
+2026-09-25T09:30:25Z gen128 upstream + MTP 1A 2.03 tok/s  [nominal→fair]
+2026-09-25T09:34:28Z gen128 M5 stack (PTQ1) + MTP 2B 7.21 tok/s  [nominal→fair]
+2026-09-25T09:38:08Z gen128 M5 stack (PTQ1) + MTP 3B 8.08 tok/s  [nominal]
+2026-09-25T09:40:52Z gen128 upstream + MTP 4A 2.01 tok/s  [nominal→fair]
+2026-09-25T09:40:52Z gen128 cycle 2: B/A 3.778 spread 1.121
+2026-09-25T09:45:27Z gen128 upstream + MTP 1A 1.96 tok/s  [nominal→fair]
+2026-09-25T09:49:17Z gen128 M5 stack (PTQ1) + MTP 2B 8.30 tok/s  [nominal]
+2026-09-25T09:51:08Z gen128 M5 stack (PTQ1) + MTP 3B 7.95 tok/s  [nominal]
+2026-09-25T09:53:58Z gen128 upstream + MTP 4A 1.82 tok/s  [nominal→fair]
+2026-09-25T09:53:58Z gen128 cycle 3: B/A 4.293 spread 1.077
+2026-09-25T09:54:01Z Bonsai 1 binary (Q1_0) · A = PrismML popcount (their option) · B = M5 stack (Q1) + PrismML popcount
+2026-09-25T09:57:21Z pp2 PrismML popcount (their option) 1A 20.71 tok/s  [nominal]
+2026-09-25T09:58:04Z pp2 M5 stack (Q1) + PrismML popcount 2B 23.95 tok/s  [nominal]
+2026-09-25T09:58:48Z pp2 M5 stack (Q1) + PrismML popcount 3B 23.97 tok/s  [nominal]
+2026-09-25T09:59:32Z pp2 PrismML popcount (their option) 4A 20.71 tok/s  [nominal]
+2026-09-25T09:59:32Z pp2 cycle 1: B/A 1.157 spread 1.001
+2026-09-25T10:00:16Z pp4 PrismML popcount (their option) 1A 25.19 tok/s  [nominal]
+2026-09-25T10:01:00Z pp4 M5 stack (Q1) + PrismML popcount 2B 27.19 tok/s  [nominal]
+2026-09-25T10:01:44Z pp4 M5 stack (Q1) + PrismML popcount 3B 27.16 tok/s  [nominal]
+2026-09-25T10:02:28Z pp4 PrismML popcount (their option) 4A 25.74 tok/s  [nominal]
+2026-09-25T10:02:28Z pp4 cycle 1: B/A 1.067 spread 1.022
+2026-09-25T10:03:21Z tg128 PrismML popcount (their option) 1A 11.01 tok/s  [nominal]
+2026-09-25T10:04:13Z tg128 M5 stack (Q1) + PrismML popcount 2B 12.67 tok/s  [nominal]
+2026-09-25T10:05:04Z tg128 M5 stack (Q1) + PrismML popcount 3B 12.65 tok/s  [nominal]
+2026-09-25T10:05:58Z tg128 PrismML popcount (their option) 4A 10.53 tok/s  [nominal]
+2026-09-25T10:05:58Z tg128 cycle 1: B/A 1.175 spread 1.045
+2026-09-25T10:06:42Z pp8 PrismML popcount (their option) 1A 26.89 tok/s  [nominal]
+2026-09-25T10:07:26Z pp8 M5 stack (Q1) + PrismML popcount 2B 28.88 tok/s  [nominal]
+2026-09-25T10:08:10Z pp8 M5 stack (Q1) + PrismML popcount 3B 29.68 tok/s  [nominal]
+2026-09-25T10:08:54Z pp8 PrismML popcount (their option) 4A 28.62 tok/s  [nominal]
+2026-09-25T10:08:54Z pp8 cycle 1: B/A 1.055 spread 1.064
+2026-09-25T10:09:38Z pp2 PrismML popcount (their option) 1A 20.66 tok/s  [nominal]
+2026-09-25T10:10:22Z pp2 M5 stack (Q1) + PrismML popcount 2B 24.04 tok/s  [nominal]
+2026-09-25T10:11:06Z pp2 M5 stack (Q1) + PrismML popcount 3B 23.76 tok/s  [nominal]
+2026-09-25T10:11:50Z pp2 PrismML popcount (their option) 4A 20.59 tok/s  [nominal]
+2026-09-25T10:11:50Z pp2 cycle 2: B/A 1.159 spread 1.012
+2026-09-25T10:12:33Z pp4 PrismML popcount (their option) 1A 25.48 tok/s  [nominal]
+2026-09-25T10:13:17Z pp4 M5 stack (Q1) + PrismML popcount 2B 27.81 tok/s  [nominal]
+2026-09-25T10:14:01Z pp4 M5 stack (Q1) + PrismML popcount 3B 27.89 tok/s  [nominal]
+2026-09-25T10:14:45Z pp4 PrismML popcount (their option) 4A 25.54 tok/s  [nominal]
+2026-09-25T10:14:45Z pp4 cycle 2: B/A 1.092 spread 1.003
+2026-09-25T10:15:29Z pp8 PrismML popcount (their option) 1A 28.77 tok/s  [nominal]
+2026-09-25T10:16:13Z pp8 M5 stack (Q1) + PrismML popcount 2B 29.89 tok/s  [nominal]
+2026-09-25T10:16:57Z pp8 M5 stack (Q1) + PrismML popcount 3B 30.09 tok/s  [nominal]
+2026-09-25T10:17:41Z pp8 PrismML popcount (their option) 4A 28.79 tok/s  [nominal]
+2026-09-25T10:17:41Z pp8 cycle 2: B/A 1.042 spread 1.007
+2026-09-25T10:18:34Z tg128 PrismML popcount (their option) 1A 11.08 tok/s  [nominal]
+2026-09-25T10:19:25Z tg128 M5 stack (Q1) + PrismML popcount 2B 12.88 tok/s  [nominal]
+2026-09-25T10:20:17Z tg128 M5 stack (Q1) + PrismML popcount 3B 12.85 tok/s  [nominal]
+2026-09-25T10:21:10Z tg128 PrismML popcount (their option) 4A 10.68 tok/s  [nominal]
+2026-09-25T10:21:10Z tg128 cycle 2: B/A 1.182 spread 1.037
+2026-09-25T10:21:18Z Bonsai 1 ternary (PQ2_0) · A = upstream · B = M5 stack (PQ2)
+2026-09-25T10:22:38Z tg128 upstream 1A 7.02 tok/s  [nominal]
+2026-09-25T10:23:57Z tg128 M5 stack (PQ2) 2B 7.70 tok/s  [nominal]
+2026-09-25T10:28:04Z tg128 M5 stack (PQ2) 3B 6.56 tok/s  [nominal]
+2026-09-25T10:34:35Z tg128 upstream 4A 7.35 tok/s  [nominal]
+2026-09-25T10:34:35Z tg128 cycle 1: B/A 0.992 spread 1.174
+2026-09-25T10:35:40Z pp2 upstream 1A 8.52 tok/s  [nominal]
+2026-09-25T10:36:44Z pp2 M5 stack (PQ2) 2B 11.56 tok/s  [nominal]
+2026-09-25T10:37:47Z pp2 M5 stack (PQ2) 3B 11.53 tok/s  [nominal]
+2026-09-25T10:38:52Z pp2 upstream 4A 8.52 tok/s  [nominal]
+2026-09-25T10:38:52Z pp2 cycle 1: B/A 1.356 spread 1.003
+2026-09-25T10:40:11Z tg128 upstream 1A 7.45 tok/s  [nominal]
+2026-09-25T10:41:29Z tg128 M5 stack (PQ2) 2B 8.01 tok/s  [nominal]
+2026-09-25T10:42:47Z tg128 M5 stack (PQ2) 3B 8.17 tok/s  [nominal]
+2026-09-25T10:44:08Z tg128 upstream 4A 7.04 tok/s  [nominal]
+2026-09-25T10:44:08Z tg128 cycle 2: B/A 1.117 spread 1.057
+2026-09-25T10:45:12Z pp2 upstream 1A 8.34 tok/s  [nominal]
+2026-09-25T10:46:16Z pp2 M5 stack (PQ2) 2B 11.31 tok/s  [nominal]
+2026-09-25T10:47:20Z pp2 M5 stack (PQ2) 3B 11.03 tok/s  [nominal]
+2026-09-25T10:48:24Z pp2 upstream 4A 8.46 tok/s  [nominal]
+2026-09-25T10:48:24Z pp2 cycle 2: B/A 1.329 spread 1.025
+2026-09-25T10:49:28Z pp2 upstream 1A 7.23 tok/s  [nominal]
+2026-09-25T10:50:32Z pp2 M5 stack (PQ2) 2B 11.03 tok/s  [nominal]
+2026-09-25T10:51:36Z pp2 M5 stack (PQ2) 3B 11.35 tok/s  [nominal]
+2026-09-25T10:52:40Z pp2 upstream 4A 8.50 tok/s  [nominal]
+2026-09-25T10:52:40Z pp2 cycle 3: B/A 1.423 spread 1.175
+2026-09-25T10:54:00Z tg128 upstream 1A 7.17 tok/s  [nominal]
+2026-09-25T10:55:19Z tg128 M5 stack (PQ2) 2B 7.76 tok/s  [nominal]
+2026-09-25T10:56:37Z tg128 M5 stack (PQ2) 3B 8.16 tok/s  [nominal]
+2026-09-25T10:57:57Z tg128 upstream 4A 7.34 tok/s  [nominal]
+2026-09-25T10:57:57Z tg128 cycle 3: B/A 1.097 spread 1.051
+2026-09-25T10:58:03Z Bonsai 2 ternary (PQ2_0) · A = upstream · B = M5 stack (PQ2)
+2026-09-25T10:59:24Z tg128 upstream 1A 7.19 tok/s  [nominal]
+2026-09-25T11:00:45Z tg128 M5 stack (PQ2) 2B 6.71 tok/s  [nominal]
+2026-09-25T11:08:46Z tg128 M5 stack (PQ2) 3B 7.73 tok/s  [nominal]
+2026-09-25T11:10:07Z tg128 upstream 4A 6.98 tok/s  [nominal]
+2026-09-25T11:10:07Z tg128 cycle 1: B/A 1.019 spread 1.151
+2026-09-25T11:12:46Z pp2 upstream 1A 8.34 tok/s  [nominal]
+2026-09-25T11:13:50Z pp2 M5 stack (PQ2) 2B 11.19 tok/s  [nominal]
+2026-09-25T11:14:54Z pp2 M5 stack (PQ2) 3B 11.09 tok/s  [nominal]
+2026-09-25T11:15:58Z pp2 upstream 4A 8.35 tok/s  [nominal]
+2026-09-25T11:15:58Z pp2 cycle 1: B/A 1.336 spread 1.009
+2026-09-25T11:17:21Z tg128 upstream 1A 6.32 tok/s  [nominal]
+2026-09-25T11:18:45Z tg128 M5 stack (PQ2) 2B 6.00 tok/s  [nominal→fair]
+2026-09-25T11:22:09Z tg128 M5 stack (PQ2) 3B 7.72 tok/s  [nominal]
+2026-09-25T11:23:31Z tg128 upstream 4A 6.52 tok/s  [nominal]
+2026-09-25T11:23:31Z tg128 cycle 2: B/A 1.068 spread 1.287  REJECTED: spread 1.287 over the gate
+2026-09-25T11:26:51Z tg128 upstream 1A 7.25 tok/s  [nominal]
+2026-09-25T11:28:10Z tg128 M5 stack (PQ2) 2B 7.67 tok/s  [nominal]
+2026-09-25T11:29:28Z tg128 M5 stack (PQ2) 3B 7.97 tok/s  [nominal]
+2026-09-25T11:30:55Z tg128 upstream 4A 5.38 tok/s  [nominal→fair]
+2026-09-25T11:30:55Z tg128 cycle 2: B/A 1.239 spread 1.347  REJECTED: spread 1.347 over the gate
+2026-09-25T11:36:16Z tg128 upstream 1A 6.94 tok/s  [nominal]
+2026-09-25T11:39:20Z tg128 M5 stack (PQ2) 2B 7.74 tok/s  [nominal]
+2026-09-25T11:40:39Z tg128 M5 stack (PQ2) 3B 7.76 tok/s  [nominal]
+2026-09-25T11:44:10Z tg128 upstream 4A 6.68 tok/s  [nominal]
+2026-09-25T11:44:10Z tg128 cycle 2: B/A 1.138 spread 1.040
+2026-09-25T11:48:25Z pp2 upstream 1A 8.33 tok/s  [nominal]
+2026-09-25T11:49:28Z pp2 M5 stack (PQ2) 2B 11.20 tok/s  [nominal]
+2026-09-25T11:50:32Z pp2 M5 stack (PQ2) 3B 11.12 tok/s  [nominal]
+2026-09-25T11:51:37Z pp2 upstream 4A 8.33 tok/s  [nominal]
+2026-09-25T11:51:37Z pp2 cycle 2: B/A 1.340 spread 1.006
+2026-09-25T11:52:41Z pp2 upstream 1A 8.35 tok/s  [nominal]
+2026-09-25T11:53:45Z pp2 M5 stack (PQ2) 2B 10.94 tok/s  [nominal]
+2026-09-25T11:54:48Z pp2 M5 stack (PQ2) 3B 11.01 tok/s  [nominal]
+2026-09-25T11:55:53Z pp2 upstream 4A 7.84 tok/s  [nominal]
+2026-09-25T11:55:53Z pp2 cycle 3: B/A 1.355 spread 1.065
+2026-09-25T11:57:14Z tg128 upstream 1A 6.72 tok/s  [nominal]
+2026-09-25T12:00:33Z tg128 M5 stack (PQ2) 2B 7.60 tok/s  [nominal]
+2026-09-25T12:01:56Z tg128 M5 stack (PQ2) 3B 6.33 tok/s  [nominal]
+2026-09-25T12:08:59Z tg128 upstream 4A 7.06 tok/s  [nominal]
+2026-09-25T12:08:59Z tg128 cycle 3: B/A 1.010 spread 1.201  REJECTED: spread 1.201 over the gate
+2026-09-25T12:10:19Z tg128 upstream 1A 7.18 tok/s  [nominal]
+2026-09-25T12:11:37Z tg128 M5 stack (PQ2) 2B 7.86 tok/s  [nominal]
+2026-09-25T12:12:56Z tg128 M5 stack (PQ2) 3B 7.84 tok/s  [nominal]
+2026-09-25T12:14:16Z tg128 upstream 4A 7.11 tok/s  [nominal]
+2026-09-25T12:14:16Z tg128 cycle 3: B/A 1.099 spread 1.010

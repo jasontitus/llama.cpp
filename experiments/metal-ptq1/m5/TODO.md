@@ -88,9 +88,9 @@ nothing, which our multi-column, small-row and rows-mode flags now cover.
     `GGML_METAL_Q1_MM_K32_ALIGNED` / `GGML_METAL_Q1_SWIZZLE_LOG` (EXPERIMENTS.md, "Q1_0 K32 prefill"): with
     swizzle 1, pp512 1.07x and pp128 1.08x over the Q1 stack on M5 Max, decode unaffected, float logits bitwise
     equal on the full model. Open:
-    - **Phone:** measured on iPhone 17 Pro Max (iOS 27): pp128 1.065x (3 quartets), pp512 ~1.06x (2 of 3;
-      the rest hit the pp512 GPU errors below); iOS builds the optional library and the app logged
-      `kernel_mul_mm_q1_0_f32_k32_swizzle1`. Complete pp512 once the GPU errors are understood.
+    - **Phone:** measured on iPhone 17 Pro Max (iOS 27), overnight suite: pp512 1.116x (3 quartets),
+      pp128 1.03x (1.065x in an evening study); iOS builds the optional library and the app logged
+      `kernel_mul_mm_q1_0_f32_k32_swizzle1`.
     - **Ragged batches:** a product is K32 only when N % 128 == 0 (and M % 64 == 0), so a prompt's last
       micro-batch usually stays generic (a 300-token chat prompt gets nothing) and so do continuous-batching
       steps. Next step: run the aligned column prefix on K32 and the tail on the generic kernel (two dispatches),

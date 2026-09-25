@@ -304,6 +304,33 @@ cooldown:
 - PTQ1_0 generation is compute-bound on the phone too: 5.7 tok/s upstream in chat128, against about 9.6
   for Q1_0 in chat128.
 
+**Overnight suite, 2026-09-25** (`../results/overnight-2026-09-25/`; every run started at nominal temperature,
+the app waiting up to an hour for it; all nine studies complete, no quartet lost to heat; tokens/s, A -> B):
+
+| Study | Cell | A -> B | Speedup (range) |
+|---|---|---:|---:|
+| Q1_0: our Q1 stack -> + K32 prefill | pp512 | 78.3 -> 87.4 | **1.116x** (1.107-1.132) |
+| | pp128 | 91.2 -> 93.9 | 1.029x (0.934-1.090) |
+| PTQ1_0: upstream -> rows mode only | pp512 | 72.6 -> 71.7 | 0.988x (0.962-1.025) |
+| PTQ1_0 + MTP: upstream plain -> our flags + MTP | gen128 | 6.03 -> 7.81 | **1.29x** (1.14-1.45) |
+| PTQ1_0: upstream -> our flags | tg128 | 5.94 -> 6.45 | 1.09x (1.00-1.15) |
+| | chat128 | 5.82 -> 6.26 | 1.08x (1.06-1.08) |
+| | pp2 / pp4 / pp8 | 2.88 / 4.82 / 4.98 -> 11.85 / 11.61 / 11.51 | **4.11x / 2.41x / 2.31x** |
+| PTQ1_0 + MTP: upstream + MTP -> our flags + MTP | gen128 | 1.97 -> 7.86 | **4.0x** (3.78-4.29) |
+| Q1_0: PrismML popcount -> our stack + popcount (2 quartets) | tg128 / pp2 / pp4 / pp8 | | 1.18x / 1.16x / 1.08x / 1.05x |
+| Bonsai 1 ternary PQ2_0: upstream -> our flags | tg128 / pp2 | 7.23 / 8.26 -> 7.73 / 11.30 | 1.07x / 1.37x |
+| Bonsai 2 PQ2_0: upstream -> our flags | tg128 / pp2 | 7.01 / 8.26 -> 7.61 / 11.09 | 1.08x / 1.34x |
+
+- MTP: 85.5% of drafts accepted; the generated tokens were identical between the arms in every chat and gen
+  quartet.
+- The popcount row is what our flags add with PrismML's option on in both arms; the option itself is theirs.
+- Both 7.2 GB PQ2_0 files fit: the app footprint stayed at 0.4 GB (weights memory-mapped) with 6.0 GB still
+  available. MTP studies peaked at 0.64 GB.
+- pp512 GPU errors (below): 4 failed runs in the PTQ1 rows study, none in the Q1 K32 study.
+- Rows mode alone is neutral at pp512 (0.988x), so the PTQ1 stack's ~0.70x there is not rows mode.
+- Compared with the evening studies below, which allowed runs to start at fair: similar ratios, far fewer
+  rejected quartets.
+
 **Bonsai 1 binary Q1_0: the K32 prefill kernel** (new on 2026-09-24; our Q1 stack against the stack plus
 `GGML_METAL_Q1_SWIZZLE_LOG=1`; `iphone17promax-q1-k32-prefill-vs-stack-2026-09-25T01-52-17Z.json`):
 
