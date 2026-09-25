@@ -321,6 +321,19 @@ gate, each saving `Documents/bonsaidiag-<time>.json` (the A-B-B-A one `bonsaiben
 A screen stops with "check failed" if a configuration did not take effect (no stats written, a different
 command-buffer count, no profile).
 
+**The weights leave memory while the app waits.** The diagnostics' memory counters show iOS evicting the
+memory-mapped model while the app waits for the phone to cool: after gaps of 2 minutes or more, the next run
+paged 1.8-5.3 GB back in from flash (after a 40 s gap, almost nothing), which slows its warmup and sometimes its
+timed calls (61.7 instead of ~72 tok/s at pp512). Since build `928af16`+1, ppK warmup goes on while a call still
+pages in more than 64 MB (at most 4 warmup calls), every call's page-ins are recorded (`warmupPageinBytes`,
+`callPageinBytes`), and the diagnostics leave runs whose timed calls paged in more than 256 MB out of the rates.
+Earlier phone results did not control for this; their warmup calls absorbed most of it.
+
+**A failed command buffer, recorded (2026-09-25):** the long command buffer started 0.71 s into the graph and was
+discarded at 5.73 s, after 5.01 s of GPU time, with its encoder in state "affected" (a victim, not the cause):
+consistent with another GPU client (likely the display compositor) timing out behind it and iOS resetting the
+GPU.
+
 The lead for the GPU errors, from the earlier studies: 14 of the 16 failed pp512 calls ended 5.6-5.9 s after they
 started, in every arm and both models, while normal PTQ1 calls take 6.4-7.4 s; the failing command buffer is
 always the long one holding ~90% of the graph (about 5 s of GPU time by then). That points to a limit of about 5

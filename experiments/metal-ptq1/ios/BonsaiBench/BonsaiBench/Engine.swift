@@ -331,24 +331,45 @@ final class Engine {
     final class CallTimes {
         var warmup: [Double] = []
         var timed: [Double] = []
+        // bytes paged in system-wide during each call (-1 if unknown): the model's memory-mapped weights read
+        // back from flash after iOS evicted them
+        var warmupPageinBytes: [Int64] = []
+        var timedPageinBytes: [Int64] = []
     }
 
+    /// A warmup call that pages in more than this was still reading the weights back from flash.
+    static let residentPageinLimit: Int64 = 64 << 20
+
     func batchRate(k: Int, ubatch: Int = 512, warmupSeconds: Double = 1, minSeconds: Double = 2.5,
-                   minReps: Int = 2, calls log: CallTimes = CallTimes()) throws -> (rate: Double, probe: Probe) {
+                   minReps: Int = 2, maxWarmups: Int = 4,
+                   calls log: CallTimes = CallTimes()) throws -> (rate: Double, probe: Probe) {
         let ctx = try makeContext(nCtx: UInt32(max(1024, k + 64)), ubatch: UInt32(ubatch))
         defer { llama_free(ctx) }
         let tokens = randomTokens(k + 1)
         let batch = Array(tokens.prefix(k))
-        func once() throws -> Double {
+        func once() throws -> (seconds: Double, pageins: Int64) {
             llama_memory_clear(llama_get_memory(ctx), true)
+            let m0 = MemoryCounters.now()
             let t0 = now()
             try decode(ctx, batch, startPos: 0, logitsLast: true)
             llama_synchronize(ctx)
-            return Double(now() - t0) / 1e9
+            let seconds = Double(now() - t0) / 1e9
+            guard let m0, let m1 = MemoryCounters.now() else { return (seconds, -1) }
+            return (seconds, Int64(bitPattern: (m1.systemPageins &- m0.systemPageins) &* m1.pageSize))
         }
-        repeat { log.warmup.append(try once()) } while log.warmup.reduce(0, +) < warmupSeconds
+        // Warm up for warmupSeconds, then on while a call still reads more than residentPageinLimit from flash
+        // (at most maxWarmups calls): iOS evicts the memory-mapped weights while the app waits for the phone to
+        // cool, and re-reading them (up to the whole model) would otherwise land in the timed calls.
+        repeat {
+            let c = try once()
+            log.warmup.append(c.seconds)
+            log.warmupPageinBytes.append(c.pageins)
+        } while log.warmup.reduce(0, +) < warmupSeconds ||
+                ((log.warmupPageinBytes.last ?? 0) > Self.residentPageinLimit && log.warmup.count < maxWarmups)
         while log.timed.count < minReps || log.timed.reduce(0, +) < minSeconds {
-            log.timed.append(try once())
+            let c = try once()
+            log.timed.append(c.seconds)
+            log.timedPageinBytes.append(c.pageins)
         }
         let probe = Probe.now()
         try checkBackend(ctx, token: tokens[k], pos: Int32(k))

@@ -143,6 +143,8 @@ struct Observation: Codable {
     var accepted: Int?                // of which accepted
     var generateSteps: Int?           // genN: target decodes
     var warmupCallSeconds: [Double]?  // ppK: the warmup calls (a failure often happens there)
+    var warmupPageinBytes: [Int64]?   // ppK: bytes paged in system-wide during each warmup call (weights re-read
+    var callPageinBytes: [Int64]?     //      from flash after an eviction) and during each timed call
     var libraryMessages: [String]     // library warnings/errors during the observation
     var footprintBytes: UInt64        // while the observation's context was alive
     var availableBytes: UInt64
@@ -389,6 +391,8 @@ final class Study {
         if cell.kind == "pp" {
             obs.callSeconds = calls.timed
             obs.warmupCallSeconds = calls.warmup
+            obs.warmupPageinBytes = calls.warmupPageinBytes
+            obs.callPageinBytes = calls.timedPageinBytes
         }
         if cell.kind == "gen" { LibraryLog.shared.readCommonLog() }
         obs.libraryMessages = LibraryLog.shared.drain()

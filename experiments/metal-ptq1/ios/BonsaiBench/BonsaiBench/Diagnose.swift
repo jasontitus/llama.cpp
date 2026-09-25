@@ -125,6 +125,7 @@ struct FailureInfo: Codable {
     var error: String?
     var gpuStartMs: Double?            // of the failed command buffer, from the graph's t0
     var gpuEndMs: Double?
+    var encoderStates: [Int]?          // its encoders: 2 affected (a victim), 4 faulted (the cause)
     var mainStartDelayMs: Double?      // the graph's main command buffer: GPU start minus host scheduling
 }
 
@@ -141,6 +142,8 @@ struct ScreenRun: Codable {
     var tokensPerSecond: Double        // 0 if the run failed
     var callSeconds: [Double]
     var warmupCallSeconds: [Double]
+    var callPageinBytes: [Int64]       // paged in system-wide during each timed / warmup call (-1 unknown)
+    var warmupPageinBytes: [Int64]
     var error: String?
     var failure: FailureInfo?
     var thermalBefore: String
@@ -334,7 +337,8 @@ final class Screen {
         let hostStart = CACurrentMediaTime()
         var run = ScreenRun(round: round, position: position, attempt: attempt, config: config.name, cell: cell.name,
                             ubatch: config.ubatch, startedAt: Date(), hostStart: hostStart, hostEnd: 0, tokensPerSecond: 0,
-                            callSeconds: [], warmupCallSeconds: [], error: nil, failure: nil,
+                            callSeconds: [], warmupCallSeconds: [], callPageinBytes: [], warmupPageinBytes: [],
+                            error: nil, failure: nil,
                             thermalBefore: thermalStateName(), thermalAfter: "", thermalMax: "", thermalWaitSeconds: g.waited,
                             gateReached: g.reached, interrupted: false, availableBytesBefore: before.availableBytes,
                             availableBytesAfter: 0, footprintBytes: 0, memoryBefore: memoryBefore, memoryAfter: nil,
@@ -355,6 +359,8 @@ final class Screen {
         run.hostEnd = CACurrentMediaTime()
         run.callSeconds = calls.timed
         run.warmupCallSeconds = calls.warmup
+        run.callPageinBytes = calls.timedPageinBytes
+        run.warmupPageinBytes = calls.warmupPageinBytes
         run.availableBytesAfter = Probe.now().availableBytes
         run.memoryAfter = MemoryCounters.now()
         run.pressureEvents = pressure.since(hostStart)
@@ -386,6 +392,7 @@ final class Screen {
             f.error = cb.err
             f.gpuStartMs = cb.gs
             f.gpuEndMs = cb.ge
+            f.encoderStates = cb.enc?.map(\.state)
             if let m = g.cbs.first(where: \.main), m.gs >= 0, m.ks >= 0 { f.mainStartDelayMs = m.gs - m.ks }
         }
         return f
@@ -402,6 +409,11 @@ final class Screen {
         }
         if let longest { line += String(format: "  longest command buffer %.0f ms", longest) }
         if run.pressureEvents.contains(where: { $0.level != "normal" }) { line += "  memory pressure" }
+        let reread = run.warmupPageinBytes.filter { $0 > 0 }.reduce(0, +)
+        if reread > Engine.residentPageinLimit {
+            line += String(format: "  %.1f GB re-read in %d warmup calls", Double(reread) / 1e9, run.warmupCallSeconds.count)
+        }
+        if run.callPageinBytes.contains(where: { $0 > Screen.timedPageinLimit }) { line += "  STILL READING IN TIMED CALLS" }
         log(line)
         // the backend warns about n_cb > 2 for every context; not news here
         for m in run.libraryMessages.prefix(6) where !m.hasPrefix("pipeline:") && !m.contains("n_cb =") { log("  lib: \(m)") }
@@ -466,9 +478,14 @@ final class Screen {
         return nil
     }
 
-    /// A run that says something about a rate: finished, in front, started at the gate, never serious.
+    /// A timed call that paged in more than this was slowed by reading the weights from flash.
+    static let timedPageinLimit: Int64 = 256 << 20
+
+    /// A run that says something about a rate: finished, in front, started at the gate, never serious, and no
+    /// timed call reading the weights back from flash.
     private func valid(_ r: ScreenRun) -> Bool {
-        r.error == nil && !r.interrupted && r.tokensPerSecond > 0 && r.gateReached && thermalRank(r.thermalMax) < 2
+        r.error == nil && !r.interrupted && r.tokensPerSecond > 0 && r.gateReached && thermalRank(r.thermalMax) < 2 &&
+            !r.callPageinBytes.contains { $0 > Self.timedPageinLimit }
     }
 
     private func summarize() {
