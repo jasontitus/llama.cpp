@@ -12,6 +12,8 @@
 #include <mutex>
 #include <string>
 
+#include <TargetConditionals.h>
+
 #define GGML_METAL_NAME "MTL"
 #define GGML_METAL_MAX_DEVICES 16
 
@@ -577,11 +579,20 @@ static void ggml_backend_metal_set_n_cb(ggml_backend_t backend, int n_cb) {
     ggml_metal_set_n_cb(ctx, n_cb);
 }
 
-// research diagnostics: GGML_METAL_N_CB=1..8 splits a graph over that many command buffers (plus the main
-// thread's) instead of one; shorter command buffers, for testing GPU timeouts on phones. Read from the context's
-// research profile, which ggml_metal_init has acquired.
+// GGML_METAL_N_CB=1..8 splits a graph over that many command buffers (plus the main thread's). The default is
+// 1, except on iPhone-class OSes (iOS, iPadOS, visionOS, tvOS; not Mac Catalyst): on an iPhone 17 Pro Max iOS
+// discarded the command buffer holding ~90% of a 512-token prefill graph after ~5 s of GPU time (error
+// InnocentVictim; 10 of 50 runs), while with 4 command buffers (longest 1.6-2.3 s) 0 of 10 runs failed (0 of
+// 20 with 256-token micro-batches too) and pp512 showed no measurable cost (71.7 vs 71.4 tok/s). A much larger
+// ubatch or long context can still make a quarter of a graph run for over 5 s. With an abort callback set, only 1
+// is used (ggml_metal_set_n_cb). Read from the context's research profile, which ggml_metal_init has
+// acquired.
 static int ggml_backend_metal_research_n_cb() {
+#if TARGET_OS_IPHONE && !TARGET_OS_MACCATALYST
+    const int n_cb = GGML_METAL_ENV_INT("GGML_METAL_N_CB", 4);
+#else
     const int n_cb = GGML_METAL_ENV_INT("GGML_METAL_N_CB", 1);
+#endif
     if (n_cb >= 1 && n_cb <= 8) {
         return n_cb;
     }

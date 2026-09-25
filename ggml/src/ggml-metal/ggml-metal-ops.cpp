@@ -3066,11 +3066,15 @@ static int ggml_metal_op_mul_mat_pq2(ggml_metal_op_t ctx, int idx, const ggml_te
 // products with very few output rows (the 48-row ssm_alpha/ssm_beta at prefill) keep the mat-vec
 // kernels, which tile over tokens: mul_mm's 64x128 tiles give them only ceil(n/128) threadgroups
 // (M5: BF16 48x5120 at 9 tokens 148 -> 6 µs). Only types whose mat-vec kernel takes any column
-// count. Research flag GGML_METAL_SMALLM_MM=1.
+// count. Research flag GGML_METAL_SMALLM_MM=1; GGML_METAL_SMALLM_MM_MAX_N caps the column count (0: any):
+// on the A19 the mat-vec path is 3.5x slower than mul_mm for BF16 48x5120 at 512 columns (2026-09-25).
 static bool ggml_metal_op_mul_mat_small_rows(const ggml_tensor * op) {
     const bool enabled = GGML_METAL_ENV_INT("GGML_METAL_SMALLM_MM", 0) == 1;
+    const int  max_n   = GGML_METAL_ENV_INT("GGML_METAL_SMALLM_MM_MAX_N", 0);
     const ggml_type t = op->src[0]->type;
-    return enabled && op->src[0]->ne[1] <= 64 && op->src[0]->ne[0] >= 1024 && op->src[1]->type == GGML_TYPE_F32 &&
+    const int64_t n_cols = op->src[1]->ne[1]*op->src[1]->ne[2]*op->src[1]->ne[3];  // all columns the mat-vec runs over
+    return enabled && (max_n <= 0 || n_cols <= max_n) &&
+           op->src[0]->ne[1] <= 64 && op->src[0]->ne[0] >= 1024 && op->src[1]->type == GGML_TYPE_F32 &&
            op->src[0]->ne[2] == 1 && op->src[0]->ne[3] == 1 &&
            (t == GGML_TYPE_F32 || t == GGML_TYPE_F16 || t == GGML_TYPE_BF16 || t == GGML_TYPE_Q1_0 || t == GGML_TYPE_PQ2_0);
 }

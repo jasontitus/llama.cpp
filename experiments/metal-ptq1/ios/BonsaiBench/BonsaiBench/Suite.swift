@@ -81,47 +81,40 @@ enum Suites {
 
     static let ptq1Stack: [String: String] = Presets.recommended(for: "PTQ1_0").flags
 
-    private static func stack(without names: [String]) -> [String: String] {
-        ptq1Stack.filter { !names.contains($0.key) }
-    }
+    /// Round 2 (after the 2026-09-25 diagnostics, ios/results/diagnostics-2026-09-25): the library now splits
+    /// graphs into 4 command buffers on iOS (0 of 10 pp512 runs failed that way, 10 of 50 with one long one), so
+    /// every run uses that unless it says otherwise. The per-op profile traced the stack's 0.938x at pp512 to
+    /// SMALLM_MM (48-row BF16 projections 3.5x slower) and rows mode (delta-net +18%); both take a width cap now.
+    /// 1. Do the caps recover long prompts without hurting short ones? Upstream, the stack, and the stack with
+    ///    SMALLM_MM up to 64 columns and rows mode up to 8 tokens, at widths where the caps change routing
+    ///    (16: rows capped; 128: SMALLM_MM capped; 512: both).
+    /// 2. What 4 command buffers cost where graphs are small: 1 against 4 at 1 token (decode) and 8 tokens.
+    /// 3. Where each flag stops paying: every op timed alone at 2-512 tokens, upstream and the two flags (judge
+    ///    rows mode on GATED_DELTA_NET plus the GET_ROWS/CPY/SET_ROWS it removes or adds).
+    private static let capped: [String: String] = ptq1Stack.merging(
+        ["GGML_METAL_SMALLM_MM_MAX_N": "64", "GGML_GDN_ROWS_PLAIN_MAX_TOKENS": "8"]) { $1 }
 
-    /// 1. Is PTQ1_0 pp512 slower with our flags at all? The only 0.70x came from quartets rejected for heat.
-    /// 2. The pp512 GPU errors. In the earlier studies 14 of 16 failing calls ended 5.6-5.9 s after they started
-    ///    (normal PTQ1 calls take 6.4-7.4 s), always in the long command buffer that holds ~90% of the graph: a
-    ///    limit of about 5 s on one command buffer is the lead. Shorter command buffers (N_CB) or smaller
-    ///    micro-batches should then never fail; a stats-off control checks that recording changes nothing.
-    ///    Failure rates are ~11-15% per run, so only pooled zeros over many runs (10 rounds) mean anything.
-    /// 3. Where the GPU time goes: every op timed on its own, upstream and stack (rates not comparable).
-    /// 4. Which flag, if any, costs time at 512 tokens: the flags that act there left out one by one, the
-    ///    three that only act on 2-8-token batches left out together, and upstream against itself as the null.
     private static let diagnostics: [StudySpec] = [
-        StudySpec(title: "PTQ1_0 pp512 measured cool: our stack vs upstream", model: ptq1, a: "upstream",
-                  b: "M5 stack (PTQ1)", cells: ["pp512"], cycles: 3, cooldown: 60, attempts: 5),
-        StudySpec(title: "pp512 GPU errors: shorter command buffers and smaller micro-batches", model: ptq1, a: "-", b: "-",
-                  cells: [], cycles: 0, cooldown: 40,
-                  screen: ScreenSpec(configs: [
-                      ScreenConfig(name: "1 long command buffer (default)", flags: [:]),
-                      ScreenConfig(name: "default, stats off", flags: [:], cbStats: false),
-                      ScreenConfig(name: "4 command buffers", flags: ["GGML_METAL_N_CB": "4"]),
-                      ScreenConfig(name: "micro-batch 256", flags: [:], ubatch: 256),
-                  ], cells: ["pp512"], rounds: 10, reference: "1 long command buffer (default)")),
-        StudySpec(title: "PTQ1_0 pp512: GPU time of every op, upstream and stack", model: ptq1, a: "-", b: "-", cells: [],
-                  cycles: 0, cooldown: 60,
-                  screen: ScreenSpec(configs: [
-                      ScreenConfig(name: "upstream, ops profiled", flags: [:], profileOps: true, cbStats: false),
-                      ScreenConfig(name: "stack, ops profiled", flags: ptq1Stack, profileOps: true, cbStats: false),
-                  ], cells: ["pp512"], rounds: 2, reference: "upstream, ops profiled")),
-        StudySpec(title: "PTQ1_0 pp512: the stack with each flag left out", model: ptq1, a: "-", b: "-", cells: [],
+        StudySpec(title: "PTQ1_0 prompts: the stack with batch-width caps", model: ptq1, a: "-", b: "-", cells: [],
                   cycles: 0, cooldown: 60,
                   screen: ScreenSpec(configs: [
                       ScreenConfig(name: "upstream", flags: [:]),
-                      ScreenConfig(name: "upstream again", flags: [:]),
                       ScreenConfig(name: "stack", flags: ptq1Stack),
-                      ScreenConfig(name: "stack without SMALLM_MM", flags: stack(without: ["GGML_METAL_SMALLM_MM"])),
-                      ScreenConfig(name: "stack without rows mode", flags: stack(without: ["GGML_GDN_ROWS_PLAIN"])),
-                      ScreenConfig(name: "stack without MULTICOL, GLU and STAGE",
-                                   flags: stack(without: ["GGML_METAL_PTQ1_MULTICOL", "GGML_METAL_PTQ1_GLU", "GGML_METAL_PTQ1_STAGE"])),
-                  ], cells: ["pp512"], rounds: 4, reference: "upstream", retryFailed: true)),
+                      ScreenConfig(name: "stack, SMALLM_MM <= 64 columns, rows mode <= 8 tokens", flags: capped),
+                  ], cells: ["pp512", "pp128", "pp16"], rounds: 6, reference: "upstream", retryFailed: true)),
+        StudySpec(title: "What 4 command buffers cost on small graphs (decode, 8 tokens)", model: ptq1, a: "-", b: "-",
+                  cells: [], cycles: 0, cooldown: 30,
+                  screen: ScreenSpec(configs: [
+                      ScreenConfig(name: "1 command buffer", flags: ["GGML_METAL_N_CB": "1"]),
+                      ScreenConfig(name: "4 command buffers (iOS default)", flags: [:]),
+                  ], cells: ["pp1", "pp8"], rounds: 6, reference: "1 command buffer", retryFailed: true)),
+        StudySpec(title: "Per-op GPU time by prompt width: upstream and SMALLM_MM + rows mode", model: ptq1, a: "-", b: "-",
+                  cells: [], cycles: 0, cooldown: 40,
+                  screen: ScreenSpec(configs: [
+                      ScreenConfig(name: "upstream, ops profiled", flags: [:], profileOps: true, cbStats: false),
+                      ScreenConfig(name: "SMALLM_MM + rows mode, ops profiled",
+                                   flags: ["GGML_METAL_SMALLM_MM": "1", "GGML_GDN_ROWS_PLAIN": "1"], profileOps: true, cbStats: false),
+                  ], cells: ["pp2", "pp8", "pp32", "pp128", "pp512"], rounds: 2, reference: "upstream, ops profiled")),
     ] + memoryStudies
 
     /// 5. iOS evicts the memory-mapped weights (up to 6 GB re-read from flash in one run, 2026-09-25 diagnostics):

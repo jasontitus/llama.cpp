@@ -962,7 +962,9 @@ static const char * const g_research_names[] = {
     "GGML_METAL_N_CB",
     "GGML_METAL_SMALLM",
     "GGML_METAL_SMALLM_MM",
+    "GGML_METAL_SMALLM_MM_MAX_N",
     "GGML_GDN_ROWS_PLAIN",
+    "GGML_GDN_ROWS_PLAIN_MAX_TOKENS",
 };
 
 uint64_t ggml_metal_research_generation(void) {

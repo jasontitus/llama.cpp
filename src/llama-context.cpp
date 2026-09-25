@@ -180,6 +180,8 @@ llama_context::llama_context(
 
     const char * gdn_rows_plain = getenv("GGML_GDN_ROWS_PLAIN");
     cparams.gdn_rows_plain = gdn_rows_plain && atoi(gdn_rows_plain) == 1;
+    const char * gdn_rows_plain_max = getenv("GGML_GDN_ROWS_PLAIN_MAX_TOKENS");
+    cparams.gdn_rows_plain_max_tokens = gdn_rows_plain_max ? std::max(0, atoi(gdn_rows_plain_max)) : 0;
     cparams.n_rs_seq = params.n_rs_seq;
     if (cparams.n_rs_seq > 0 && !llm_arch_supports_rs_rollback(model.arch)) {
         LLAMA_LOG_DEBUG("%s: n_rs_seq=%u requested but model does not support recurrent partial rollback; clamping to 0\n",

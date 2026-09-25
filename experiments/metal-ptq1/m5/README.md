@@ -84,8 +84,12 @@ within 1.1%, so the M5 numbers stand for the current branch.
     columns) and rows mode (delta-net recurrence +18%); both are small-batch flags to cap by batch width.
   - 512-token prompt runs sometimes fail on the phone with an iOS GPU error, in every arm including plain
     upstream. Cause: the command buffer holding ~90% of the graph is discarded after ~5 s of GPU time. Splitting
-    the graph into 4 command buffers (`GGML_METAL_N_CB=4`, free) or 256-token micro-batches avoided it (0 of
-    20 runs, against 10 of 50 with the default). See the app's README.
+    the graph into 4 command buffers (`GGML_METAL_N_CB=4`; no measurable cost at pp512) or 256-token
+    micro-batches avoided it (0 of 10 and 0 of 10 runs, against 10 of 50 with the default). The library now uses
+    4 command buffers by default on iOS-class devices (1 when an abort callback is set). See the app's README.
+  - `GGML_METAL_SMALLM_MM_MAX_N` and `GGML_GDN_ROWS_PLAIN_MAX_TOKENS` cap the two flags by batch width
+    (bitwise-checked on M5; rows mode stays on in MTP contexts, which force it for their snapshots). The next
+    phone diagnostics measure the caps and the cost of 4 command buffers on decode.
 
 ## Results by device
 

@@ -902,11 +902,19 @@ ggml_metal_event_t ggml_metal_get_ev_cpy(ggml_metal_t ctx) {
 }
 
 void ggml_metal_set_n_cb(ggml_metal_t ctx, int n_cb) {
+    // with an abort callback, encode_async commits only command buffers 0 and 1 (later ones only in the capture
+    // branch); the main thread's buffer is index n_cb, so with n_cb > 1 it would never run and synchronize would
+    // wait forever. Upstream's default of 1 is the only safe value then.
+    if (ctx->abort_callback && n_cb > 1) {
+        GGML_LOG_WARN("%s: an abort callback allows only 1 extra command buffer; using 1 instead of %d\n", __func__, n_cb);
+        n_cb = 1;
+    }
     if (ctx->n_cb != n_cb) {
         ctx->n_cb = MIN(n_cb, GGML_METAL_MAX_COMMAND_BUFFERS);
 
-        if (ctx->n_cb > 2) {
-            GGML_LOG_WARN("%s: n_cb = %d, using n_cb > 2 is not recommended and can degrade the performance in some cases\n", __func__, n_cb);
+        // 4 is the default on iOS (ggml-metal.cpp: shorter command buffers avoid GPU timeouts there)
+        if (ctx->n_cb > 4) {
+            GGML_LOG_WARN("%s: n_cb = %d, using n_cb > 4 is not recommended and can degrade the performance in some cases\n", __func__, n_cb);
         }
     }
 
@@ -965,6 +973,9 @@ void ggml_metal_set_n_cb(ggml_metal_t ctx, int n_cb) {
 void ggml_metal_set_abort_callback(ggml_metal_t ctx, ggml_abort_callback abort_callback, void * user_data) {
     ctx->abort_callback = abort_callback;
     ctx->abort_callback_data = user_data;
+    if (abort_callback && ctx->n_cb > 1) {
+        ggml_metal_set_n_cb(ctx, ctx->n_cb);   // clamps to 1 (iOS defaults to 4)
+    }
 }
 
 bool ggml_metal_supports_family(ggml_metal_t ctx, int family) {

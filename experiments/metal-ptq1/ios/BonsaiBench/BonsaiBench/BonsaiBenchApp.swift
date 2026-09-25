@@ -98,7 +98,9 @@ final class BenchState: ObservableObject {
                 suiteKills[step, default: 0] += 1
                 if let m = killedLoading {
                     // it does not fit: skip every remaining study of that model
-                    for j in suite.indices where j >= step && suite[j].model == m { suiteOutcome[j] = "did not fit" }
+                    // the model file in that load mode (an in-memory load can fail where memory-mapped fits)
+                    for j in suite.indices where j >= step && suite[j].model == m &&
+                        suite[j].weightsInMemory == suite[step].weightsInMemory { suiteOutcome[j] = "did not fit" }
                     suiteNotes.append("\(modelTitle(m)): the app was stopped while loading it, most likely out of memory; its studies are skipped.")
                 } else if suiteKills[step, default: 0] >= 2 {
                     suiteOutcome[step] = "failed"

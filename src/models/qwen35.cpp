@@ -484,7 +484,12 @@ ggml_tensor * llama_model_qwen35::graph::build_layer_attn_linear(
     // relocation in build_rs_cache_view runs before the GDN read and, after a cell reorder, can
     // overwrite a row another sequence reads (the gathered path reads first). Graph reuse compares
     // the s_copy_extra size, so a batch with extra cells rebuilds and takes the gathered path.
-    const bool gdn_rows_plain_ok = cparams.gdn_rows_plain && mctx_cur->get_n_rs() == (uint32_t) n_seqs;
+    // GGML_GDN_ROWS_PLAIN_MAX_TOKENS caps it by batch width: on the A19 the in-place recurrence is ~18% slower
+    // at 512-token prefill (per-op profile, 2026-09-25) while decode gains; both paths give the same bits, so a
+    // ubatch may take either. Not applied when n_rs_seq > 0 (MTP/speculative contexts keep rows mode for their
+    // snapshots at every width).
+    const bool gdn_rows_plain_ok = cparams.gdn_rows_plain && mctx_cur->get_n_rs() == (uint32_t) n_seqs &&
+        (cparams.gdn_rows_plain_max_tokens <= 0 || n_seq_tokens <= cparams.gdn_rows_plain_max_tokens);
 
     const bool gdn_state_rows = gdn_state_rows_env && gdn_state_rows_dev_ok && (cparams.n_rs_seq > 0 || gdn_rows_plain_ok);
 
