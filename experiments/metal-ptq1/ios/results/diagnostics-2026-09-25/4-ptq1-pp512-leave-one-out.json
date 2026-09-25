@@ -1,0 +1,5580 @@
+{
+  "build" : {
+    "appDirtyFiles" : "0",
+    "frameworkDirtyFiles" : "0",
+    "frameworkRevision" : "928af1613f5169bc38d00973314a8d17cdde160d",
+    "frameworkSHA256" : "6d8390cb7f55a848394b959c528ad1c276569515828c82e1ea4df08708ef7283",
+    "sourceRevision" : "928af1613f5169bc38d00973314a8d17cdde160d"
+  },
+  "cancelled" : false,
+  "cells" : [
+    "pp512"
+  ],
+  "configs" : [
+    {
+      "cbStats" : true,
+      "flags" : {
+
+      },
+      "name" : "upstream",
+      "profileOps" : false,
+      "ubatch" : 512
+    },
+    {
+      "cbStats" : true,
+      "flags" : {
+
+      },
+      "name" : "upstream again",
+      "profileOps" : false,
+      "ubatch" : 512
+    },
+    {
+      "cbStats" : true,
+      "flags" : {
+        "GGML_GDN_ROWS_PLAIN" : "1",
+        "GGML_METAL_PTQ1_GLU" : "1",
+        "GGML_METAL_PTQ1_MULTICOL" : "1",
+        "GGML_METAL_PTQ1_MULTICOL_MAX" : "8",
+        "GGML_METAL_PTQ1_STAGE" : "1",
+        "GGML_METAL_SMALLM_MM" : "1"
+      },
+      "name" : "stack",
+      "profileOps" : false,
+      "ubatch" : 512
+    },
+    {
+      "cbStats" : true,
+      "flags" : {
+        "GGML_GDN_ROWS_PLAIN" : "1",
+        "GGML_METAL_PTQ1_GLU" : "1",
+        "GGML_METAL_PTQ1_MULTICOL" : "1",
+        "GGML_METAL_PTQ1_MULTICOL_MAX" : "8",
+        "GGML_METAL_PTQ1_STAGE" : "1"
+      },
+      "name" : "stack without SMALLM_MM",
+      "profileOps" : false,
+      "ubatch" : 512
+    },
+    {
+      "cbStats" : true,
+      "flags" : {
+        "GGML_METAL_PTQ1_GLU" : "1",
+        "GGML_METAL_PTQ1_MULTICOL" : "1",
+        "GGML_METAL_PTQ1_MULTICOL_MAX" : "8",
+        "GGML_METAL_PTQ1_STAGE" : "1",
+        "GGML_METAL_SMALLM_MM" : "1"
+      },
+      "name" : "stack without rows mode",
+      "profileOps" : false,
+      "ubatch" : 512
+    },
+    {
+      "cbStats" : true,
+      "flags" : {
+        "GGML_GDN_ROWS_PLAIN" : "1",
+        "GGML_METAL_PTQ1_MULTICOL_MAX" : "8",
+        "GGML_METAL_SMALLM_MM" : "1"
+      },
+      "name" : "stack without MULTICOL, GLU and STAGE",
+      "profileOps" : false,
+      "ubatch" : 512
+    }
+  ],
+  "cooldownSeconds" : 60,
+  "device" : {
+    "appAvailableMemoryBytes" : 6022866688,
+    "gpuName" : "Apple A19 Pro GPU",
+    "highestAppleFamily" : 10,
+    "lowPowerMode" : false,
+    "machine" : "iPhone18,2",
+    "physicalMemoryBytes" : 12263424000,
+    "systemVersion" : "Version 27.0 (Build 24A437)",
+    "thermalState" : "nominal"
+  },
+  "finished" : "2026-09-25T18:18:40Z",
+  "launchEnvironment" : {
+
+  },
+  "model" : "Ternary-Bonsai-2-27B-PTQ1_0.gguf",
+  "modelBytes" : 5946648928,
+  "modelDescription" : "qwen35 27B PTQ1_0 - 1.75 bpw ternary (group 128)",
+  "modelSHA256Verified" : "53107f530aa52eb00912263ab1ee29bd199261c87cd7b4ad4ca1318c1fe33ee3",
+  "reference" : "upstream",
+  "rounds" : 4,
+  "runs" : [
+    {
+      "attempt" : 1,
+      "availableBytesAfter" : 6019180264,
+      "availableBytesBefore" : 6323185672,
+      "batteryLevel" : 0.9,
+      "batteryState" : "charging",
+      "callSeconds" : [
+        6.714925375,
+        7.240906
+      ],
+      "cell" : "pp512",
+      "commandBuffers" : [
+        {
+          "cbs" : [
+            {
+              "ge" : 1276.828,
+              "gs" : 672.269,
+              "i" : 1,
+              "ks" : 0,
+              "main" : true,
+              "nodes" : 463,
+              "status" : 4
+            },
+            {
+              "ge" : 7059.845,
+              "gs" : 1276.829,
+              "i" : 0,
+              "ks" : 671.969,
+              "main" : false,
+              "nodes" : 4174,
+              "status" : 4
+            }
+          ],
+          "ctx" : 64,
+          "graph" : 0,
+          "n_cb" : 1,
+          "n_nodes" : 4637,
+          "now" : 69444.366525,
+          "t0" : 69437.306122,
+          "unix" : 1790356047.741
+        },
+        {
+          "cbs" : [
+            {
+              "ge" : 618.131,
+              "gs" : 1.988,
+              "i" : 1,
+              "ks" : 0,
+              "main" : true,
+              "nodes" : 463,
+              "status" : 4
+            },
+            {
+              "ge" : 6707.633,
+              "gs" : 618.131,
+              "i" : 0,
+              "ks" : 4.516,
+              "main" : false,
+              "nodes" : 4174,
+              "status" : 4
+            }
+          ],
+          "ctx" : 64,
+          "graph" : 1,
+          "n_cb" : 1,
+          "n_nodes" : 4637,
+          "now" : 69451.084866,
+          "t0" : 69444.376834,
+          "unix" : 1790356054.46
+        },
+        {
+          "cbs" : [
+            {
+              "ge" : 660.763,
+              "gs" : 1.185,
+              "i" : 1,
+              "ks" : 0,
+              "main" : true,
+              "nodes" : 463,
+              "status" : 4
+            },
+            {
+              "ge" : 7235.393,
+              "gs" : 660.781,
+              "i" : 0,
+              "ks" : 1.44,
+              "main" : false,
+              "nodes" : 4174,
+              "status" : 4
+            }
+          ],
+          "ctx" : 64,
+          "graph" : 2,
+          "n_cb" : 1,
+          "n_nodes" : 4637,
+          "now" : 69458.325882,
+          "t0" : 69451.089858,
+          "unix" : 1790356061.701
+        },
+        {
+          "cbs" : [
+            {
+              "ge" : 16.799,
+              "gs" : 1.597,
+              "i" : 1,
+              "ks" : 0,
+              "main" : true,
+              "nodes" : 463,
+              "status" : 4
+            },
+            {
+              "ge" : 164.378,
+              "gs" : 16.8,
+              "i" : 0,
+              "ks" : 1.463,
+              "main" : false,
+              "nodes" : 4174,
+              "status" : 4
+            }
+          ],
+          "ctx" : 64,
+          "graph" : 3,
+          "n_cb" : 1,
+          "n_nodes" : 4637,
+          "now" : 69458.49963,
+          "t0" : 69458.334964,
+          "unix" : 1790356061.875
+        }
+      ],
+      "config" : "upstream again",
+      "droppedStatsLines" : 0,
+      "footprintBytes" : 424007960,
+      "gateReached" : true,
+      "hostEnd" : 69458.50088095835,
+      "hostStart" : 69437.20064579169,
+      "interrupted" : false,
+      "libraryMessages" : [
+
+      ],
+      "lowPowerMode" : false,
+      "memoryAfter" : {
+        "active" : 51756,
+        "appFaults" : 1955143,
+        "appPageins" : 496220,
+        "compressed" : 56005,
+        "free" : 6237,
+        "inactive" : 49706,
+        "pageSize" : 16384,
+        "systemPageins" : 151311073,
+        "systemPageouts" : 2032482,
+        "wired" : 584710
+      },
+      "memoryBefore" : {
+        "active" : 272961,
+        "appFaults" : 1936514,
+        "appPageins" : 493298,
+        "compressed" : 55736,
+        "free" : 38317,
+        "inactive" : 272448,
+        "pageSize" : 16384,
+        "systemPageins" : 151150102,
+        "systemPageouts" : 2032355,
+        "wired" : 109026
+      },
+      "position" : 0,
+      "pressureEvents" : [
+
+      ],
+      "round" : 0,
+      "startedAt" : "2026-09-25T17:07:20Z",
+      "thermalAfter" : "nominal",
+      "thermalBefore" : "nominal",
+      "thermalMax" : "nominal",
+      "thermalWaitSeconds" : 0.005013942718505859,
+      "tokensPerSecond" : 73.37434599807209,
+      "ubatch" : 512,
+      "warmupCallSeconds" : [
+        7.085453875
+      ]
+    },
+    {
+      "attempt" : 1,
+      "availableBytesAfter" : 6019294952,
+      "availableBytesBefore" : 6323103752,
+      "batteryLevel" : 0.9,
+      "batteryState" : "charging",
+      "callSeconds" : [
+        7.069261209,
+        7.5142475
+      ],
+      "cell" : "pp512",
+      "commandBuffers" : [
+        {
+          "cbs" : [
+            {
+              "ge" : 632.892,
+              "gs" : 2.217,
+              "i" : 1,
+              "ks" : 0,
+              "main" : true,
+              "nodes" : 449,
+              "status" : 4
+            },
+            {
+              "ge" : 6642.735,
+              "gs" : 632.893,
+              "i" : 0,
+              "ks" : 2.207,
+              "main" : false,
+              "nodes" : 4044,
+              "status" : 4
+            }
+          ],
+          "ctx" : 65,
+          "graph" : 0,
+          "n_cb" : 1,
+          "n_nodes" : 4493,
+          "now" : 69525.283479,
+          "t0" : 69518.640089,
+          "unix" : 1790356128.66
+        },
+        {
+          "cbs" : [
+            {
+              "ge" : 651.804,
+              "gs" : 1.305,
+              "i" : 1,
+              "ks" : 0,
+              "main" : true,
+              "nodes" : 449,
+              "status" : 4
+            },
+            {
+              "ge" : 7063.976,
+              "gs" : 651.805,
+              "i" : 0,
+              "ks" : 2.035,
+              "main" : false,
+              "nodes" : 4044,
+              "status" : 4
+            }
+          ],
+          "ctx" : 65,
+          "graph" : 1,
+          "n_cb" : 1,
+          "n_nodes" : 4493,
+          "now" : 69532.357499,
+          "t0" : 69525.293126,
+          "unix" : 1790356135.734
+        },
+        {
+          "cbs" : [
+            {
+              "ge" : 701.899,
+              "gs" : 2.968,
+              "i" : 1,
+              "ks" : 0,
+              "main" : true,
+              "nodes" : 449,
+              "status" : 4
+            },
+            {
+              "ge" : 7508.898,
+              "gs" : 701.899,
+              "i" : 0,
+              "ks" : 6.4,
+              "main" : false,
+              "nodes" : 4044,
+              "status" : 4
+            }
+          ],
+          "ctx" : 65,
+          "graph" : 2,
+          "n_cb" : 1,
+          "n_nodes" : 4493,
+          "now" : 69539.875242,
+          "t0" : 69532.366033,
+          "unix" : 1790356143.252
+        },
+        {
+          "cbs" : [
+            {
+              "ge" : 13.75,
+              "gs" : 1.7,
+              "i" : 1,
+              "ks" : 0,
+              "main" : true,
+              "nodes" : 449,
+              "status" : 4
+            },
+            {
+              "ge" : 151.738,
+              "gs" : 13.751,
+              "i" : 0,
+              "ks" : 1.849,
+              "main" : false,
+              "nodes" : 4044,
+              "status" : 4
+            }
+          ],
+          "ctx" : 65,
+          "graph" : 3,
+          "n_cb" : 1,
+          "n_nodes" : 4493,
+          "now" : 69540.030613,
+          "t0" : 69539.878538,
+          "unix" : 1790356143.407
+        }
+      ],
+      "config" : "stack",
+      "droppedStatsLines" : 0,
+      "footprintBytes" : 422975768,
+      "gateReached" : true,
+      "hostEnd" : 69540.03113929168,
+      "hostStart" : 69518.52400408335,
+      "interrupted" : false,
+      "libraryMessages" : [
+
+      ],
+      "lowPowerMode" : false,
+      "memoryAfter" : {
+        "active" : 93177,
+        "appFaults" : 1974756,
+        "appPageins" : 496420,
+        "compressed" : 61662,
+        "free" : 13370,
+        "inactive" : 84523,
+        "pageSize" : 16384,
+        "systemPageins" : 151390350,
+        "systemPageouts" : 2033816,
+        "wired" : 495754
+      },
+      "memoryBefore" : {
+        "active" : 106019,
+        "appFaults" : 1956903,
+        "appPageins" : 496410,
+        "compressed" : 60108,
+        "free" : 7103,
+        "inactive" : 103691,
+        "pageSize" : 16384,
+        "systemPageins" : 151363888,
+        "systemPageouts" : 2032997,
+        "wired" : 471566
+      },
+      "position" : 1,
+      "pressureEvents" : [
+
+      ],
+      "round" : 0,
+      "startedAt" : "2026-09-25T17:08:41Z",
+      "thermalAfter" : "nominal",
+      "thermalBefore" : "nominal",
+      "thermalMax" : "nominal",
+      "thermalWaitSeconds" : 0.004163026809692383,
+      "tokensPerSecond" : 70.21629845278957,
+      "ubatch" : 512,
+      "warmupCallSeconds" : [
+        6.649027208
+      ]
+    },
+    {
+      "attempt" : 1,
+      "availableBytesAfter" : 6019540712,
+      "availableBytesBefore" : 6323365896,
+      "batteryLevel" : 0.9,
+      "batteryState" : "charging",
+      "callSeconds" : [
+        7.804111959,
+        8.386917208
+      ],
+      "cell" : "pp512",
+      "commandBuffers" : [
+        {
+          "cbs" : [
+            {
+              "ge" : 629.62,
+              "gs" : 1.932,
+              "i" : 1,
+              "ks" : 0,
+              "main" : true,
+              "nodes" : 463,
+              "status" : 4
+            },
+            {
+              "ge" : 6957.808,
+              "gs" : 629.62,
+              "i" : 0,
+              "ks" : 5.078,
+              "main" : false,
+              "nodes" : 4174,
+              "status" : 4
+            }
+          ],
+          "ctx" : 66,
+          "graph" : 0,
+          "n_cb" : 1,
+          "n_nodes" : 4637,
+          "now" : 69607.184781,
+          "t0" : 69600.22408,
+          "unix" : 1790356210.563
+        },
+        {
+          "cbs" : [
+            {
+              "ge" : 693.682,
+              "gs" : 1.104,
+              "i" : 1,
+              "ks" : 0,
+              "main" : true,
+              "nodes" : 463,
+              "status" : 4
+            },
+            {
+              "ge" : 7791.316,
+              "gs" : 693.682,
+              "i" : 0,
+              "ks" : 2.305,
+              "main" : false,
+              "nodes" : 4174,
+              "status" : 4
+            }
+          ],
+          "ctx" : 66,
+          "graph" : 1,
+          "n_cb" : 1,
+          "n_nodes" : 4637,
+          "now" : 69614.999783,
+          "t0" : 69607.206125,
+          "unix" : 1790356218.378
+        },
+        {
+          "cbs" : [
+            {
+              "ge" : 742.288,
+              "gs" : 1.219,
+              "i" : 1,
+              "ks" : 0,
+              "main" : true,
+              "nodes" : 463,
+              "status" : 4
+            },
+            {
+              "ge" : 8365.016,
+              "gs" : 742.289,
+              "i" : 0,
+              "ks" : 1.991,
+              "main" : false,
+              "nodes" : 4174,
+              "status" : 4
+            }
+          ],
+          "ctx" : 66,
+          "graph" : 2,
+          "n_cb" : 1,
+          "n_nodes" : 4637,
+          "now" : 69623.393758,
+          "t0" : 69615.01517,
+          "unix" : 1790356226.772
+        },
+        {
+          "cbs" : [
+            {
+              "ge" : 13.512,
+              "gs" : 1.199,
+              "i" : 1,
+              "ks" : 0,
+              "main" : true,
+              "nodes" : 463,
+              "status" : 4
+            },
+            {
+              "ge" : 172.892,
+              "gs" : 13.513,
+              "i" : 0,
+              "ks" : 1.137,
+              "main" : false,
+              "nodes" : 4174,
+              "status" : 4
+            }
+          ],
+          "ctx" : 66,
+          "graph" : 3,
+          "n_cb" : 1,
+          "n_nodes" : 4637,
+          "now" : 69623.579312,
+          "t0" : 69623.405896,
+          "unix" : 1790356226.957
+        }
+      ],
+      "config" : "stack without rows mode",
+      "droppedStatsLines" : 0,
+      "footprintBytes" : 422631704,
+      "gateReached" : true,
+      "hostEnd" : 69623.58478533335,
+      "hostStart" : 69600.05347129169,
+      "interrupted" : false,
+      "libraryMessages" : [
+
+      ],
+      "lowPowerMode" : false,
+      "memoryAfter" : {
+        "active" : 33956,
+        "appFaults" : 2015063,
+        "appPageins" : 497501,
+        "compressed" : 57489,
+        "free" : 7870,
+        "inactive" : 30566,
+        "pageSize" : 16384,
+        "systemPageins" : 152555122,
+        "systemPageouts" : 2040176,
+        "wired" : 618317
+      },
+      "memoryBefore" : {
+        "active" : 45455,
+        "appFaults" : 1991496,
+        "appPageins" : 496929,
+        "compressed" : 52751,
+        "free" : 6744,
+        "inactive" : 43651,
+        "pageSize" : 16384,
+        "systemPageins" : 152052319,
+        "systemPageouts" : 2038223,
+        "wired" : 599884
+      },
+      "position" : 2,
+      "pressureEvents" : [
+        {
+          "host" : 69602.16154875001,
+          "level" : "warning"
+        },
+        {
+          "host" : 69618.41143808335,
+          "level" : "normal"
+        }
+      ],
+      "round" : 0,
+      "startedAt" : "2026-09-25T17:10:03Z",
+      "thermalAfter" : "nominal",
+      "thermalBefore" : "nominal",
+      "thermalMax" : "nominal",
+      "thermalWaitSeconds" : 0.0032889842987060547,
+      "tokensPerSecond" : 63.24489872991407,
+      "ubatch" : 512,
+      "warmupCallSeconds" : [
+        6.975417625
+      ]
+    },
+    {
+      "attempt" : 1,
+      "availableBytesAfter" : 6019458792,
+      "availableBytesBefore" : 6323431432,
+      "batteryLevel" : 0.9,
+      "batteryState" : "charging",
+      "callSeconds" : [
+        7.082148792,
+        7.636
+      ],
+      "cell" : "pp512",
+      "commandBuffers" : [
+        {
+          "cbs" : [
+            {
+              "ge" : 2442.844,
+              "gs" : 1837.734,
+              "i" : 1,
+              "ks" : 0,
+              "main" : true,
+              "nodes" : 463,
+              "status" : 4
+            },
+            {
+              "ge" : 8304.621,
+              "gs" : 2442.844,
+              "i" : 0,
+              "ks" : 1837.496,
+              "main" : false,
+              "nodes" : 4174,
+              "status" : 4
+            }
+          ],
+          "ctx" : 67,
+          "graph" : 0,
+          "n_cb" : 1,
+          "n_nodes" : 4637,
+          "now" : 70047.266674,
+          "t0" : 70038.961335,
+          "unix" : 1790356650.653
+        },
+        {
+          "cbs" : [
+            {
+              "ge" : 642.093,
+              "gs" : 1.954,
+              "i" : 1,
+              "ks" : 0,
+              "main" : true,
+              "nodes" : 463,
+              "status" : 4
+            },
+            {
+              "ge" : 7075.995,
+              "gs" : 642.093,
+              "i" : 0,
+              "ks" : 2.76,
+              "main" : false,
+              "nodes" : 4174,
+              "status" : 4
+            }
+          ],
+          "ctx" : 67,
+          "graph" : 1,
+          "n_cb" : 1,
+          "n_nodes" : 4637,
+          "now" : 70054.353582,
+          "t0" : 70047.277194,
+          "unix" : 1790356657.74
+        },
+        {
+          "cbs" : [
+            {
+              "ge" : 745.9,
+              "gs" : 7.839,
+              "i" : 1,
+              "ks" : 0,
+              "main" : true,
+              "nodes" : 463,
+              "status" : 4
+            },
+            {
+              "ge" : 7633.54,
+              "gs" : 745.918,
+              "i" : 0,
+              "ks" : 1.284,
+              "main" : false,
+              "nodes" : 4174,
+              "status" : 4
+            }
+          ],
+          "ctx" : 67,
+          "graph" : 2,
+          "n_cb" : 1,
+          "n_nodes" : 4637,
+          "now" : 70061.993993,
+          "t0" : 70054.360174,
+          "unix" : 1790356665.38
+        },
+        {
+          "cbs" : [
+            {
+              "ge" : 133.5,
+              "gs" : 6.712,
+              "i" : 1,
+              "ks" : 0,
+              "main" : true,
+              "nodes" : 463,
+              "status" : 4
+            },
+            {
+              "ge" : 280.738,
+              "gs" : 133.515,
+              "i" : 0,
+              "ks" : 3.096,
+              "main" : false,
+              "nodes" : 4174,
+              "status" : 4
+            }
+          ],
+          "ctx" : 67,
+          "graph" : 3,
+          "n_cb" : 1,
+          "n_nodes" : 4637,
+          "now" : 70062.283392,
+          "t0" : 70062.002408,
+          "unix" : 1790356665.67
+        }
+      ],
+      "config" : "upstream",
+      "droppedStatsLines" : 0,
+      "footprintBytes" : 423729432,
+      "gateReached" : true,
+      "hostEnd" : 70062.28524079168,
+      "hostStart" : 70038.82379583335,
+      "interrupted" : false,
+      "libraryMessages" : [
+
+      ],
+      "lowPowerMode" : false,
+      "memoryAfter" : {
+        "active" : 95357,
+        "appFaults" : 2082027,
+        "appPageins" : 514569,
+        "compressed" : 60053,
+        "free" : 7323,
+        "inactive" : 93008,
+        "pageSize" : 16384,
+        "systemPageins" : 155482512,
+        "systemPageouts" : 2051126,
+        "wired" : 492746
+      },
+      "memoryBefore" : {
+        "active" : 286867,
+        "appFaults" : 2063200,
+        "appPageins" : 506921,
+        "compressed" : 56153,
+        "free" : 6920,
+        "inactive" : 286264,
+        "pageSize" : 16384,
+        "systemPageins" : 155238294,
+        "systemPageouts" : 2050541,
+        "wired" : 112284
+      },
+      "position" : 3,
+      "pressureEvents" : [
+
+      ],
+      "round" : 0,
+      "startedAt" : "2026-09-25T17:17:22Z",
+      "thermalAfter" : "nominal",
+      "thermalBefore" : "nominal",
+      "thermalMax" : "nominal",
+      "thermalWaitSeconds" : 295.21546697616577,
+      "tokensPerSecond" : 69.57396711171936,
+      "ubatch" : 512,
+      "warmupCallSeconds" : [
+        8.33764475
+      ]
+    },
+    {
+      "attempt" : 1,
+      "availableBytesAfter" : 6018868968,
+      "availableBytesBefore" : 6322776072,
+      "batteryLevel" : 0.9,
+      "batteryState" : "charging",
+      "callSeconds" : [
+        7.103581333,
+        5.736856041
+      ],
+      "cell" : "pp512",
+      "commandBuffers" : [
+        {
+          "cbs" : [
+            {
+              "ge" : 629.255,
+              "gs" : 1.397,
+              "i" : 1,
+              "ks" : 0,
+              "main" : true,
+              "nodes" : 449,
+              "status" : 4
+            },
+            {
+              "ge" : 6595.047,
+              "gs" : 629.256,
+              "i" : 0,
+              "ks" : 2.701,
+              "main" : false,
+              "nodes" : 4044,
+              "status" : 4
+            }
+          ],
+          "ctx" : 68,
+          "graph" : 0,
+          "n_cb" : 1,
+          "n_nodes" : 4493,
+          "now" : 70254.07604,
+          "t0" : 70247.479479,
+          "unix" : 1790356857.466
+        },
+        {
+          "cbs" : [
+            {
+              "ge" : 649.413,
+              "gs" : 1.453,
+              "i" : 1,
+              "ks" : 0,
+              "main" : true,
+              "nodes" : 449,
+              "status" : 4
+            },
+            {
+              "ge" : 7100.953,
+              "gs" : 649.414,
+              "i" : 0,
+              "ks" : 2.031,
+              "main" : false,
+              "nodes" : 4044,
+              "status" : 4
+            }
+          ],
+          "ctx" : 68,
+          "graph" : 1,
+          "n_cb" : 1,
+          "n_nodes" : 4493,
+          "now" : 70261.18552,
+          "t0" : 70254.084295,
+          "unix" : 1790356864.575
+        },
+        {
+          "cbs" : [
+            {
+              "ge" : 727.854,
+              "gs" : 1.382,
+              "i" : 1,
+              "ks" : 0,
+              "main" : true,
+              "nodes" : 449,
+              "status" : 4
+            },
+            {
+              "code" : 1,
+              "domain" : "MTLCommandBufferErrorDomain",
+              "enc" : [
+                {
+                  "label" : "",
+                  "last" : [
+
+                  ],
+                  "signposts" : 0,
+                  "state" : 2
+                }
+              ],
+              "err" : "Discarded (victim of GPU error\/recovery) (00000005:kIOGPUCommandBufferCallbackErrorInnocentVictim)",
+              "ge" : 5733.122,
+              "gs" : 727.992,
+              "i" : 0,
+              "ks" : 1.928,
+              "main" : false,
+              "nodes" : 4044,
+              "status" : 5
+            }
+          ],
+          "ctx" : 68,
+          "graph" : 2,
+          "n_cb" : 1,
+          "n_nodes" : 4493,
+          "now" : 70266.925998,
+          "t0" : 70261.190829,
+          "unix" : 1790356870.316
+        }
+      ],
+      "config" : "stack without SMALLM_MM",
+      "droppedStatsLines" : 0,
+      "error" : "llama_decode failed (-3)",
+      "failure" : {
+        "callSeconds" : 5.736856041,
+        "code" : 1,
+        "commandBuffer" : 0,
+        "domain" : "MTLCommandBufferErrorDomain",
+        "error" : "Discarded (victim of GPU error\/recovery) (00000005:kIOGPUCommandBufferCallbackErrorInnocentVictim)",
+        "gpuEndMs" : 5733.122,
+        "gpuStartMs" : 727.992,
+        "mainCommandBuffer" : false,
+        "mainStartDelayMs" : 1.382,
+        "phase" : "timed"
+      },
+      "footprintBytes" : 0,
+      "gateReached" : true,
+      "hostEnd" : 70266.93226712501,
+      "hostStart" : 70247.35370679168,
+      "interrupted" : false,
+      "libraryMessages" : [
+        "ggml_metal_synchronize: error: command buffer 0 failed with status 5",
+        "error: Discarded (victim of GPU error\/recovery) (00000005:kIOGPUCommandBufferCallbackErrorInnocentVictim)",
+        "ggml_metal_synchronize: error: command buffer 0 failed with status 5",
+        "error: Discarded (victim of GPU error\/recovery) (00000005:kIOGPUCommandBufferCallbackErrorInnocentVictim)",
+        "ggml_metal_synchronize: error: command buffer 0 failed with status 5",
+        "error: Discarded (victim of GPU error\/recovery) (00000005:kIOGPUCommandBufferCallbackErrorInnocentVictim)",
+        "ggml_metal_synchronize: error: command buffer 0 failed with status 5",
+        "error: Discarded (victim of GPU error\/recovery) (00000005:kIOGPUCommandBufferCallbackErrorInnocentVictim)",
+        "ggml_metal_synchronize: error: command buffer 0 failed with status 5",
+        "error: Discarded (victim of GPU error\/recovery) (00000005:kIOGPUCommandBufferCallbackErrorInnocentVictim)",
+        "ggml_metal_synchronize: error: command buffer 0 failed with status 5",
+        "error: Discarded (victim of GPU error\/recovery) (00000005:kIOGPUCommandBufferCallbackErrorInnocentVictim)",
+        "ggml_metal_synchronize: error: command buffer 0 failed with status 5",
+        "error: Discarded (victim of GPU error\/recovery) (00000005:kIOGPUCommandBufferCallbackErrorInnocentVictim)",
+        "ggml_metal_synchronize: error: command buffer 0 failed with status 5",
+        "error: Discarded (victim of GPU error\/recovery) (00000005:kIOGPUCommandBufferCallbackErrorInnocentVictim)",
+        "ggml_metal_synchronize: error: command buffer 0 failed with status 5",
+        "error: Discarded (victim of GPU error\/recovery) (00000005:kIOGPUCommandBufferCallbackErrorInnocentVictim)",
+        "ggml_metal_synchronize: error: command buffer 0 failed with status 5",
+        "error: Discarded (victim of GPU error\/recovery) (00000005:kIOGPUCommandBufferCallbackErrorInnocentVictim)",
+        "ggml_metal_synchronize: error: command buffer 0 failed with status 5",
+        "error: Discarded (victim of GPU error\/recovery) (00000005:kIOGPUCommandBufferCallbackErrorInnocentVictim)",
+        "ggml_metal_synchronize: error: command buffer 0 failed with status 5",
+        "error: Discarded (victim of GPU error\/recovery) (00000005:kIOGPUCommandBufferCallbackErrorInnocentVictim)",
+        "ggml_metal_synchronize: error: command buffer 0 failed with status 5",
+        "error: Discarded (victim of GPU error\/recovery) (00000005:kIOGPUCommandBufferCallbackErrorInnocentVictim)",
+        "ggml_metal_graph_compute: backend is in error state from a previous command buffer failure - recreate the backend to recover",
+        "graph_compute: ggml_backend_sched_graph_compute_async failed with error -1",
+        "process_ubatch: failed to compute graph, compute status: -1",
+        "decode: removing memory module entries for seq_id = 0, pos = [512, +inf)",
+        "llama_decode: failed to decode, ret = -3",
+        "ggml_metal_synchronize: error: command buffer 0 failed with status 5",
+        "error: Discarded (victim of GPU error\/recovery) (00000005:kIOGPUCommandBufferCallbackErrorInnocentVictim)",
+        "ggml_metal_synchronize: error: command buffer 0 failed with status 5",
+        "error: Discarded (victim of GPU error\/recovery) (00000005:kIOGPUCommandBufferCallbackErrorInnocentVictim)"
+      ],
+      "lowPowerMode" : false,
+      "memoryAfter" : {
+        "active" : 109399,
+        "appFaults" : 2102200,
+        "appPageins" : 516018,
+        "compressed" : 36416,
+        "free" : 7397,
+        "inactive" : 106972,
+        "pageSize" : 16384,
+        "systemPageins" : 155641832,
+        "systemPageouts" : 2055442,
+        "wired" : 488303
+      },
+      "memoryBefore" : {
+        "active" : 118204,
+        "appFaults" : 2084156,
+        "appPageins" : 515873,
+        "compressed" : 36228,
+        "free" : 8332,
+        "inactive" : 115033,
+        "pageSize" : 16384,
+        "systemPageins" : 155628611,
+        "systemPageouts" : 2054162,
+        "wired" : 470691
+      },
+      "position" : 4,
+      "pressureEvents" : [
+
+      ],
+      "round" : 0,
+      "startedAt" : "2026-09-25T17:20:50Z",
+      "thermalAfter" : "nominal",
+      "thermalBefore" : "nominal",
+      "thermalMax" : "nominal",
+      "thermalWaitSeconds" : 65.05159997940063,
+      "tokensPerSecond" : 0,
+      "ubatch" : 512,
+      "warmupCallSeconds" : [
+        6.603105458
+      ]
+    },
+    {
+      "attempt" : 2,
+      "availableBytesAfter" : 6019868392,
+      "availableBytesBefore" : 6323431432,
+      "batteryLevel" : 0.9,
+      "batteryState" : "charging",
+      "callSeconds" : [
+        7.12132525,
+        7.522377
+      ],
+      "cell" : "pp512",
+      "commandBuffers" : [
+        {
+          "cbs" : [
+            {
+              "ge" : 630.423,
+              "gs" : 2.111,
+              "i" : 1,
+              "ks" : 0,
+              "main" : true,
+              "nodes" : 449,
+              "status" : 4
+            },
+            {
+              "ge" : 6610.872,
+              "gs" : 630.423,
+              "i" : 0,
+              "ks" : 2.764,
+              "main" : false,
+              "nodes" : 4044,
+              "status" : 4
+            }
+          ],
+          "ctx" : 69,
+          "graph" : 0,
+          "n_cb" : 1,
+          "n_nodes" : 4493,
+          "now" : 70333.672535,
+          "t0" : 70327.061141,
+          "unix" : 1790356937.064
+        },
+        {
+          "cbs" : [
+            {
+              "ge" : 657.377,
+              "gs" : 2.279,
+              "i" : 1,
+              "ks" : 0,
+              "main" : true,
+              "nodes" : 449,
+              "status" : 4
+            },
+            {
+              "ge" : 7115.963,
+              "gs" : 657.377,
+              "i" : 0,
+              "ks" : 3.48,
+              "main" : false,
+              "nodes" : 4044,
+              "status" : 4
+            }
+          ],
+          "ctx" : 69,
+          "graph" : 1,
+          "n_cb" : 1,
+          "n_nodes" : 4493,
+          "now" : 70340.797248,
+          "t0" : 70333.681007,
+          "unix" : 1790356944.189
+        },
+        {
+          "cbs" : [
+            {
+              "ge" : 698.487,
+              "gs" : 1.427,
+              "i" : 1,
+              "ks" : 0,
+              "main" : true,
+              "nodes" : 449,
+              "status" : 4
+            },
+            {
+              "ge" : 7518.787,
+              "gs" : 698.488,
+              "i" : 0,
+              "ks" : 1.724,
+              "main" : false,
+              "nodes" : 4044,
+              "status" : 4
+            }
+          ],
+          "ctx" : 69,
+          "graph" : 2,
+          "n_cb" : 1,
+          "n_nodes" : 4493,
+          "now" : 70348.323241,
+          "t0" : 70340.804028,
+          "unix" : 1790356951.715
+        },
+        {
+          "cbs" : [
+            {
+              "ge" : 20.016,
+              "gs" : 6.675,
+              "i" : 1,
+              "ks" : 0,
+              "main" : true,
+              "nodes" : 449,
+              "status" : 4
+            },
+            {
+              "ge" : 159.53,
+              "gs" : 20.017,
+              "i" : 0,
+              "ks" : 1.609,
+              "main" : false,
+              "nodes" : 4044,
+              "status" : 4
+            }
+          ],
+          "ctx" : 69,
+          "graph" : 3,
+          "n_cb" : 1,
+          "n_nodes" : 4493,
+          "now" : 70348.490024,
+          "t0" : 70348.330275,
+          "unix" : 1790356951.882
+        }
+      ],
+      "config" : "stack without SMALLM_MM",
+      "droppedStatsLines" : 0,
+      "footprintBytes" : 423418136,
+      "gateReached" : true,
+      "hostEnd" : 70348.49038712501,
+      "hostStart" : 70326.94929316668,
+      "interrupted" : false,
+      "libraryMessages" : [
+
+      ],
+      "lowPowerMode" : false,
+      "memoryAfter" : {
+        "active" : 105764,
+        "appFaults" : 2120127,
+        "appPageins" : 516195,
+        "compressed" : 42829,
+        "free" : 6610,
+        "inactive" : 104101,
+        "pageSize" : 16384,
+        "systemPageins" : 155722765,
+        "systemPageouts" : 2056224,
+        "wired" : 489183
+      },
+      "memoryBefore" : {
+        "active" : 117374,
+        "appFaults" : 2102424,
+        "appPageins" : 516194,
+        "compressed" : 42247,
+        "free" : 6957,
+        "inactive" : 116147,
+        "pageSize" : 16384,
+        "systemPageins" : 155714979,
+        "systemPageouts" : 2055827,
+        "wired" : 465763
+      },
+      "position" : 4,
+      "pressureEvents" : [
+
+      ],
+      "round" : 0,
+      "startedAt" : "2026-09-25T17:22:10Z",
+      "thermalAfter" : "nominal",
+      "thermalBefore" : "nominal",
+      "thermalMax" : "nominal",
+      "thermalWaitSeconds" : 0.0025540590286254883,
+      "tokensPerSecond" : 69.92767146709774,
+      "ubatch" : 512,
+      "warmupCallSeconds" : [
+        6.617177583
+      ]
+    },
+    {
+      "attempt" : 1,
+      "availableBytesAfter" : 6019262184,
+      "availableBytesBefore" : 6323546120,
+      "batteryLevel" : 0.9,
+      "batteryState" : "charging",
+      "callSeconds" : [
+        9.32177775,
+        10.171117375
+      ],
+      "cell" : "pp512",
+      "commandBuffers" : [
+        {
+          "cbs" : [
+            {
+              "ge" : 696.563,
+              "gs" : 2.822,
+              "i" : 1,
+              "ks" : 0,
+              "main" : true,
+              "nodes" : 449,
+              "status" : 4
+            },
+            {
+              "ge" : 7738.223,
+              "gs" : 696.563,
+              "i" : 0,
+              "ks" : 4.67,
+              "main" : false,
+              "nodes" : 4044,
+              "status" : 4
+            }
+          ],
+          "ctx" : 70,
+          "graph" : 0,
+          "n_cb" : 1,
+          "n_nodes" : 4493,
+          "now" : 70416.397828,
+          "t0" : 70408.649071,
+          "unix" : 1790357019.791
+        },
+        {
+          "cbs" : [
+            {
+              "ge" : 821.108,
+              "gs" : 1.547,
+              "i" : 1,
+              "ks" : 0,
+              "main" : true,
+              "nodes" : 449,
+              "status" : 4
+            },
+            {
+              "ge" : 9313.064,
+              "gs" : 821.109,
+              "i" : 0,
+              "ks" : 2.649,
+              "main" : false,
+              "nodes" : 4044,
+              "status" : 4
+            }
+          ],
+          "ctx" : 70,
+          "graph" : 1,
+          "n_cb" : 1,
+          "n_nodes" : 4493,
+          "now" : 70425.730223,
+          "t0" : 70416.413959,
+          "unix" : 1790357029.123
+        },
+        {
+          "cbs" : [
+            {
+              "ge" : 903.171,
+              "gs" : 1.816,
+              "i" : 1,
+              "ks" : 0,
+              "main" : true,
+              "nodes" : 449,
+              "status" : 4
+            },
+            {
+              "ge" : 10157.373,
+              "gs" : 903.172,
+              "i" : 0,
+              "ks" : 2.233,
+              "main" : false,
+              "nodes" : 4044,
+              "status" : 4
+            }
+          ],
+          "ctx" : 70,
+          "graph" : 2,
+          "n_cb" : 1,
+          "n_nodes" : 4493,
+          "now" : 70435.911374,
+          "t0" : 70425.751893,
+          "unix" : 1790357039.305
+        },
+        {
+          "cbs" : [
+            {
+              "ge" : 22.97,
+              "gs" : 1.663,
+              "i" : 1,
+              "ks" : 0,
+              "main" : true,
+              "nodes" : 449,
+              "status" : 4
+            },
+            {
+              "ge" : 238.312,
+              "gs" : 22.971,
+              "i" : 0,
+              "ks" : 2.05,
+              "main" : false,
+              "nodes" : 4044,
+              "status" : 4
+            }
+          ],
+          "ctx" : 70,
+          "graph" : 3,
+          "n_cb" : 1,
+          "n_nodes" : 4493,
+          "now" : 70436.166236,
+          "t0" : 70435.927189,
+          "unix" : 1790357039.559
+        }
+      ],
+      "config" : "stack without MULTICOL, GLU and STAGE",
+      "droppedStatsLines" : 0,
+      "footprintBytes" : 422369560,
+      "gateReached" : true,
+      "hostEnd" : 70436.17200483335,
+      "hostStart" : 70408.51250625002,
+      "interrupted" : false,
+      "libraryMessages" : [
+
+      ],
+      "lowPowerMode" : false,
+      "memoryAfter" : {
+        "active" : 44984,
+        "appFaults" : 2153193,
+        "appPageins" : 518822,
+        "compressed" : 76216,
+        "free" : 5428,
+        "inactive" : 44011,
+        "pageSize" : 16384,
+        "systemPageins" : 156753055,
+        "systemPageouts" : 2069643,
+        "wired" : 577780
+      },
+      "memoryBefore" : {
+        "active" : 42150,
+        "appFaults" : 2126936,
+        "appPageins" : 516235,
+        "compressed" : 52315,
+        "free" : 8856,
+        "inactive" : 39058,
+        "pageSize" : 16384,
+        "systemPageins" : 156322406,
+        "systemPageouts" : 2058376,
+        "wired" : 606089
+      },
+      "position" : 5,
+      "pressureEvents" : [
+        {
+          "host" : 70408.70709770835,
+          "level" : "warning"
+        },
+        {
+          "host" : 70418.81098562501,
+          "level" : "normal"
+        },
+        {
+          "host" : 70427.70126637502,
+          "level" : "warning"
+        }
+      ],
+      "round" : 0,
+      "startedAt" : "2026-09-25T17:23:31Z",
+      "thermalAfter" : "fair",
+      "thermalBefore" : "nominal",
+      "thermalMax" : "fair",
+      "thermalWaitSeconds" : 0.0011379718780517578,
+      "tokensPerSecond" : 52.53196066738701,
+      "ubatch" : 512,
+      "warmupCallSeconds" : [
+        7.758278042
+      ]
+    },
+    {
+      "attempt" : 1,
+      "availableBytesAfter" : 6019163880,
+      "availableBytesBefore" : 6323349512,
+      "batteryLevel" : 0.9,
+      "batteryState" : "charging",
+      "callSeconds" : [
+        6.986496292,
+        7.329478625
+      ],
+      "cell" : "pp512",
+      "commandBuffers" : [
+        {
+          "cbs" : [
+            {
+              "ge" : 3109.871,
+              "gs" : 2487.101,
+              "i" : 1,
+              "ks" : 0,
+              "main" : true,
+              "nodes" : 449,
+              "status" : 4
+            },
+            {
+              "ge" : 9076.955,
+              "gs" : 3109.871,
+              "i" : 0,
+              "ks" : 2488.599,
+              "main" : false,
+              "nodes" : 4044,
+              "status" : 4
+            }
+          ],
+          "ctx" : 71,
+          "graph" : 0,
+          "n_cb" : 1,
+          "n_nodes" : 4493,
+          "now" : 71020.844998,
+          "t0" : 71011.765895,
+          "unix" : 1790357624.25
+        },
+        {
+          "cbs" : [
+            {
+              "ge" : 645.494,
+              "gs" : 1.151,
+              "i" : 1,
+              "ks" : 0,
+              "main" : true,
+              "nodes" : 449,
+              "status" : 4
+            },
+            {
+              "ge" : 6980.176,
+              "gs" : 645.495,
+              "i" : 0,
+              "ks" : 1.967,
+              "main" : false,
+              "nodes" : 4044,
+              "status" : 4
+            }
+          ],
+          "ctx" : 71,
+          "graph" : 1,
+          "n_cb" : 1,
+          "n_nodes" : 4493,
+          "now" : 71027.839469,
+          "t0" : 71020.858977,
+          "unix" : 1790357631.244
+        },
+        {
+          "cbs" : [
+            {
+              "ge" : 694.874,
+              "gs" : 2.761,
+              "i" : 1,
+              "ks" : 0,
+              "main" : true,
+              "nodes" : 449,
+              "status" : 4
+            },
+            {
+              "ge" : 7323.652,
+              "gs" : 694.874,
+              "i" : 0,
+              "ks" : 5.323,
+              "main" : false,
+              "nodes" : 4044,
+              "status" : 4
+            }
+          ],
+          "ctx" : 71,
+          "graph" : 2,
+          "n_cb" : 1,
+          "n_nodes" : 4493,
+          "now" : 71035.172323,
+          "t0" : 71027.848338,
+          "unix" : 1790357638.577
+        },
+        {
+          "cbs" : [
+            {
+              "ge" : 19.144,
+              "gs" : 6.724,
+              "i" : 1,
+              "ks" : 0,
+              "main" : true,
+              "nodes" : 449,
+              "status" : 4
+            },
+            {
+              "ge" : 151.943,
+              "gs" : 19.144,
+              "i" : 0,
+              "ks" : 1.595,
+              "main" : false,
+              "nodes" : 4044,
+              "status" : 4
+            }
+          ],
+          "ctx" : 71,
+          "graph" : 3,
+          "n_cb" : 1,
+          "n_nodes" : 4493,
+          "now" : 71035.329677,
+          "t0" : 71035.177371,
+          "unix" : 1790357638.735
+        }
+      ],
+      "config" : "stack without MULTICOL, GLU and STAGE",
+      "droppedStatsLines" : 0,
+      "footprintBytes" : 422779160,
+      "gateReached" : true,
+      "hostEnd" : 71035.33134566668,
+      "hostStart" : 71011.62931979168,
+      "interrupted" : false,
+      "libraryMessages" : [
+
+      ],
+      "lowPowerMode" : false,
+      "memoryAfter" : {
+        "active" : 97804,
+        "appFaults" : 2234628,
+        "appPageins" : 550487,
+        "compressed" : 56167,
+        "free" : 8264,
+        "inactive" : 94152,
+        "pageSize" : 16384,
+        "systemPageins" : 160185789,
+        "systemPageouts" : 2093994,
+        "wired" : 492100
+      },
+      "memoryBefore" : {
+        "active" : 297810,
+        "appFaults" : 2215072,
+        "appPageins" : 540854,
+        "compressed" : 39988,
+        "free" : 7548,
+        "inactive" : 295529,
+        "pageSize" : 16384,
+        "systemPageins" : 159878007,
+        "systemPageouts" : 2093105,
+        "wired" : 107609
+      },
+      "position" : 0,
+      "pressureEvents" : [
+
+      ],
+      "round" : 1,
+      "startedAt" : "2026-09-25T17:33:35Z",
+      "thermalAfter" : "nominal",
+      "thermalBefore" : "nominal",
+      "thermalMax" : "nominal",
+      "thermalWaitSeconds" : 515.4439650774002,
+      "tokensPerSecond" : 71.52848520180179,
+      "ubatch" : 512,
+      "warmupCallSeconds" : [
+        9.119129959
+      ]
+    },
+    {
+      "attempt" : 1,
+      "availableBytesAfter" : 6021195496,
+      "availableBytesBefore" : 6322153480,
+      "batteryLevel" : 0.9,
+      "batteryState" : "charging",
+      "callSeconds" : [
+        6.759701542,
+        7.06794775
+      ],
+      "cell" : "pp512",
+      "commandBuffers" : [
+        {
+          "cbs" : [
+            {
+              "ge" : 622.474,
+              "gs" : 1.502,
+              "i" : 1,
+              "ks" : 0,
+              "main" : true,
+              "nodes" : 449,
+              "status" : 4
+            },
+            {
+              "ge" : 6505.755,
+              "gs" : 622.474,
+              "i" : 0,
+              "ks" : 3.237,
+              "main" : false,
+              "nodes" : 4044,
+              "status" : 4
+            }
+          ],
+          "ctx" : 72,
+          "graph" : 0,
+          "n_cb" : 1,
+          "n_nodes" : 4493,
+          "now" : 71101.969321,
+          "t0" : 71095.462843,
+          "unix" : 1790357705.375
+        },
+        {
+          "cbs" : [
+            {
+              "ge" : 623.091,
+              "gs" : 1.489,
+              "i" : 1,
+              "ks" : 0,
+              "main" : true,
+              "nodes" : 449,
+              "status" : 4
+            },
+            {
+              "ge" : 6751.599,
+              "gs" : 623.091,
+              "i" : 0,
+              "ks" : 1.609,
+              "main" : false,
+              "nodes" : 4044,
+              "status" : 4
+            }
+          ],
+          "ctx" : 72,
+          "graph" : 1,
+          "n_cb" : 1,
+          "n_nodes" : 4493,
+          "now" : 71108.733642,
+          "t0" : 71101.981549,
+          "unix" : 1790357712.14
+        },
+        {
+          "cbs" : [
+            {
+              "ge" : 656.354,
+              "gs" : 2.204,
+              "i" : 1,
+              "ks" : 0,
+              "main" : true,
+              "nodes" : 449,
+              "status" : 4
+            },
+            {
+              "ge" : 7060.893,
+              "gs" : 656.354,
+              "i" : 0,
+              "ks" : 5.334,
+              "main" : false,
+              "nodes" : 4044,
+              "status" : 4
+            }
+          ],
+          "ctx" : 72,
+          "graph" : 2,
+          "n_cb" : 1,
+          "n_nodes" : 4493,
+          "now" : 71115.80616,
+          "t0" : 71108.744749,
+          "unix" : 1790357719.213
+        },
+        {
+          "cbs" : [
+            {
+              "ge" : 16.316,
+              "gs" : 1.843,
+              "i" : 1,
+              "ks" : 0,
+              "main" : true,
+              "nodes" : 449,
+              "status" : 4
+            },
+            {
+              "ge" : 142.86,
+              "gs" : 16.317,
+              "i" : 0,
+              "ks" : 1.702,
+              "main" : false,
+              "nodes" : 4044,
+              "status" : 4
+            }
+          ],
+          "ctx" : 72,
+          "graph" : 3,
+          "n_cb" : 1,
+          "n_nodes" : 4493,
+          "now" : 71115.959236,
+          "t0" : 71115.815883,
+          "unix" : 1790357719.366
+        }
+      ],
+      "config" : "stack without SMALLM_MM",
+      "droppedStatsLines" : 0,
+      "footprintBytes" : 422091032,
+      "gateReached" : true,
+      "hostEnd" : 71115.95984558335,
+      "hostStart" : 71095.35448191669,
+      "interrupted" : false,
+      "libraryMessages" : [
+
+      ],
+      "lowPowerMode" : false,
+      "memoryAfter" : {
+        "active" : 103261,
+        "appFaults" : 2253544,
+        "appPageins" : 551524,
+        "compressed" : 38867,
+        "free" : 15660,
+        "inactive" : 97804,
+        "pageSize" : 16384,
+        "systemPageins" : 160222705,
+        "systemPageouts" : 2094452,
+        "wired" : 492895
+      },
+      "memoryBefore" : {
+        "active" : 116986,
+        "appFaults" : 2236370,
+        "appPageins" : 551524,
+        "compressed" : 42591,
+        "free" : 19226,
+        "inactive" : 102098,
+        "pageSize" : 16384,
+        "systemPageins" : 160220478,
+        "systemPageouts" : 2093994,
+        "wired" : 467586
+      },
+      "position" : 1,
+      "pressureEvents" : [
+
+      ],
+      "round" : 1,
+      "startedAt" : "2026-09-25T17:34:58Z",
+      "thermalAfter" : "nominal",
+      "thermalBefore" : "nominal",
+      "thermalMax" : "nominal",
+      "thermalWaitSeconds" : 0.0050220489501953125,
+      "tokensPerSecond" : 74.05452498657426,
+      "ubatch" : 512,
+      "warmupCallSeconds" : [
+        6.512439583
+      ]
+    },
+    {
+      "attempt" : 1,
+      "availableBytesAfter" : 6024226536,
+      "availableBytesBefore" : 6323611656,
+      "batteryLevel" : 0.9,
+      "batteryState" : "charging",
+      "callSeconds" : [
+        6.577359083,
+        6.876194791
+      ],
+      "cell" : "pp512",
+      "commandBuffers" : [
+        {
+          "cbs" : [
+            {
+              "ge" : 606.68,
+              "gs" : 1.361,
+              "i" : 1,
+              "ks" : 0,
+              "main" : true,
+              "nodes" : 463,
+              "status" : 4
+            },
+            {
+              "ge" : 6370.368,
+              "gs" : 606.681,
+              "i" : 0,
+              "ks" : 3.083,
+              "main" : false,
+              "nodes" : 4174,
+              "status" : 4
+            }
+          ],
+          "ctx" : 73,
+          "graph" : 0,
+          "n_cb" : 1,
+          "n_nodes" : 4637,
+          "now" : 71182.45721,
+          "t0" : 71176.08627,
+          "unix" : 1790357785.865
+        },
+        {
+          "cbs" : [
+            {
+              "ge" : 607.003,
+              "gs" : 1.372,
+              "i" : 1,
+              "ks" : 0,
+              "main" : true,
+              "nodes" : 463,
+              "status" : 4
+            },
+            {
+              "ge" : 6570.017,
+              "gs" : 607.004,
+              "i" : 0,
+              "ks" : 1.678,
+              "main" : false,
+              "nodes" : 4174,
+              "status" : 4
+            }
+          ],
+          "ctx" : 73,
+          "graph" : 1,
+          "n_cb" : 1,
+          "n_nodes" : 4637,
+          "now" : 71189.038024,
+          "t0" : 71182.467442,
+          "unix" : 1790357792.446
+        },
+        {
+          "cbs" : [
+            {
+              "ge" : 633.597,
+              "gs" : 1.375,
+              "i" : 1,
+              "ks" : 0,
+              "main" : true,
+              "nodes" : 463,
+              "status" : 4
+            },
+            {
+              "ge" : 6871.088,
+              "gs" : 633.597,
+              "i" : 0,
+              "ks" : 1.491,
+              "main" : false,
+              "nodes" : 4174,
+              "status" : 4
+            }
+          ],
+          "ctx" : 73,
+          "graph" : 2,
+          "n_cb" : 1,
+          "n_nodes" : 4637,
+          "now" : 71195.918682,
+          "t0" : 71189.047107,
+          "unix" : 1790357799.327
+        },
+        {
+          "cbs" : [
+            {
+              "ge" : 22.447,
+              "gs" : 1.63,
+              "i" : 1,
+              "ks" : 0,
+              "main" : true,
+              "nodes" : 463,
+              "status" : 4
+            },
+            {
+              "ge" : 159.492,
+              "gs" : 22.464,
+              "i" : 0,
+              "ks" : 1.484,
+              "main" : false,
+              "nodes" : 4174,
+              "status" : 4
+            }
+          ],
+          "ctx" : 73,
+          "graph" : 3,
+          "n_cb" : 1,
+          "n_nodes" : 4637,
+          "now" : 71196.087694,
+          "t0" : 71195.927745,
+          "unix" : 1790357799.496
+        }
+      ],
+      "config" : "upstream",
+      "droppedStatsLines" : 0,
+      "footprintBytes" : 418961688,
+      "gateReached" : true,
+      "hostEnd" : 71196.08830987502,
+      "hostStart" : 71175.97949920835,
+      "interrupted" : false,
+      "libraryMessages" : [
+
+      ],
+      "lowPowerMode" : false,
+      "memoryAfter" : {
+        "active" : 106957,
+        "appFaults" : 2270474,
+        "appPageins" : 551533,
+        "compressed" : 36236,
+        "free" : 12932,
+        "inactive" : 101553,
+        "pageSize" : 16384,
+        "systemPageins" : 160242915,
+        "systemPageouts" : 2094805,
+        "wired" : 490809
+      },
+      "memoryBefore" : {
+        "active" : 117468,
+        "appFaults" : 2253621,
+        "appPageins" : 551533,
+        "compressed" : 35722,
+        "free" : 17443,
+        "inactive" : 109379,
+        "pageSize" : 16384,
+        "systemPageins" : 160241042,
+        "systemPageouts" : 2094455,
+        "wired" : 468475
+      },
+      "position" : 2,
+      "pressureEvents" : [
+
+      ],
+      "round" : 1,
+      "startedAt" : "2026-09-25T17:36:19Z",
+      "thermalAfter" : "nominal",
+      "thermalBefore" : "nominal",
+      "thermalMax" : "nominal",
+      "thermalWaitSeconds" : 0.004149913787841797,
+      "tokensPerSecond" : 76.11371757903736,
+      "ubatch" : 512,
+      "warmupCallSeconds" : [
+        6.376335292
+      ]
+    },
+    {
+      "attempt" : 1,
+      "availableBytesAfter" : 6023472872,
+      "availableBytesBefore" : 6323529736,
+      "batteryLevel" : 0.9,
+      "batteryState" : "charging",
+      "callSeconds" : [
+
+      ],
+      "cell" : "pp512",
+      "commandBuffers" : [
+        {
+          "cbs" : [
+            {
+              "ge" : 615.729,
+              "gs" : 1.884,
+              "i" : 1,
+              "ks" : 0,
+              "main" : true,
+              "nodes" : 463,
+              "status" : 4
+            },
+            {
+              "code" : 1,
+              "domain" : "MTLCommandBufferErrorDomain",
+              "enc" : [
+                {
+                  "label" : "",
+                  "last" : [
+
+                  ],
+                  "signposts" : 0,
+                  "state" : 2
+                }
+              ],
+              "err" : "Discarded (victim of GPU error\/recovery) (00000005:kIOGPUCommandBufferCallbackErrorInnocentVictim)",
+              "ge" : 5626.032,
+              "gs" : 615.853,
+              "i" : 0,
+              "ks" : 2.425,
+              "main" : false,
+              "nodes" : 4174,
+              "status" : 5
+            }
+          ],
+          "ctx" : 74,
+          "graph" : 0,
+          "n_cb" : 1,
+          "n_nodes" : 4637,
+          "now" : 71261.848194,
+          "t0" : 71256.221307,
+          "unix" : 1790357865.257
+        }
+      ],
+      "config" : "stack without rows mode",
+      "droppedStatsLines" : 0,
+      "error" : "llama_decode failed (-3)",
+      "failure" : {
+        "callSeconds" : 5.632769375,
+        "code" : 1,
+        "commandBuffer" : 0,
+        "domain" : "MTLCommandBufferErrorDomain",
+        "error" : "Discarded (victim of GPU error\/recovery) (00000005:kIOGPUCommandBufferCallbackErrorInnocentVictim)",
+        "gpuEndMs" : 5626.032,
+        "gpuStartMs" : 615.853,
+        "mainCommandBuffer" : false,
+        "mainStartDelayMs" : 1.884,
+        "phase" : "warmup"
+      },
+      "footprintBytes" : 0,
+      "gateReached" : true,
+      "hostEnd" : 71261.85477983335,
+      "hostStart" : 71256.10357275001,
+      "interrupted" : false,
+      "libraryMessages" : [
+        "ggml_metal_synchronize: error: command buffer 0 failed with status 5",
+        "error: Discarded (victim of GPU error\/recovery) (00000005:kIOGPUCommandBufferCallbackErrorInnocentVictim)",
+        "ggml_metal_synchronize: error: command buffer 0 failed with status 5",
+        "error: Discarded (victim of GPU error\/recovery) (00000005:kIOGPUCommandBufferCallbackErrorInnocentVictim)",
+        "ggml_metal_synchronize: error: command buffer 0 failed with status 5",
+        "error: Discarded (victim of GPU error\/recovery) (00000005:kIOGPUCommandBufferCallbackErrorInnocentVictim)",
+        "ggml_metal_synchronize: error: command buffer 0 failed with status 5",
+        "error: Discarded (victim of GPU error\/recovery) (00000005:kIOGPUCommandBufferCallbackErrorInnocentVictim)",
+        "ggml_metal_synchronize: error: command buffer 0 failed with status 5",
+        "error: Discarded (victim of GPU error\/recovery) (00000005:kIOGPUCommandBufferCallbackErrorInnocentVictim)",
+        "ggml_metal_synchronize: error: command buffer 0 failed with status 5",
+        "error: Discarded (victim of GPU error\/recovery) (00000005:kIOGPUCommandBufferCallbackErrorInnocentVictim)",
+        "ggml_metal_synchronize: error: command buffer 0 failed with status 5",
+        "error: Discarded (victim of GPU error\/recovery) (00000005:kIOGPUCommandBufferCallbackErrorInnocentVictim)",
+        "ggml_metal_synchronize: error: command buffer 0 failed with status 5",
+        "error: Discarded (victim of GPU error\/recovery) (00000005:kIOGPUCommandBufferCallbackErrorInnocentVictim)",
+        "ggml_metal_synchronize: error: command buffer 0 failed with status 5",
+        "error: Discarded (victim of GPU error\/recovery) (00000005:kIOGPUCommandBufferCallbackErrorInnocentVictim)",
+        "ggml_metal_synchronize: error: command buffer 0 failed with status 5",
+        "error: Discarded (victim of GPU error\/recovery) (00000005:kIOGPUCommandBufferCallbackErrorInnocentVictim)",
+        "ggml_metal_synchronize: error: command buffer 0 failed with status 5",
+        "error: Discarded (victim of GPU error\/recovery) (00000005:kIOGPUCommandBufferCallbackErrorInnocentVictim)",
+        "ggml_metal_synchronize: error: command buffer 0 failed with status 5",
+        "error: Discarded (victim of GPU error\/recovery) (00000005:kIOGPUCommandBufferCallbackErrorInnocentVictim)",
+        "ggml_metal_graph_compute: backend is in error state from a previous command buffer failure - recreate the backend to recover",
+        "graph_compute: ggml_backend_sched_graph_compute_async failed with error -1",
+        "process_ubatch: failed to compute graph, compute status: -1",
+        "decode: removing memory module entries for seq_id = 0, pos = [0, +inf)",
+        "llama_decode: failed to decode, ret = -3",
+        "ggml_metal_synchronize: error: command buffer 0 failed with status 5",
+        "error: Discarded (victim of GPU error\/recovery) (00000005:kIOGPUCommandBufferCallbackErrorInnocentVictim)",
+        "ggml_metal_synchronize: error: command buffer 0 failed with status 5",
+        "error: Discarded (victim of GPU error\/recovery) (00000005:kIOGPUCommandBufferCallbackErrorInnocentVictim)"
+      ],
+      "lowPowerMode" : false,
+      "memoryAfter" : {
+        "active" : 105261,
+        "appFaults" : 2287993,
+        "appPageins" : 551724,
+        "compressed" : 38457,
+        "free" : 6294,
+        "inactive" : 104168,
+        "pageSize" : 16384,
+        "systemPageins" : 160313263,
+        "systemPageouts" : 2095128,
+        "wired" : 494304
+      },
+      "memoryBefore" : {
+        "active" : 116820,
+        "appFaults" : 2270609,
+        "appPageins" : 551719,
+        "compressed" : 39121,
+        "free" : 12579,
+        "inactive" : 108883,
+        "pageSize" : 16384,
+        "systemPageins" : 160304719,
+        "systemPageouts" : 2095093,
+        "wired" : 471084
+      },
+      "position" : 3,
+      "pressureEvents" : [
+
+      ],
+      "round" : 1,
+      "startedAt" : "2026-09-25T17:37:39Z",
+      "thermalAfter" : "nominal",
+      "thermalBefore" : "nominal",
+      "thermalMax" : "nominal",
+      "thermalWaitSeconds" : 0.002667069435119629,
+      "tokensPerSecond" : 0,
+      "ubatch" : 512,
+      "warmupCallSeconds" : [
+        5.632769375
+      ]
+    },
+    {
+      "attempt" : 2,
+      "availableBytesAfter" : 6021342952,
+      "availableBytesBefore" : 6323251208,
+      "batteryLevel" : 0.9,
+      "batteryState" : "charging",
+      "callSeconds" : [
+        6.840622917,
+        7.2378755
+      ],
+      "cell" : "pp512",
+      "commandBuffers" : [
+        {
+          "cbs" : [
+            {
+              "ge" : 616.159,
+              "gs" : 1.659,
+              "i" : 1,
+              "ks" : 0,
+              "main" : true,
+              "nodes" : 463,
+              "status" : 4
+            },
+            {
+              "ge" : 6478.721,
+              "gs" : 616.16,
+              "i" : 0,
+              "ks" : 2.985,
+              "main" : false,
+              "nodes" : 4174,
+              "status" : 4
+            }
+          ],
+          "ctx" : 75,
+          "graph" : 0,
+          "n_cb" : 1,
+          "n_nodes" : 4637,
+          "now" : 71328.465058,
+          "t0" : 71321.985656,
+          "unix" : 1790357931.875
+        },
+        {
+          "cbs" : [
+            {
+              "ge" : 624.971,
+              "gs" : 1.68,
+              "i" : 1,
+              "ks" : 0,
+              "main" : true,
+              "nodes" : 463,
+              "status" : 4
+            },
+            {
+              "ge" : 6831.13,
+              "gs" : 624.972,
+              "i" : 0,
+              "ks" : 2.438,
+              "main" : false,
+              "nodes" : 4174,
+              "status" : 4
+            }
+          ],
+          "ctx" : 75,
+          "graph" : 1,
+          "n_cb" : 1,
+          "n_nodes" : 4637,
+          "now" : 71335.310488,
+          "t0" : 71328.479156,
+          "unix" : 1790357938.721
+        },
+        {
+          "cbs" : [
+            {
+              "ge" : 671.109,
+              "gs" : 1.5,
+              "i" : 1,
+              "ks" : 0,
+              "main" : true,
+              "nodes" : 463,
+              "status" : 4
+            },
+            {
+              "ge" : 7234.535,
+              "gs" : 671.109,
+              "i" : 0,
+              "ks" : 1.52,
+              "main" : false,
+              "nodes" : 4174,
+              "status" : 4
+            }
+          ],
+          "ctx" : 75,
+          "graph" : 2,
+          "n_cb" : 1,
+          "n_nodes" : 4637,
+          "now" : 71342.551848,
+          "t0" : 71335.316946,
+          "unix" : 1790357945.962
+        },
+        {
+          "cbs" : [
+            {
+              "ge" : 17.043,
+              "gs" : 2.573,
+              "i" : 1,
+              "ks" : 0,
+              "main" : true,
+              "nodes" : 463,
+              "status" : 4
+            },
+            {
+              "ge" : 163.207,
+              "gs" : 17.044,
+              "i" : 0,
+              "ks" : 2.868,
+              "main" : false,
+              "nodes" : 4174,
+              "status" : 4
+            }
+          ],
+          "ctx" : 75,
+          "graph" : 3,
+          "n_cb" : 1,
+          "n_nodes" : 4637,
+          "now" : 71342.722778,
+          "t0" : 71342.559207,
+          "unix" : 1790357946.133
+        }
+      ],
+      "config" : "stack without rows mode",
+      "droppedStatsLines" : 0,
+      "footprintBytes" : 420927768,
+      "gateReached" : true,
+      "hostEnd" : 71342.72315270835,
+      "hostStart" : 71321.86944758335,
+      "interrupted" : false,
+      "libraryMessages" : [
+
+      ],
+      "lowPowerMode" : false,
+      "memoryAfter" : {
+        "active" : 100572,
+        "appFaults" : 2305547,
+        "appPageins" : 551726,
+        "compressed" : 42834,
+        "free" : 6254,
+        "inactive" : 99494,
+        "pageSize" : 16384,
+        "systemPageins" : 160413643,
+        "systemPageouts" : 2095161,
+        "wired" : 499333
+      },
+      "memoryBefore" : {
+        "active" : 112163,
+        "appFaults" : 2288018,
+        "appPageins" : 551724,
+        "compressed" : 43304,
+        "free" : 5633,
+        "inactive" : 111034,
+        "pageSize" : 16384,
+        "systemPageins" : 160408155,
+        "systemPageouts" : 2095152,
+        "wired" : 476353
+      },
+      "position" : 3,
+      "pressureEvents" : [
+
+      ],
+      "round" : 1,
+      "startedAt" : "2026-09-25T17:38:45Z",
+      "thermalAfter" : "nominal",
+      "thermalBefore" : "nominal",
+      "thermalMax" : "nominal",
+      "thermalWaitSeconds" : 0.003260016441345215,
+      "tokensPerSecond" : 72.73502966506034,
+      "ubatch" : 512,
+      "warmupCallSeconds" : [
+        6.484717208
+      ]
+    },
+    {
+      "attempt" : 1,
+      "availableBytesAfter" : 6021113576,
+      "availableBytesBefore" : 6323464200,
+      "batteryLevel" : 0.9,
+      "batteryState" : "charging",
+      "callSeconds" : [
+        7.060336917,
+        7.432141875
+      ],
+      "cell" : "pp512",
+      "commandBuffers" : [
+        {
+          "cbs" : [
+            {
+              "ge" : 629.787,
+              "gs" : 1.48,
+              "i" : 1,
+              "ks" : 0,
+              "main" : true,
+              "nodes" : 449,
+              "status" : 4
+            },
+            {
+              "ge" : 6611.177,
+              "gs" : 629.787,
+              "i" : 0,
+              "ks" : 2.73,
+              "main" : false,
+              "nodes" : 4044,
+              "status" : 4
+            }
+          ],
+          "ctx" : 76,
+          "graph" : 0,
+          "n_cb" : 1,
+          "n_nodes" : 4493,
+          "now" : 71409.471257,
+          "t0" : 71402.859386,
+          "unix" : 1790358012.883
+        },
+        {
+          "cbs" : [
+            {
+              "ge" : 651.266,
+              "gs" : 2.038,
+              "i" : 1,
+              "ks" : 0,
+              "main" : true,
+              "nodes" : 449,
+              "status" : 4
+            },
+            {
+              "ge" : 7053.304,
+              "gs" : 651.266,
+              "i" : 0,
+              "ks" : 4.615,
+              "main" : false,
+              "nodes" : 4044,
+              "status" : 4
+            }
+          ],
+          "ctx" : 76,
+          "graph" : 1,
+          "n_cb" : 1,
+          "n_nodes" : 4493,
+          "now" : 71416.536032,
+          "t0" : 71409.482104,
+          "unix" : 1790358019.948
+        },
+        {
+          "cbs" : [
+            {
+              "ge" : 692.029,
+              "gs" : 2.472,
+              "i" : 1,
+              "ks" : 0,
+              "main" : true,
+              "nodes" : 449,
+              "status" : 4
+            },
+            {
+              "ge" : 7424.945,
+              "gs" : 692.03,
+              "i" : 0,
+              "ks" : 3.672,
+              "main" : false,
+              "nodes" : 4044,
+              "status" : 4
+            }
+          ],
+          "ctx" : 76,
+          "graph" : 2,
+          "n_cb" : 1,
+          "n_nodes" : 4493,
+          "now" : 71423.972626,
+          "t0" : 71416.547225,
+          "unix" : 1790358027.385
+        },
+        {
+          "cbs" : [
+            {
+              "ge" : 13.942,
+              "gs" : 1.909,
+              "i" : 1,
+              "ks" : 0,
+              "main" : true,
+              "nodes" : 449,
+              "status" : 4
+            },
+            {
+              "ge" : 147.61,
+              "gs" : 13.942,
+              "i" : 0,
+              "ks" : 1.77,
+              "main" : false,
+              "nodes" : 4044,
+              "status" : 4
+            }
+          ],
+          "ctx" : 76,
+          "graph" : 3,
+          "n_cb" : 1,
+          "n_nodes" : 4493,
+          "now" : 71424.129913,
+          "t0" : 71423.981782,
+          "unix" : 1790358027.542
+        }
+      ],
+      "config" : "stack",
+      "droppedStatsLines" : 0,
+      "footprintBytes" : 421157144,
+      "gateReached" : true,
+      "hostEnd" : 71424.13053037501,
+      "hostStart" : 71402.73873462502,
+      "interrupted" : false,
+      "libraryMessages" : [
+
+      ],
+      "lowPowerMode" : false,
+      "memoryAfter" : {
+        "active" : 102402,
+        "appFaults" : 2323053,
+        "appPageins" : 551731,
+        "compressed" : 44362,
+        "free" : 9229,
+        "inactive" : 98210,
+        "pageSize" : 16384,
+        "systemPageins" : 160449767,
+        "systemPageouts" : 2095470,
+        "wired" : 494284
+      },
+      "memoryBefore" : {
+        "active" : 114561,
+        "appFaults" : 2305590,
+        "appPageins" : 551730,
+        "compressed" : 45005,
+        "free" : 10429,
+        "inactive" : 109378,
+        "pageSize" : 16384,
+        "systemPageins" : 160447446,
+        "systemPageouts" : 2095257,
+        "wired" : 469114
+      },
+      "position" : 4,
+      "pressureEvents" : [
+
+      ],
+      "round" : 1,
+      "startedAt" : "2026-09-25T17:40:06Z",
+      "thermalAfter" : "nominal",
+      "thermalBefore" : "nominal",
+      "thermalMax" : "nominal",
+      "thermalWaitSeconds" : 0.00023508071899414062,
+      "tokensPerSecond" : 70.65733990000791,
+      "ubatch" : 512,
+      "warmupCallSeconds" : [
+        6.617384792
+      ]
+    },
+    {
+      "attempt" : 1,
+      "availableBytesAfter" : 6019360488,
+      "availableBytesBefore" : 6323349512,
+      "batteryLevel" : 0.9,
+      "batteryState" : "charging",
+      "callSeconds" : [
+        6.921879833,
+        7.324401084
+      ],
+      "cell" : "pp512",
+      "commandBuffers" : [
+        {
+          "cbs" : [
+            {
+              "ge" : 2246.936,
+              "gs" : 1641.986,
+              "i" : 1,
+              "ks" : 0,
+              "main" : true,
+              "nodes" : 463,
+              "status" : 4
+            },
+            {
+              "ge" : 8109.347,
+              "gs" : 2246.936,
+              "i" : 0,
+              "ks" : 1641.845,
+              "main" : false,
+              "nodes" : 4174,
+              "status" : 4
+            }
+          ],
+          "ctx" : 77,
+          "graph" : 0,
+          "n_cb" : 1,
+          "n_nodes" : 4637,
+          "now" : 71742.540757,
+          "t0" : 71734.430046,
+          "unix" : 1790358345.959
+        },
+        {
+          "cbs" : [
+            {
+              "ge" : 632.007,
+              "gs" : 1.66,
+              "i" : 1,
+              "ks" : 0,
+              "main" : true,
+              "nodes" : 463,
+              "status" : 4
+            },
+            {
+              "ge" : 6917.513,
+              "gs" : 632.007,
+              "i" : 0,
+              "ks" : 2.653,
+              "main" : false,
+              "nodes" : 4174,
+              "status" : 4
+            }
+          ],
+          "ctx" : 77,
+          "graph" : 1,
+          "n_cb" : 1,
+          "n_nodes" : 4637,
+          "now" : 71749.470905,
+          "t0" : 71742.552997,
+          "unix" : 1790358352.889
+        },
+        {
+          "cbs" : [
+            {
+              "ge" : 679.736,
+              "gs" : 1.433,
+              "i" : 1,
+              "ks" : 0,
+              "main" : true,
+              "nodes" : 463,
+              "status" : 4
+            },
+            {
+              "ge" : 7321.959,
+              "gs" : 679.737,
+              "i" : 0,
+              "ks" : 1.604,
+              "main" : false,
+              "nodes" : 4174,
+              "status" : 4
+            }
+          ],
+          "ctx" : 77,
+          "graph" : 2,
+          "n_cb" : 1,
+          "n_nodes" : 4637,
+          "now" : 71756.799356,
+          "t0" : 71749.477067,
+          "unix" : 1790358360.218
+        },
+        {
+          "cbs" : [
+            {
+              "ge" : 162.972,
+              "gs" : 1.603,
+              "i" : 1,
+              "ks" : 0,
+              "main" : true,
+              "nodes" : 463,
+              "status" : 4
+            },
+            {
+              "ge" : 302.718,
+              "gs" : 163.008,
+              "i" : 0,
+              "ks" : 1.455,
+              "main" : false,
+              "nodes" : 4174,
+              "status" : 4
+            }
+          ],
+          "ctx" : 77,
+          "graph" : 3,
+          "n_cb" : 1,
+          "n_nodes" : 4637,
+          "now" : 71757.108372,
+          "t0" : 71756.805246,
+          "unix" : 1790358360.527
+        }
+      ],
+      "config" : "upstream again",
+      "droppedStatsLines" : 0,
+      "footprintBytes" : 423827736,
+      "gateReached" : true,
+      "hostEnd" : 71757.11072437502,
+      "hostStart" : 71734.29680166669,
+      "interrupted" : false,
+      "libraryMessages" : [
+
+      ],
+      "lowPowerMode" : false,
+      "memoryAfter" : {
+        "active" : 85845,
+        "appFaults" : 2360739,
+        "appPageins" : 561780,
+        "compressed" : 76113,
+        "free" : 8996,
+        "inactive" : 81821,
+        "pageSize" : 16384,
+        "systemPageins" : 161819329,
+        "systemPageouts" : 2103140,
+        "wired" : 495711
+      },
+      "memoryBefore" : {
+        "active" : 281219,
+        "appFaults" : 2341543,
+        "appPageins" : 554936,
+        "compressed" : 69132,
+        "free" : 28648,
+        "inactive" : 261293,
+        "pageSize" : 16384,
+        "systemPageins" : 161589506,
+        "systemPageouts" : 2102608,
+        "wired" : 108195
+      },
+      "position" : 5,
+      "pressureEvents" : [
+
+      ],
+      "round" : 1,
+      "startedAt" : "2026-09-25T17:45:37Z",
+      "thermalAfter" : "nominal",
+      "thermalBefore" : "nominal",
+      "thermalMax" : "nominal",
+      "thermalWaitSeconds" : 190.14910197257996,
+      "tokensPerSecond" : 71.87840854507277,
+      "ubatch" : 512,
+      "warmupCallSeconds" : [
+        8.142518959
+      ]
+    },
+    {
+      "attempt" : 1,
+      "availableBytesAfter" : 6020277992,
+      "availableBytesBefore" : 6322939912,
+      "batteryLevel" : 0.9,
+      "batteryState" : "charging",
+      "callSeconds" : [
+
+      ],
+      "cell" : "pp512",
+      "commandBuffers" : [
+        {
+          "cbs" : [
+            {
+              "ge" : 607.786,
+              "gs" : 1.881,
+              "i" : 1,
+              "ks" : 0,
+              "main" : true,
+              "nodes" : 463,
+              "status" : 4
+            },
+            {
+              "code" : 1,
+              "domain" : "MTLCommandBufferErrorDomain",
+              "enc" : [
+                {
+                  "label" : "",
+                  "last" : [
+
+                  ],
+                  "signposts" : 0,
+                  "state" : 2
+                }
+              ],
+              "err" : "Discarded (victim of GPU error\/recovery) (00000005:kIOGPUCommandBufferCallbackErrorInnocentVictim)",
+              "ge" : 5620.225,
+              "gs" : 607.85,
+              "i" : 0,
+              "ks" : 2.183,
+              "main" : false,
+              "nodes" : 4174,
+              "status" : 5
+            }
+          ],
+          "ctx" : 78,
+          "graph" : 0,
+          "n_cb" : 1,
+          "n_nodes" : 4637,
+          "now" : 71822.856263,
+          "t0" : 71817.234606,
+          "unix" : 1790358426.276
+        }
+      ],
+      "config" : "upstream again",
+      "droppedStatsLines" : 0,
+      "error" : "llama_decode failed (-3)",
+      "failure" : {
+        "callSeconds" : 5.627173125,
+        "code" : 1,
+        "commandBuffer" : 0,
+        "domain" : "MTLCommandBufferErrorDomain",
+        "error" : "Discarded (victim of GPU error\/recovery) (00000005:kIOGPUCommandBufferCallbackErrorInnocentVictim)",
+        "gpuEndMs" : 5620.225,
+        "gpuStartMs" : 607.85,
+        "mainCommandBuffer" : false,
+        "mainStartDelayMs" : 1.881,
+        "phase" : "warmup"
+      },
+      "footprintBytes" : 0,
+      "gateReached" : true,
+      "hostEnd" : 71822.86543329168,
+      "hostStart" : 71817.13549479168,
+      "interrupted" : false,
+      "libraryMessages" : [
+        "ggml_metal_synchronize: error: command buffer 0 failed with status 5",
+        "error: Discarded (victim of GPU error\/recovery) (00000005:kIOGPUCommandBufferCallbackErrorInnocentVictim)",
+        "ggml_metal_synchronize: error: command buffer 0 failed with status 5",
+        "error: Discarded (victim of GPU error\/recovery) (00000005:kIOGPUCommandBufferCallbackErrorInnocentVictim)",
+        "ggml_metal_synchronize: error: command buffer 0 failed with status 5",
+        "error: Discarded (victim of GPU error\/recovery) (00000005:kIOGPUCommandBufferCallbackErrorInnocentVictim)",
+        "ggml_metal_synchronize: error: command buffer 0 failed with status 5",
+        "error: Discarded (victim of GPU error\/recovery) (00000005:kIOGPUCommandBufferCallbackErrorInnocentVictim)",
+        "ggml_metal_synchronize: error: command buffer 0 failed with status 5",
+        "error: Discarded (victim of GPU error\/recovery) (00000005:kIOGPUCommandBufferCallbackErrorInnocentVictim)",
+        "ggml_metal_synchronize: error: command buffer 0 failed with status 5",
+        "error: Discarded (victim of GPU error\/recovery) (00000005:kIOGPUCommandBufferCallbackErrorInnocentVictim)",
+        "ggml_metal_synchronize: error: command buffer 0 failed with status 5",
+        "error: Discarded (victim of GPU error\/recovery) (00000005:kIOGPUCommandBufferCallbackErrorInnocentVictim)",
+        "ggml_metal_synchronize: error: command buffer 0 failed with status 5",
+        "error: Discarded (victim of GPU error\/recovery) (00000005:kIOGPUCommandBufferCallbackErrorInnocentVictim)",
+        "ggml_metal_synchronize: error: command buffer 0 failed with status 5",
+        "error: Discarded (victim of GPU error\/recovery) (00000005:kIOGPUCommandBufferCallbackErrorInnocentVictim)",
+        "ggml_metal_synchronize: error: command buffer 0 failed with status 5",
+        "error: Discarded (victim of GPU error\/recovery) (00000005:kIOGPUCommandBufferCallbackErrorInnocentVictim)",
+        "ggml_metal_synchronize: error: command buffer 0 failed with status 5",
+        "error: Discarded (victim of GPU error\/recovery) (00000005:kIOGPUCommandBufferCallbackErrorInnocentVictim)",
+        "ggml_metal_synchronize: error: command buffer 0 failed with status 5",
+        "error: Discarded (victim of GPU error\/recovery) (00000005:kIOGPUCommandBufferCallbackErrorInnocentVictim)",
+        "ggml_metal_graph_compute: backend is in error state from a previous command buffer failure - recreate the backend to recover",
+        "graph_compute: ggml_backend_sched_graph_compute_async failed with error -1",
+        "process_ubatch: failed to compute graph, compute status: -1",
+        "decode: removing memory module entries for seq_id = 0, pos = [0, +inf)",
+        "llama_decode: failed to decode, ret = -3",
+        "ggml_metal_synchronize: error: command buffer 0 failed with status 5",
+        "error: Discarded (victim of GPU error\/recovery) (00000005:kIOGPUCommandBufferCallbackErrorInnocentVictim)",
+        "ggml_metal_synchronize: error: command buffer 0 failed with status 5",
+        "error: Discarded (victim of GPU error\/recovery) (00000005:kIOGPUCommandBufferCallbackErrorInnocentVictim)"
+      ],
+      "lowPowerMode" : false,
+      "memoryAfter" : {
+        "active" : 87232,
+        "appFaults" : 2380025,
+        "appPageins" : 562999,
+        "compressed" : 75805,
+        "free" : 6926,
+        "inactive" : 85634,
+        "pageSize" : 16384,
+        "systemPageins" : 161843015,
+        "systemPageouts" : 2103618,
+        "wired" : 492889
+      },
+      "memoryBefore" : {
+        "active" : 100921,
+        "appFaults" : 2362467,
+        "appPageins" : 562989,
+        "compressed" : 72162,
+        "free" : 6098,
+        "inactive" : 99898,
+        "pageSize" : 16384,
+        "systemPageins" : 161840709,
+        "systemPageouts" : 2103453,
+        "wired" : 469408
+      },
+      "position" : 0,
+      "pressureEvents" : [
+
+      ],
+      "round" : 2,
+      "startedAt" : "2026-09-25T17:47:00Z",
+      "thermalAfter" : "nominal",
+      "thermalBefore" : "nominal",
+      "thermalMax" : "nominal",
+      "thermalWaitSeconds" : 0.0003579854965209961,
+      "tokensPerSecond" : 0,
+      "ubatch" : 512,
+      "warmupCallSeconds" : [
+        5.627173125
+      ]
+    },
+    {
+      "attempt" : 2,
+      "availableBytesAfter" : 6019376872,
+      "availableBytesBefore" : 6323283976,
+      "batteryLevel" : 0.9,
+      "batteryState" : "charging",
+      "callSeconds" : [
+        7.546431917,
+        8.411452458
+      ],
+      "cell" : "pp512",
+      "commandBuffers" : [
+        {
+          "cbs" : [
+            {
+              "ge" : 617.557,
+              "gs" : 2.362,
+              "i" : 1,
+              "ks" : 0,
+              "main" : true,
+              "nodes" : 463,
+              "status" : 4
+            },
+            {
+              "ge" : 6801.335,
+              "gs" : 617.557,
+              "i" : 0,
+              "ks" : 5.253,
+              "main" : false,
+              "nodes" : 4174,
+              "status" : 4
+            }
+          ],
+          "ctx" : 79,
+          "graph" : 0,
+          "n_cb" : 1,
+          "n_nodes" : 4637,
+          "now" : 71889.876102,
+          "t0" : 71883.055916,
+          "unix" : 1790358493.297
+        },
+        {
+          "cbs" : [
+            {
+              "ge" : 662.261,
+              "gs" : 1.51,
+              "i" : 1,
+              "ks" : 0,
+              "main" : true,
+              "nodes" : 463,
+              "status" : 4
+            },
+            {
+              "ge" : 7533.259,
+              "gs" : 662.261,
+              "i" : 0,
+              "ks" : 2.353,
+              "main" : false,
+              "nodes" : 4174,
+              "status" : 4
+            }
+          ],
+          "ctx" : 79,
+          "graph" : 1,
+          "n_cb" : 1,
+          "n_nodes" : 4637,
+          "now" : 71897.433848,
+          "t0" : 71889.896783,
+          "unix" : 1790358500.855
+        },
+        {
+          "cbs" : [
+            {
+              "ge" : 762.88,
+              "gs" : 3.176,
+              "i" : 1,
+              "ks" : 0,
+              "main" : true,
+              "nodes" : 463,
+              "status" : 4
+            },
+            {
+              "ge" : 8398.312,
+              "gs" : 762.881,
+              "i" : 0,
+              "ks" : 3.881,
+              "main" : false,
+              "nodes" : 4174,
+              "status" : 4
+            }
+          ],
+          "ctx" : 79,
+          "graph" : 2,
+          "n_cb" : 1,
+          "n_nodes" : 4637,
+          "now" : 71905.85855,
+          "t0" : 71897.458427,
+          "unix" : 1790358509.28
+        },
+        {
+          "cbs" : [
+            {
+              "ge" : 13.815,
+              "gs" : 1.12,
+              "i" : 1,
+              "ks" : 0,
+              "main" : true,
+              "nodes" : 463,
+              "status" : 4
+            },
+            {
+              "ge" : 170.642,
+              "gs" : 13.816,
+              "i" : 0,
+              "ks" : 1.319,
+              "main" : false,
+              "nodes" : 4174,
+              "status" : 4
+            }
+          ],
+          "ctx" : 79,
+          "graph" : 3,
+          "n_cb" : 1,
+          "n_nodes" : 4637,
+          "now" : 71906.045178,
+          "t0" : 71905.87421,
+          "unix" : 1790358509.466
+        }
+      ],
+      "config" : "upstream again",
+      "droppedStatsLines" : 0,
+      "footprintBytes" : 423745816,
+      "gateReached" : true,
+      "hostEnd" : 71906.04820750002,
+      "hostStart" : 71882.88536770835,
+      "interrupted" : false,
+      "libraryMessages" : [
+
+      ],
+      "lowPowerMode" : false,
+      "memoryAfter" : {
+        "active" : 54055,
+        "appFaults" : 2407168,
+        "appPageins" : 563722,
+        "compressed" : 80811,
+        "free" : 7865,
+        "inactive" : 49254,
+        "pageSize" : 16384,
+        "systemPageins" : 162441476,
+        "systemPageouts" : 2106862,
+        "wired" : 556469
+      },
+      "memoryBefore" : {
+        "active" : 44031,
+        "appFaults" : 2384036,
+        "appPageins" : 563030,
+        "compressed" : 75875,
+        "free" : 5184,
+        "inactive" : 42774,
+        "pageSize" : 16384,
+        "systemPageins" : 162104815,
+        "systemPageouts" : 2104781,
+        "wired" : 580611
+      },
+      "position" : 0,
+      "pressureEvents" : [
+        {
+          "host" : 71890.62711004168,
+          "level" : "warning"
+        }
+      ],
+      "round" : 2,
+      "startedAt" : "2026-09-25T17:48:06Z",
+      "thermalAfter" : "nominal",
+      "thermalBefore" : "nominal",
+      "thermalMax" : "nominal",
+      "thermalWaitSeconds" : 0.004888057708740234,
+      "tokensPerSecond" : 64.16890710175986,
+      "ubatch" : 512,
+      "warmupCallSeconds" : [
+        6.835971
+      ]
+    },
+    {
+      "attempt" : 1,
+      "availableBytesAfter" : 6019163880,
+      "availableBytesBefore" : 6322857992,
+      "batteryLevel" : 0.9,
+      "batteryState" : "charging",
+      "callSeconds" : [
+        7.084678042,
+        8.083487792
+      ],
+      "cell" : "pp512",
+      "commandBuffers" : [
+        {
+          "cbs" : [
+            {
+              "ge" : 629.189,
+              "gs" : 1.551,
+              "i" : 1,
+              "ks" : 0,
+              "main" : true,
+              "nodes" : 449,
+              "status" : 4
+            },
+            {
+              "ge" : 6571.264,
+              "gs" : 629.189,
+              "i" : 0,
+              "ks" : 2.331,
+              "main" : false,
+              "nodes" : 4044,
+              "status" : 4
+            }
+          ],
+          "ctx" : 80,
+          "graph" : 0,
+          "n_cb" : 1,
+          "n_nodes" : 4493,
+          "now" : 72112.8181,
+          "t0" : 72106.245614,
+          "unix" : 1790358716.243
+        },
+        {
+          "cbs" : [
+            {
+              "ge" : 629.582,
+              "gs" : 1.352,
+              "i" : 1,
+              "ks" : 0,
+              "main" : true,
+              "nodes" : 449,
+              "status" : 4
+            },
+            {
+              "ge" : 7061.472,
+              "gs" : 629.583,
+              "i" : 0,
+              "ks" : 1.935,
+              "main" : false,
+              "nodes" : 4044,
+              "status" : 4
+            }
+          ],
+          "ctx" : 80,
+          "graph" : 1,
+          "n_cb" : 1,
+          "n_nodes" : 4493,
+          "now" : 72119.89457,
+          "t0" : 72112.829477,
+          "unix" : 1790358723.32
+        },
+        {
+          "cbs" : [
+            {
+              "ge" : 712.068,
+              "gs" : 1.31,
+              "i" : 1,
+              "ks" : 0,
+              "main" : true,
+              "nodes" : 449,
+              "status" : 4
+            },
+            {
+              "ge" : 8066.619,
+              "gs" : 712.068,
+              "i" : 0,
+              "ks" : 3.223,
+              "main" : false,
+              "nodes" : 4044,
+              "status" : 4
+            }
+          ],
+          "ctx" : 80,
+          "graph" : 2,
+          "n_cb" : 1,
+          "n_nodes" : 4493,
+          "now" : 72127.999214,
+          "t0" : 72119.929396,
+          "unix" : 1790358731.424
+        },
+        {
+          "cbs" : [
+            {
+              "ge" : 14.06,
+              "gs" : 1.082,
+              "i" : 1,
+              "ks" : 0,
+              "main" : true,
+              "nodes" : 449,
+              "status" : 4
+            },
+            {
+              "ge" : 167.435,
+              "gs" : 14.061,
+              "i" : 0,
+              "ks" : 1.19,
+              "main" : false,
+              "nodes" : 4044,
+              "status" : 4
+            }
+          ],
+          "ctx" : 80,
+          "graph" : 3,
+          "n_cb" : 1,
+          "n_nodes" : 4493,
+          "now" : 72128.180004,
+          "t0" : 72128.012221,
+          "unix" : 1790358731.605
+        }
+      ],
+      "config" : "stack without MULTICOL, GLU and STAGE",
+      "droppedStatsLines" : 0,
+      "footprintBytes" : 422615320,
+      "gateReached" : true,
+      "hostEnd" : 72128.18364862501,
+      "hostStart" : 72106.13091504168,
+      "interrupted" : false,
+      "libraryMessages" : [
+
+      ],
+      "lowPowerMode" : false,
+      "memoryAfter" : {
+        "active" : 36051,
+        "appFaults" : 2439545,
+        "appPageins" : 566779,
+        "compressed" : 70207,
+        "free" : 8065,
+        "inactive" : 32981,
+        "pageSize" : 16384,
+        "systemPageins" : 163361133,
+        "systemPageouts" : 2110105,
+        "wired" : 601181
+      },
+      "memoryBefore" : {
+        "active" : 102332,
+        "appFaults" : 2418419,
+        "appPageins" : 566250,
+        "compressed" : 68685,
+        "free" : 5943,
+        "inactive" : 100910,
+        "pageSize" : 16384,
+        "systemPageins" : 162991816,
+        "systemPageouts" : 2108608,
+        "wired" : 470617
+      },
+      "position" : 1,
+      "pressureEvents" : [
+        {
+          "host" : 72118.91805787501,
+          "level" : "warning"
+        },
+        {
+          "host" : 72124.76522187502,
+          "level" : "normal"
+        }
+      ],
+      "round" : 2,
+      "startedAt" : "2026-09-25T17:51:49Z",
+      "thermalAfter" : "nominal",
+      "thermalBefore" : "nominal",
+      "thermalMax" : "nominal",
+      "thermalWaitSeconds" : 80.0659589767456,
+      "tokensPerSecond" : 67.50981042840831,
+      "ubatch" : 512,
+      "warmupCallSeconds" : [
+        6.579592041
+      ]
+    },
+    {
+      "attempt" : 1,
+      "availableBytesAfter" : 6018737896,
+      "availableBytesBefore" : 6323464200,
+      "batteryLevel" : 0.9,
+      "batteryState" : "charging",
+      "callSeconds" : [
+        5.640772667
+      ],
+      "cell" : "pp512",
+      "commandBuffers" : [
+        {
+          "cbs" : [
+            {
+              "ge" : 608.412,
+              "gs" : 1.763,
+              "i" : 1,
+              "ks" : 0,
+              "main" : true,
+              "nodes" : 463,
+              "status" : 4
+            },
+            {
+              "ge" : 6411.114,
+              "gs" : 608.412,
+              "i" : 0,
+              "ks" : 2.614,
+              "main" : false,
+              "nodes" : 4174,
+              "status" : 4
+            }
+          ],
+          "ctx" : 81,
+          "graph" : 0,
+          "n_cb" : 1,
+          "n_nodes" : 4637,
+          "now" : 72334.800544,
+          "t0" : 72328.387658,
+          "unix" : 1790358938.23
+        },
+        {
+          "cbs" : [
+            {
+              "ge" : 624.208,
+              "gs" : 1.249,
+              "i" : 1,
+              "ks" : 0,
+              "main" : true,
+              "nodes" : 463,
+              "status" : 4
+            },
+            {
+              "code" : 1,
+              "domain" : "MTLCommandBufferErrorDomain",
+              "enc" : [
+                {
+                  "label" : "",
+                  "last" : [
+
+                  ],
+                  "signposts" : 0,
+                  "state" : 2
+                }
+              ],
+              "err" : "Discarded (victim of GPU error\/recovery) (00000005:kIOGPUCommandBufferCallbackErrorInnocentVictim)",
+              "ge" : 5629.24,
+              "gs" : 624.337,
+              "i" : 0,
+              "ks" : 2.701,
+              "main" : false,
+              "nodes" : 4174,
+              "status" : 5
+            }
+          ],
+          "ctx" : 81,
+          "graph" : 1,
+          "n_cb" : 1,
+          "n_nodes" : 4637,
+          "now" : 72340.44754,
+          "t0" : 72334.816268,
+          "unix" : 1790358943.877
+        }
+      ],
+      "config" : "upstream",
+      "droppedStatsLines" : 0,
+      "error" : "llama_decode failed (-3)",
+      "failure" : {
+        "callSeconds" : 5.640772667,
+        "code" : 1,
+        "commandBuffer" : 0,
+        "domain" : "MTLCommandBufferErrorDomain",
+        "error" : "Discarded (victim of GPU error\/recovery) (00000005:kIOGPUCommandBufferCallbackErrorInnocentVictim)",
+        "gpuEndMs" : 5629.24,
+        "gpuStartMs" : 624.337,
+        "mainCommandBuffer" : false,
+        "mainStartDelayMs" : 1.249,
+        "phase" : "timed"
+      },
+      "footprintBytes" : 0,
+      "gateReached" : true,
+      "hostEnd" : 72340.46174437502,
+      "hostStart" : 72328.27226083334,
+      "interrupted" : false,
+      "libraryMessages" : [
+        "ggml_metal_synchronize: error: command buffer 0 failed with status 5",
+        "error: Discarded (victim of GPU error\/recovery) (00000005:kIOGPUCommandBufferCallbackErrorInnocentVictim)",
+        "ggml_metal_synchronize: error: command buffer 0 failed with status 5",
+        "error: Discarded (victim of GPU error\/recovery) (00000005:kIOGPUCommandBufferCallbackErrorInnocentVictim)",
+        "ggml_metal_synchronize: error: command buffer 0 failed with status 5",
+        "error: Discarded (victim of GPU error\/recovery) (00000005:kIOGPUCommandBufferCallbackErrorInnocentVictim)",
+        "ggml_metal_synchronize: error: command buffer 0 failed with status 5",
+        "error: Discarded (victim of GPU error\/recovery) (00000005:kIOGPUCommandBufferCallbackErrorInnocentVictim)",
+        "ggml_metal_synchronize: error: command buffer 0 failed with status 5",
+        "error: Discarded (victim of GPU error\/recovery) (00000005:kIOGPUCommandBufferCallbackErrorInnocentVictim)",
+        "ggml_metal_synchronize: error: command buffer 0 failed with status 5",
+        "error: Discarded (victim of GPU error\/recovery) (00000005:kIOGPUCommandBufferCallbackErrorInnocentVictim)",
+        "ggml_metal_synchronize: error: command buffer 0 failed with status 5",
+        "error: Discarded (victim of GPU error\/recovery) (00000005:kIOGPUCommandBufferCallbackErrorInnocentVictim)",
+        "ggml_metal_synchronize: error: command buffer 0 failed with status 5",
+        "error: Discarded (victim of GPU error\/recovery) (00000005:kIOGPUCommandBufferCallbackErrorInnocentVictim)",
+        "ggml_metal_synchronize: error: command buffer 0 failed with status 5",
+        "error: Discarded (victim of GPU error\/recovery) (00000005:kIOGPUCommandBufferCallbackErrorInnocentVictim)",
+        "ggml_metal_synchronize: error: command buffer 0 failed with status 5",
+        "error: Discarded (victim of GPU error\/recovery) (00000005:kIOGPUCommandBufferCallbackErrorInnocentVictim)",
+        "ggml_metal_synchronize: error: command buffer 0 failed with status 5",
+        "error: Discarded (victim of GPU error\/recovery) (00000005:kIOGPUCommandBufferCallbackErrorInnocentVictim)",
+        "ggml_metal_synchronize: error: command buffer 0 failed with status 5",
+        "error: Discarded (victim of GPU error\/recovery) (00000005:kIOGPUCommandBufferCallbackErrorInnocentVictim)",
+        "ggml_metal_graph_compute: backend is in error state from a previous command buffer failure - recreate the backend to recover",
+        "graph_compute: ggml_backend_sched_graph_compute_async failed with error -1",
+        "process_ubatch: failed to compute graph, compute status: -1",
+        "decode: removing memory module entries for seq_id = 0, pos = [0, +inf)",
+        "llama_decode: failed to decode, ret = -3",
+        "ggml_metal_synchronize: error: command buffer 0 failed with status 5",
+        "error: Discarded (victim of GPU error\/recovery) (00000005:kIOGPUCommandBufferCallbackErrorInnocentVictim)",
+        "ggml_metal_synchronize: error: command buffer 0 failed with status 5",
+        "error: Discarded (victim of GPU error\/recovery) (00000005:kIOGPUCommandBufferCallbackErrorInnocentVictim)"
+      ],
+      "lowPowerMode" : false,
+      "memoryAfter" : {
+        "active" : 46120,
+        "appFaults" : 2495603,
+        "appPageins" : 569197,
+        "compressed" : 71809,
+        "free" : 7174,
+        "inactive" : 43453,
+        "pageSize" : 16384,
+        "systemPageins" : 164837456,
+        "systemPageouts" : 2117006,
+        "wired" : 579921
+      },
+      "memoryBefore" : {
+        "active" : 98149,
+        "appFaults" : 2476278,
+        "appPageins" : 568980,
+        "compressed" : 67180,
+        "free" : 12749,
+        "inactive" : 90378,
+        "pageSize" : 16384,
+        "systemPageins" : 164696653,
+        "systemPageouts" : 2116522,
+        "wired" : 480026
+      },
+      "position" : 2,
+      "pressureEvents" : [
+
+      ],
+      "round" : 2,
+      "startedAt" : "2026-09-25T17:55:31Z",
+      "thermalAfter" : "nominal",
+      "thermalBefore" : "nominal",
+      "thermalMax" : "nominal",
+      "thermalWaitSeconds" : 80.07290005683899,
+      "tokensPerSecond" : 0,
+      "ubatch" : 512,
+      "warmupCallSeconds" : [
+        6.419215833
+      ]
+    },
+    {
+      "attempt" : 2,
+      "availableBytesAfter" : 6019065576,
+      "availableBytesBefore" : 6322857992,
+      "batteryLevel" : 0.9,
+      "batteryState" : "charging",
+      "callSeconds" : [
+        6.976811584,
+        7.285494292
+      ],
+      "cell" : "pp512",
+      "commandBuffers" : [
+        {
+          "cbs" : [
+            {
+              "ge" : 606.941,
+              "gs" : 1.882,
+              "i" : 1,
+              "ks" : 0,
+              "main" : true,
+              "nodes" : 463,
+              "status" : 4
+            },
+            {
+              "ge" : 6480.342,
+              "gs" : 606.942,
+              "i" : 0,
+              "ks" : 2.532,
+              "main" : false,
+              "nodes" : 4174,
+              "status" : 4
+            }
+          ],
+          "ctx" : 82,
+          "graph" : 0,
+          "n_cb" : 1,
+          "n_nodes" : 4637,
+          "now" : 72407.077059,
+          "t0" : 72400.592151,
+          "unix" : 1790359010.507
+        },
+        {
+          "cbs" : [
+            {
+              "ge" : 628.564,
+              "gs" : 1.273,
+              "i" : 1,
+              "ks" : 0,
+              "main" : true,
+              "nodes" : 463,
+              "status" : 4
+            },
+            {
+              "ge" : 6973.499,
+              "gs" : 628.564,
+              "i" : 0,
+              "ks" : 2.362,
+              "main" : false,
+              "nodes" : 4174,
+              "status" : 4
+            }
+          ],
+          "ctx" : 82,
+          "graph" : 1,
+          "n_cb" : 1,
+          "n_nodes" : 4637,
+          "now" : 72414.06079,
+          "t0" : 72407.087056,
+          "unix" : 1790359017.491
+        },
+        {
+          "cbs" : [
+            {
+              "ge" : 700.988,
+              "gs" : 6.407,
+              "i" : 1,
+              "ks" : 0,
+              "main" : true,
+              "nodes" : 463,
+              "status" : 4
+            },
+            {
+              "ge" : 7279.226,
+              "gs" : 701.004,
+              "i" : 0,
+              "ks" : 2.415,
+              "main" : false,
+              "nodes" : 4174,
+              "status" : 4
+            }
+          ],
+          "ctx" : 82,
+          "graph" : 2,
+          "n_cb" : 1,
+          "n_nodes" : 4637,
+          "now" : 72421.349842,
+          "t0" : 72414.070036,
+          "unix" : 1790359024.78
+        },
+        {
+          "cbs" : [
+            {
+              "ge" : 73.565,
+              "gs" : 1.037,
+              "i" : 1,
+              "ks" : 0,
+              "main" : true,
+              "nodes" : 463,
+              "status" : 4
+            },
+            {
+              "ge" : 215.538,
+              "gs" : 73.581,
+              "i" : 0,
+              "ks" : 1.569,
+              "main" : false,
+              "nodes" : 4174,
+              "status" : 4
+            }
+          ],
+          "ctx" : 82,
+          "graph" : 3,
+          "n_cb" : 1,
+          "n_nodes" : 4637,
+          "now" : 72421.575229,
+          "t0" : 72421.359205,
+          "unix" : 1790359025.006
+        }
+      ],
+      "config" : "upstream",
+      "droppedStatsLines" : 0,
+      "footprintBytes" : 424220952,
+      "gateReached" : true,
+      "hostEnd" : 72421.57609262502,
+      "hostStart" : 72400.48235512502,
+      "interrupted" : false,
+      "libraryMessages" : [
+
+      ],
+      "lowPowerMode" : false,
+      "memoryAfter" : {
+        "active" : 78401,
+        "appFaults" : 2522898,
+        "appPageins" : 570860,
+        "compressed" : 73390,
+        "free" : 9302,
+        "inactive" : 74308,
+        "pageSize" : 16384,
+        "systemPageins" : 165024155,
+        "systemPageouts" : 2118062,
+        "wired" : 513086
+      },
+      "memoryBefore" : {
+        "active" : 90597,
+        "appFaults" : 2504336,
+        "appPageins" : 570737,
+        "compressed" : 73842,
+        "free" : 9839,
+        "inactive" : 85988,
+        "pageSize" : 16384,
+        "systemPageins" : 164988163,
+        "systemPageouts" : 2118049,
+        "wired" : 488221
+      },
+      "position" : 2,
+      "pressureEvents" : [
+
+      ],
+      "round" : 2,
+      "startedAt" : "2026-09-25T17:56:43Z",
+      "thermalAfter" : "nominal",
+      "thermalBefore" : "nominal",
+      "thermalMax" : "nominal",
+      "thermalWaitSeconds" : 0.004120945930480957,
+      "tokensPerSecond" : 71.79764681131566,
+      "ubatch" : 512,
+      "warmupCallSeconds" : [
+        6.492173709
+      ]
+    },
+    {
+      "attempt" : 1,
+      "availableBytesAfter" : 6022866664,
+      "availableBytesBefore" : 6323415048,
+      "batteryLevel" : 0.9,
+      "batteryState" : "charging",
+      "callSeconds" : [
+        6.966889625,
+        7.377524083
+      ],
+      "cell" : "pp512",
+      "commandBuffers" : [
+        {
+          "cbs" : [
+            {
+              "ge" : 623.769,
+              "gs" : 1.695,
+              "i" : 1,
+              "ks" : 0,
+              "main" : true,
+              "nodes" : 449,
+              "status" : 4
+            },
+            {
+              "ge" : 6567.029,
+              "gs" : 623.769,
+              "i" : 0,
+              "ks" : 4.167,
+              "main" : false,
+              "nodes" : 4044,
+              "status" : 4
+            }
+          ],
+          "ctx" : 83,
+          "graph" : 0,
+          "n_cb" : 1,
+          "n_nodes" : 4493,
+          "now" : 72488.275343,
+          "t0" : 72481.707674,
+          "unix" : 1790359091.707
+        },
+        {
+          "cbs" : [
+            {
+              "ge" : 646.396,
+              "gs" : 1.108,
+              "i" : 1,
+              "ks" : 0,
+              "main" : true,
+              "nodes" : 449,
+              "status" : 4
+            },
+            {
+              "ge" : 6962.976,
+              "gs" : 646.396,
+              "i" : 0,
+              "ks" : 1.806,
+              "main" : false,
+              "nodes" : 4044,
+              "status" : 4
+            }
+          ],
+          "ctx" : 83,
+          "graph" : 1,
+          "n_cb" : 1,
+          "n_nodes" : 4493,
+          "now" : 72495.246591,
+          "t0" : 72488.283111,
+          "unix" : 1790359098.679
+        },
+        {
+          "cbs" : [
+            {
+              "ge" : 680.759,
+              "gs" : 2.401,
+              "i" : 1,
+              "ks" : 0,
+              "main" : true,
+              "nodes" : 449,
+              "status" : 4
+            },
+            {
+              "ge" : 7370.988,
+              "gs" : 680.76,
+              "i" : 0,
+              "ks" : 3.47,
+              "main" : false,
+              "nodes" : 4044,
+              "status" : 4
+            }
+          ],
+          "ctx" : 83,
+          "graph" : 2,
+          "n_cb" : 1,
+          "n_nodes" : 4493,
+          "now" : 72502.628616,
+          "t0" : 72495.257135,
+          "unix" : 1790359106.061
+        },
+        {
+          "cbs" : [
+            {
+              "ge" : 13.819,
+              "gs" : 1.617,
+              "i" : 1,
+              "ks" : 0,
+              "main" : true,
+              "nodes" : 449,
+              "status" : 4
+            },
+            {
+              "ge" : 150.152,
+              "gs" : 13.82,
+              "i" : 0,
+              "ks" : 1.558,
+              "main" : false,
+              "nodes" : 4044,
+              "status" : 4
+            }
+          ],
+          "ctx" : 83,
+          "graph" : 3,
+          "n_cb" : 1,
+          "n_nodes" : 4493,
+          "now" : 72502.788264,
+          "t0" : 72502.637647,
+          "unix" : 1790359106.22
+        }
+      ],
+      "config" : "stack without SMALLM_MM",
+      "droppedStatsLines" : 0,
+      "footprintBytes" : 420419864,
+      "gateReached" : true,
+      "hostEnd" : 72502.78893850002,
+      "hostStart" : 72481.59351816669,
+      "interrupted" : false,
+      "libraryMessages" : [
+
+      ],
+      "lowPowerMode" : false,
+      "memoryAfter" : {
+        "active" : 87942,
+        "appFaults" : 2540083,
+        "appPageins" : 570984,
+        "compressed" : 67348,
+        "free" : 6743,
+        "inactive" : 86561,
+        "pageSize" : 16384,
+        "systemPageins" : 165041694,
+        "systemPageouts" : 2118082,
+        "wired" : 499893
+      },
+      "memoryBefore" : {
+        "active" : 93884,
+        "appFaults" : 2523331,
+        "appPageins" : 570984,
+        "compressed" : 67605,
+        "free" : 7794,
+        "inactive" : 91466,
+        "pageSize" : 16384,
+        "systemPageins" : 165037211,
+        "systemPageouts" : 2118082,
+        "wired" : 487738
+      },
+      "position" : 3,
+      "pressureEvents" : [
+
+      ],
+      "round" : 2,
+      "startedAt" : "2026-09-25T17:58:05Z",
+      "thermalAfter" : "nominal",
+      "thermalBefore" : "nominal",
+      "thermalMax" : "nominal",
+      "thermalWaitSeconds" : 0.003552079200744629,
+      "tokensPerSecond" : 71.3866750391413,
+      "ubatch" : 512,
+      "warmupCallSeconds" : [
+        6.573448875
+      ]
+    },
+    {
+      "attempt" : 1,
+      "availableBytesAfter" : 6019114728,
+      "availableBytesBefore" : 6322776072,
+      "batteryLevel" : 0.9,
+      "batteryState" : "charging",
+      "callSeconds" : [
+        8.582563416,
+        11.866728292
+      ],
+      "cell" : "pp512",
+      "commandBuffers" : [
+        {
+          "cbs" : [
+            {
+              "ge" : 638.135,
+              "gs" : 1.396,
+              "i" : 1,
+              "ks" : 0,
+              "main" : true,
+              "nodes" : 449,
+              "status" : 4
+            },
+            {
+              "ge" : 7814.102,
+              "gs" : 638.136,
+              "i" : 0,
+              "ks" : 2.996,
+              "main" : false,
+              "nodes" : 4044,
+              "status" : 4
+            }
+          ],
+          "ctx" : 84,
+          "graph" : 0,
+          "n_cb" : 1,
+          "n_nodes" : 4493,
+          "now" : 72570.78513,
+          "t0" : 72562.970055,
+          "unix" : 1790359174.218
+        },
+        {
+          "cbs" : [
+            {
+              "ge" : 775.724,
+              "gs" : 1.219,
+              "i" : 1,
+              "ks" : 0,
+              "main" : true,
+              "nodes" : 449,
+              "status" : 4
+            },
+            {
+              "ge" : 8579.704,
+              "gs" : 775.725,
+              "i" : 0,
+              "ks" : 2.137,
+              "main" : false,
+              "nodes" : 4044,
+              "status" : 4
+            }
+          ],
+          "ctx" : 84,
+          "graph" : 1,
+          "n_cb" : 1,
+          "n_nodes" : 4493,
+          "now" : 72579.372829,
+          "t0" : 72570.792417,
+          "unix" : 1790359182.806
+        },
+        {
+          "cbs" : [
+            {
+              "ge" : 974.901,
+              "gs" : 1.423,
+              "i" : 1,
+              "ks" : 0,
+              "main" : true,
+              "nodes" : 449,
+              "status" : 4
+            },
+            {
+              "ge" : 11852.367,
+              "gs" : 974.916,
+              "i" : 0,
+              "ks" : 3.162,
+              "main" : false,
+              "nodes" : 4044,
+              "status" : 4
+            }
+          ],
+          "ctx" : 84,
+          "graph" : 2,
+          "n_cb" : 1,
+          "n_nodes" : 4493,
+          "now" : 72591.24142,
+          "t0" : 72579.382165,
+          "unix" : 1790359194.675
+        },
+        {
+          "cbs" : [
+            {
+              "ge" : 26.76,
+              "gs" : 2.321,
+              "i" : 1,
+              "ks" : 0,
+              "main" : true,
+              "nodes" : 449,
+              "status" : 4
+            },
+            {
+              "ge" : 268.175,
+              "gs" : 26.761,
+              "i" : 0,
+              "ks" : 2.539,
+              "main" : false,
+              "nodes" : 4044,
+              "status" : 4
+            }
+          ],
+          "ctx" : 84,
+          "graph" : 3,
+          "n_cb" : 1,
+          "n_nodes" : 4493,
+          "now" : 72591.520954,
+          "t0" : 72591.25216,
+          "unix" : 1790359194.955
+        }
+      ],
+      "config" : "stack",
+      "droppedStatsLines" : 0,
+      "footprintBytes" : 423139608,
+      "gateReached" : true,
+      "hostEnd" : 72591.52179654168,
+      "hostStart" : 72562.80509366668,
+      "interrupted" : false,
+      "libraryMessages" : [
+
+      ],
+      "lowPowerMode" : false,
+      "memoryAfter" : {
+        "active" : 104183,
+        "appFaults" : 2559016,
+        "appPageins" : 571240,
+        "compressed" : 31152,
+        "free" : 10499,
+        "inactive" : 100809,
+        "pageSize" : 16384,
+        "systemPageins" : 165379646,
+        "systemPageouts" : 2119614,
+        "wired" : 501844
+      },
+      "memoryBefore" : {
+        "active" : 57388,
+        "appFaults" : 2541070,
+        "appPageins" : 571003,
+        "compressed" : 62970,
+        "free" : 6738,
+        "inactive" : 54697,
+        "pageSize" : 16384,
+        "systemPageins" : 165278825,
+        "systemPageouts" : 2119463,
+        "wired" : 566694
+      },
+      "position" : 4,
+      "pressureEvents" : [
+
+      ],
+      "round" : 2,
+      "startedAt" : "2026-09-25T17:59:26Z",
+      "thermalAfter" : "fair",
+      "thermalBefore" : "nominal",
+      "thermalMax" : "fair",
+      "thermalWaitSeconds" : 0.0011630058288574219,
+      "tokensPerSecond" : 50.07508399909027,
+      "ubatch" : 512,
+      "warmupCallSeconds" : [
+        7.824993125
+      ]
+    },
+    {
+      "attempt" : 1,
+      "availableBytesAfter" : 6019458792,
+      "availableBytesBefore" : 6322399240,
+      "batteryLevel" : 0.9,
+      "batteryState" : "charging",
+      "callSeconds" : [
+        7.344138666,
+        7.824167625
+      ],
+      "cell" : "pp512",
+      "commandBuffers" : [
+        {
+          "cbs" : [
+            {
+              "ge" : 2125.609,
+              "gs" : 1505.417,
+              "i" : 1,
+              "ks" : 0,
+              "main" : true,
+              "nodes" : 463,
+              "status" : 4
+            },
+            {
+              "ge" : 8226.45,
+              "gs" : 2125.609,
+              "i" : 0,
+              "ks" : 1506.224,
+              "main" : false,
+              "nodes" : 4174,
+              "status" : 4
+            }
+          ],
+          "ctx" : 85,
+          "graph" : 0,
+          "n_cb" : 1,
+          "n_nodes" : 4637,
+          "now" : 72905.114222,
+          "t0" : 72896.886181,
+          "unix" : 1790359508.554
+        },
+        {
+          "cbs" : [
+            {
+              "ge" : 677.264,
+              "gs" : 1.042,
+              "i" : 1,
+              "ks" : 0,
+              "main" : true,
+              "nodes" : 463,
+              "status" : 4
+            },
+            {
+              "ge" : 7340.527,
+              "gs" : 677.265,
+              "i" : 0,
+              "ks" : 1.999,
+              "main" : false,
+              "nodes" : 4174,
+              "status" : 4
+            }
+          ],
+          "ctx" : 85,
+          "graph" : 1,
+          "n_cb" : 1,
+          "n_nodes" : 4637,
+          "now" : 72912.46599,
+          "t0" : 72905.12487,
+          "unix" : 1790359515.906
+        },
+        {
+          "cbs" : [
+            {
+              "ge" : 721.157,
+              "gs" : 1.396,
+              "i" : 1,
+              "ks" : 0,
+              "main" : true,
+              "nodes" : 463,
+              "status" : 4
+            },
+            {
+              "ge" : 7821.397,
+              "gs" : 721.157,
+              "i" : 0,
+              "ks" : 1.86,
+              "main" : false,
+              "nodes" : 4174,
+              "status" : 4
+            }
+          ],
+          "ctx" : 85,
+          "graph" : 2,
+          "n_cb" : 1,
+          "n_nodes" : 4637,
+          "now" : 72920.294647,
+          "t0" : 72912.472699,
+          "unix" : 1790359523.735
+        },
+        {
+          "cbs" : [
+            {
+              "ge" : 20.658,
+              "gs" : 1.357,
+              "i" : 1,
+              "ks" : 0,
+              "main" : true,
+              "nodes" : 463,
+              "status" : 4
+            },
+            {
+              "ge" : 180.243,
+              "gs" : 20.679,
+              "i" : 0,
+              "ks" : 1.343,
+              "main" : false,
+              "nodes" : 4174,
+              "status" : 4
+            }
+          ],
+          "ctx" : 85,
+          "graph" : 3,
+          "n_cb" : 1,
+          "n_nodes" : 4637,
+          "now" : 72920.481739,
+          "t0" : 72920.301278,
+          "unix" : 1790359523.922
+        }
+      ],
+      "config" : "stack without rows mode",
+      "droppedStatsLines" : 0,
+      "footprintBytes" : 422746392,
+      "gateReached" : true,
+      "hostEnd" : 72920.48308520835,
+      "hostStart" : 72896.73228400001,
+      "interrupted" : false,
+      "libraryMessages" : [
+
+      ],
+      "lowPowerMode" : false,
+      "memoryAfter" : {
+        "active" : 57938,
+        "appFaults" : 2599667,
+        "appPageins" : 580161,
+        "compressed" : 73812,
+        "free" : 34815,
+        "inactive" : 54701,
+        "pageSize" : 16384,
+        "systemPageins" : 167044216,
+        "systemPageouts" : 2124180,
+        "wired" : 527221
+      },
+      "memoryBefore" : {
+        "active" : 275828,
+        "appFaults" : 2580163,
+        "appPageins" : 573834,
+        "compressed" : 52917,
+        "free" : 6663,
+        "inactive" : 265755,
+        "pageSize" : 16384,
+        "systemPageins" : 166849490,
+        "systemPageouts" : 2123917,
+        "wired" : 147324
+      },
+      "position" : 5,
+      "pressureEvents" : [
+
+      ],
+      "round" : 2,
+      "startedAt" : "2026-09-25T18:05:00Z",
+      "thermalAfter" : "nominal",
+      "thermalBefore" : "nominal",
+      "thermalMax" : "nominal",
+      "thermalWaitSeconds" : 245.19615995883942,
+      "tokensPerSecond" : 67.50918529431218,
+      "ubatch" : 512,
+      "warmupCallSeconds" : [
+        8.265919792
+      ]
+    },
+    {
+      "attempt" : 1,
+      "availableBytesAfter" : 6019475176,
+      "availableBytesBefore" : 6321563656,
+      "batteryLevel" : 0.9,
+      "batteryState" : "charging",
+      "callSeconds" : [
+        7.719445708,
+        8.635677
+      ],
+      "cell" : "pp512",
+      "commandBuffers" : [
+        {
+          "cbs" : [
+            {
+              "ge" : 622.293,
+              "gs" : 2.202,
+              "i" : 1,
+              "ks" : 0,
+              "main" : true,
+              "nodes" : 463,
+              "status" : 4
+            },
+            {
+              "ge" : 6724.787,
+              "gs" : 622.294,
+              "i" : 0,
+              "ks" : 6.436,
+              "main" : false,
+              "nodes" : 4174,
+              "status" : 4
+            }
+          ],
+          "ctx" : 86,
+          "graph" : 0,
+          "n_cb" : 1,
+          "n_nodes" : 4637,
+          "now" : 72987.404062,
+          "t0" : 72980.677342,
+          "unix" : 1790359590.845
+        },
+        {
+          "cbs" : [
+            {
+              "ge" : 674.451,
+              "gs" : 1.046,
+              "i" : 1,
+              "ks" : 0,
+              "main" : true,
+              "nodes" : 463,
+              "status" : 4
+            },
+            {
+              "ge" : 7706.391,
+              "gs" : 674.452,
+              "i" : 0,
+              "ks" : 2.489,
+              "main" : false,
+              "nodes" : 4174,
+              "status" : 4
+            }
+          ],
+          "ctx" : 86,
+          "graph" : 1,
+          "n_cb" : 1,
+          "n_nodes" : 4637,
+          "now" : 72995.133862,
+          "t0" : 72987.42596,
+          "unix" : 1790359598.575
+        },
+        {
+          "cbs" : [
+            {
+              "ge" : 765.71,
+              "gs" : 1.414,
+              "i" : 1,
+              "ks" : 0,
+              "main" : true,
+              "nodes" : 463,
+              "status" : 4
+            },
+            {
+              "ge" : 8621.69,
+              "gs" : 765.711,
+              "i" : 0,
+              "ks" : 2.345,
+              "main" : false,
+              "nodes" : 4174,
+              "status" : 4
+            }
+          ],
+          "ctx" : 86,
+          "graph" : 2,
+          "n_cb" : 1,
+          "n_nodes" : 4637,
+          "now" : 73003.779267,
+          "t0" : 72995.155419,
+          "unix" : 1790359607.221
+        },
+        {
+          "cbs" : [
+            {
+              "ge" : 14.982,
+              "gs" : 1.402,
+              "i" : 1,
+              "ks" : 0,
+              "main" : true,
+              "nodes" : 463,
+              "status" : 4
+            },
+            {
+              "ge" : 181.017,
+              "gs" : 14.983,
+              "i" : 0,
+              "ks" : 5.726,
+              "main" : false,
+              "nodes" : 4174,
+              "status" : 4
+            }
+          ],
+          "ctx" : 86,
+          "graph" : 3,
+          "n_cb" : 1,
+          "n_nodes" : 4637,
+          "now" : 73003.978914,
+          "t0" : 73003.797538,
+          "unix" : 1790359607.42
+        }
+      ],
+      "config" : "stack without rows mode",
+      "droppedStatsLines" : 0,
+      "footprintBytes" : 422713624,
+      "gateReached" : true,
+      "hostEnd" : 73003.98135687501,
+      "hostStart" : 72980.50931433335,
+      "interrupted" : false,
+      "libraryMessages" : [
+
+      ],
+      "lowPowerMode" : false,
+      "memoryAfter" : {
+        "active" : 61550,
+        "appFaults" : 2625282,
+        "appPageins" : 582532,
+        "compressed" : 63214,
+        "free" : 6418,
+        "inactive" : 59129,
+        "pageSize" : 16384,
+        "systemPageins" : 167710301,
+        "systemPageouts" : 2126663,
+        "wired" : 558173
+      },
+      "memoryBefore" : {
+        "active" : 50888,
+        "appFaults" : 2601212,
+        "appPageins" : 581564,
+        "compressed" : 83105,
+        "free" : 8765,
+        "inactive" : 45920,
+        "pageSize" : 16384,
+        "systemPageins" : 167244537,
+        "systemPageouts" : 2124998,
+        "wired" : 559809
+      },
+      "position" : 0,
+      "pressureEvents" : [
+        {
+          "host" : 72994.43219091668,
+          "level" : "warning"
+        }
+      ],
+      "round" : 3,
+      "startedAt" : "2026-09-25T18:06:23Z",
+      "thermalAfter" : "nominal",
+      "thermalBefore" : "nominal",
+      "thermalMax" : "nominal",
+      "thermalWaitSeconds" : 0.00416409969329834,
+      "tokensPerSecond" : 62.61035262664934,
+      "ubatch" : 512,
+      "warmupCallSeconds" : [
+        6.740470709
+      ]
+    },
+    {
+      "attempt" : 1,
+      "availableBytesAfter" : 6019524328,
+      "availableBytesBefore" : 6323398664,
+      "batteryLevel" : 0.9,
+      "batteryState" : "unplugged",
+      "callSeconds" : [
+        7.518593417,
+        7.912949875
+      ],
+      "cell" : "pp512",
+      "commandBuffers" : [
+        {
+          "cbs" : [
+            {
+              "ge" : 632.927,
+              "gs" : 1.878,
+              "i" : 1,
+              "ks" : 0,
+              "main" : true,
+              "nodes" : 449,
+              "status" : 4
+            },
+            {
+              "ge" : 7087.093,
+              "gs" : 632.928,
+              "i" : 0,
+              "ks" : 3.926,
+              "main" : false,
+              "nodes" : 4044,
+              "status" : 4
+            }
+          ],
+          "ctx" : 87,
+          "graph" : 0,
+          "n_cb" : 1,
+          "n_nodes" : 4493,
+          "now" : 73146.232673,
+          "t0" : 73139.142659,
+          "unix" : 1790359749.675
+        },
+        {
+          "cbs" : [
+            {
+              "ge" : 711.651,
+              "gs" : 0.88,
+              "i" : 1,
+              "ks" : 0,
+              "main" : true,
+              "nodes" : 449,
+              "status" : 4
+            },
+            {
+              "ge" : 7510.641,
+              "gs" : 711.652,
+              "i" : 0,
+              "ks" : 2.241,
+              "main" : false,
+              "nodes" : 4044,
+              "status" : 4
+            }
+          ],
+          "ctx" : 87,
+          "graph" : 1,
+          "n_cb" : 1,
+          "n_nodes" : 4493,
+          "now" : 73153.76289,
+          "t0" : 73146.251651,
+          "unix" : 1790359757.205
+        },
+        {
+          "cbs" : [
+            {
+              "ge" : 793.378,
+              "gs" : 1.759,
+              "i" : 1,
+              "ks" : 0,
+              "main" : true,
+              "nodes" : 449,
+              "status" : 4
+            },
+            {
+              "ge" : 7909.745,
+              "gs" : 793.399,
+              "i" : 0,
+              "ks" : 1.897,
+              "main" : false,
+              "nodes" : 4044,
+              "status" : 4
+            }
+          ],
+          "ctx" : 87,
+          "graph" : 2,
+          "n_cb" : 1,
+          "n_nodes" : 4493,
+          "now" : 73161.679786,
+          "t0" : 73153.769611,
+          "unix" : 1790359765.121
+        },
+        {
+          "cbs" : [
+            {
+              "ge" : 16.394,
+              "gs" : 1.625,
+              "i" : 1,
+              "ks" : 0,
+              "main" : true,
+              "nodes" : 449,
+              "status" : 4
+            },
+            {
+              "ge" : 162.413,
+              "gs" : 16.395,
+              "i" : 0,
+              "ks" : 1.496,
+              "main" : false,
+              "nodes" : 4044,
+              "status" : 4
+            }
+          ],
+          "ctx" : 87,
+          "graph" : 3,
+          "n_cb" : 1,
+          "n_nodes" : 4493,
+          "now" : 73161.851684,
+          "t0" : 73161.688771,
+          "unix" : 1790359765.293
+        }
+      ],
+      "config" : "stack",
+      "droppedStatsLines" : 0,
+      "footprintBytes" : 422615320,
+      "gateReached" : true,
+      "hostEnd" : 73161.85427266668,
+      "hostStart" : 73139.02457283335,
+      "interrupted" : false,
+      "libraryMessages" : [
+
+      ],
+      "lowPowerMode" : false,
+      "memoryAfter" : {
+        "active" : 100912,
+        "appFaults" : 2664545,
+        "appPageins" : 585749,
+        "compressed" : 39439,
+        "free" : 14385,
+        "inactive" : 91264,
+        "pageSize" : 16384,
+        "systemPageins" : 169408964,
+        "systemPageouts" : 2134107,
+        "wired" : 502487
+      },
+      "memoryBefore" : {
+        "active" : 44508,
+        "appFaults" : 2644341,
+        "appPageins" : 585395,
+        "compressed" : 91674,
+        "free" : 7590,
+        "inactive" : 40941,
+        "pageSize" : 16384,
+        "systemPageins" : 169290786,
+        "systemPageouts" : 2133368,
+        "wired" : 563761
+      },
+      "position" : 1,
+      "pressureEvents" : [
+
+      ],
+      "round" : 3,
+      "startedAt" : "2026-09-25T18:09:02Z",
+      "thermalAfter" : "nominal",
+      "thermalBefore" : "nominal",
+      "thermalMax" : "nominal",
+      "thermalWaitSeconds" : 15.018738031387329,
+      "tokensPerSecond" : 66.35758852005817,
+      "ubatch" : 512,
+      "warmupCallSeconds" : [
+        7.100648042
+      ]
+    },
+    {
+      "attempt" : 1,
+      "availableBytesAfter" : 6018066152,
+      "availableBytesBefore" : 6321383432,
+      "batteryLevel" : 0.9,
+      "batteryState" : "unplugged",
+      "callSeconds" : [
+        7.21299225,
+        5.722307917
+      ],
+      "cell" : "pp512",
+      "commandBuffers" : [
+        {
+          "cbs" : [
+            {
+              "ge" : 632.85,
+              "gs" : 2.757,
+              "i" : 1,
+              "ks" : 0,
+              "main" : true,
+              "nodes" : 449,
+              "status" : 4
+            },
+            {
+              "ge" : 6574.115,
+              "gs" : 632.85,
+              "i" : 0,
+              "ks" : 2.577,
+              "main" : false,
+              "nodes" : 4044,
+              "status" : 4
+            }
+          ],
+          "ctx" : 88,
+          "graph" : 0,
+          "n_cb" : 1,
+          "n_nodes" : 4493,
+          "now" : 73228.641556,
+          "t0" : 73222.066308,
+          "unix" : 1790359832.084
+        },
+        {
+          "cbs" : [
+            {
+              "ge" : 645.383,
+              "gs" : 1.47,
+              "i" : 1,
+              "ks" : 0,
+              "main" : true,
+              "nodes" : 449,
+              "status" : 4
+            },
+            {
+              "ge" : 7204.828,
+              "gs" : 645.384,
+              "i" : 0,
+              "ks" : 2.099,
+              "main" : false,
+              "nodes" : 4044,
+              "status" : 4
+            }
+          ],
+          "ctx" : 88,
+          "graph" : 1,
+          "n_cb" : 1,
+          "n_nodes" : 4493,
+          "now" : 73235.859871,
+          "t0" : 73228.654437,
+          "unix" : 1790359839.303
+        },
+        {
+          "cbs" : [
+            {
+              "ge" : 711.417,
+              "gs" : 1.501,
+              "i" : 1,
+              "ks" : 0,
+              "main" : true,
+              "nodes" : 449,
+              "status" : 4
+            },
+            {
+              "code" : 1,
+              "domain" : "MTLCommandBufferErrorDomain",
+              "enc" : [
+                {
+                  "label" : "",
+                  "last" : [
+
+                  ],
+                  "signposts" : 0,
+                  "state" : 2
+                }
+              ],
+              "err" : "Discarded (victim of GPU error\/recovery) (00000005:kIOGPUCommandBufferCallbackErrorInnocentVictim)",
+              "ge" : 5717.26,
+              "gs" : 711.488,
+              "i" : 0,
+              "ks" : 2.41,
+              "main" : false,
+              "nodes" : 4044,
+              "status" : 5
+            }
+          ],
+          "ctx" : 88,
+          "graph" : 2,
+          "n_cb" : 1,
+          "n_nodes" : 4493,
+          "now" : 73241.585884,
+          "t0" : 73235.866316,
+          "unix" : 1790359845.029
+        }
+      ],
+      "config" : "stack without SMALLM_MM",
+      "droppedStatsLines" : 0,
+      "error" : "llama_decode failed (-3)",
+      "failure" : {
+        "callSeconds" : 5.722307917,
+        "code" : 1,
+        "commandBuffer" : 0,
+        "domain" : "MTLCommandBufferErrorDomain",
+        "error" : "Discarded (victim of GPU error\/recovery) (00000005:kIOGPUCommandBufferCallbackErrorInnocentVictim)",
+        "gpuEndMs" : 5717.26,
+        "gpuStartMs" : 711.488,
+        "mainCommandBuffer" : false,
+        "mainStartDelayMs" : 1.501,
+        "phase" : "timed"
+      },
+      "footprintBytes" : 0,
+      "gateReached" : true,
+      "hostEnd" : 73241.59013883334,
+      "hostStart" : 73221.88143262501,
+      "interrupted" : false,
+      "libraryMessages" : [
+        "ggml_metal_synchronize: error: command buffer 0 failed with status 5",
+        "error: Discarded (victim of GPU error\/recovery) (00000005:kIOGPUCommandBufferCallbackErrorInnocentVictim)",
+        "ggml_metal_synchronize: error: command buffer 0 failed with status 5",
+        "error: Discarded (victim of GPU error\/recovery) (00000005:kIOGPUCommandBufferCallbackErrorInnocentVictim)",
+        "ggml_metal_synchronize: error: command buffer 0 failed with status 5",
+        "error: Discarded (victim of GPU error\/recovery) (00000005:kIOGPUCommandBufferCallbackErrorInnocentVictim)",
+        "ggml_metal_synchronize: error: command buffer 0 failed with status 5",
+        "error: Discarded (victim of GPU error\/recovery) (00000005:kIOGPUCommandBufferCallbackErrorInnocentVictim)",
+        "ggml_metal_synchronize: error: command buffer 0 failed with status 5",
+        "error: Discarded (victim of GPU error\/recovery) (00000005:kIOGPUCommandBufferCallbackErrorInnocentVictim)",
+        "ggml_metal_synchronize: error: command buffer 0 failed with status 5",
+        "error: Discarded (victim of GPU error\/recovery) (00000005:kIOGPUCommandBufferCallbackErrorInnocentVictim)",
+        "ggml_metal_synchronize: error: command buffer 0 failed with status 5",
+        "error: Discarded (victim of GPU error\/recovery) (00000005:kIOGPUCommandBufferCallbackErrorInnocentVictim)",
+        "ggml_metal_synchronize: error: command buffer 0 failed with status 5",
+        "error: Discarded (victim of GPU error\/recovery) (00000005:kIOGPUCommandBufferCallbackErrorInnocentVictim)",
+        "ggml_metal_synchronize: error: command buffer 0 failed with status 5",
+        "error: Discarded (victim of GPU error\/recovery) (00000005:kIOGPUCommandBufferCallbackErrorInnocentVictim)",
+        "ggml_metal_synchronize: error: command buffer 0 failed with status 5",
+        "error: Discarded (victim of GPU error\/recovery) (00000005:kIOGPUCommandBufferCallbackErrorInnocentVictim)",
+        "ggml_metal_synchronize: error: command buffer 0 failed with status 5",
+        "error: Discarded (victim of GPU error\/recovery) (00000005:kIOGPUCommandBufferCallbackErrorInnocentVictim)",
+        "ggml_metal_synchronize: error: command buffer 0 failed with status 5",
+        "error: Discarded (victim of GPU error\/recovery) (00000005:kIOGPUCommandBufferCallbackErrorInnocentVictim)",
+        "ggml_metal_synchronize: error: command buffer 0 failed with status 5",
+        "error: Discarded (victim of GPU error\/recovery) (00000005:kIOGPUCommandBufferCallbackErrorInnocentVictim)",
+        "ggml_metal_graph_compute: backend is in error state from a previous command buffer failure - recreate the backend to recover",
+        "graph_compute: ggml_backend_sched_graph_compute_async failed with error -1",
+        "process_ubatch: failed to compute graph, compute status: -1",
+        "decode: removing memory module entries for seq_id = 0, pos = [512, +inf)",
+        "llama_decode: failed to decode, ret = -3",
+        "ggml_metal_synchronize: error: command buffer 0 failed with status 5",
+        "error: Discarded (victim of GPU error\/recovery) (00000005:kIOGPUCommandBufferCallbackErrorInnocentVictim)",
+        "ggml_metal_synchronize: error: command buffer 0 failed with status 5",
+        "error: Discarded (victim of GPU error\/recovery) (00000005:kIOGPUCommandBufferCallbackErrorInnocentVictim)"
+      ],
+      "lowPowerMode" : false,
+      "memoryAfter" : {
+        "active" : 91733,
+        "appFaults" : 2684907,
+        "appPageins" : 586907,
+        "compressed" : 57405,
+        "free" : 21500,
+        "inactive" : 82935,
+        "pageSize" : 16384,
+        "systemPageins" : 169633740,
+        "systemPageouts" : 2134575,
+        "wired" : 494914
+      },
+      "memoryBefore" : {
+        "active" : 111286,
+        "appFaults" : 2666323,
+        "appPageins" : 586541,
+        "compressed" : 50060,
+        "free" : 10926,
+        "inactive" : 104387,
+        "pageSize" : 16384,
+        "systemPageins" : 169588183,
+        "systemPageouts" : 2134481,
+        "wired" : 471828
+      },
+      "position" : 2,
+      "pressureEvents" : [
+
+      ],
+      "round" : 3,
+      "startedAt" : "2026-09-25T18:10:25Z",
+      "thermalAfter" : "nominal",
+      "thermalBefore" : "nominal",
+      "thermalMax" : "nominal",
+      "thermalWaitSeconds" : 0.005015015602111816,
+      "tokensPerSecond" : 0,
+      "ubatch" : 512,
+      "warmupCallSeconds" : [
+        6.583865166
+      ]
+    },
+    {
+      "attempt" : 2,
+      "availableBytesAfter" : 6022866664,
+      "availableBytesBefore" : 6323005448,
+      "batteryLevel" : 0.9,
+      "batteryState" : "unplugged",
+      "callSeconds" : [
+        6.822270958,
+        7.092194833
+      ],
+      "cell" : "pp512",
+      "commandBuffers" : [
+        {
+          "cbs" : [
+            {
+              "ge" : 626.147,
+              "gs" : 2.011,
+              "i" : 1,
+              "ks" : 0,
+              "main" : true,
+              "nodes" : 449,
+              "status" : 4
+            },
+            {
+              "ge" : 6533.102,
+              "gs" : 626.147,
+              "i" : 0,
+              "ks" : 6.025,
+              "main" : false,
+              "nodes" : 4044,
+              "status" : 4
+            }
+          ],
+          "ctx" : 89,
+          "graph" : 0,
+          "n_cb" : 1,
+          "n_nodes" : 4493,
+          "now" : 73308.287215,
+          "t0" : 73301.75318,
+          "unix" : 1790359911.732
+        },
+        {
+          "cbs" : [
+            {
+              "ge" : 632.847,
+              "gs" : 1.557,
+              "i" : 1,
+              "ks" : 0,
+              "main" : true,
+              "nodes" : 449,
+              "status" : 4
+            },
+            {
+              "ge" : 6815.974,
+              "gs" : 632.847,
+              "i" : 0,
+              "ks" : 1.752,
+              "main" : false,
+              "nodes" : 4044,
+              "status" : 4
+            }
+          ],
+          "ctx" : 89,
+          "graph" : 1,
+          "n_cb" : 1,
+          "n_nodes" : 4493,
+          "now" : 73315.117386,
+          "t0" : 73308.300898,
+          "unix" : 1790359918.562
+        },
+        {
+          "cbs" : [
+            {
+              "ge" : 662.031,
+              "gs" : 1.97,
+              "i" : 1,
+              "ks" : 0,
+              "main" : true,
+              "nodes" : 449,
+              "status" : 4
+            },
+            {
+              "ge" : 7086.071,
+              "gs" : 662.032,
+              "i" : 0,
+              "ks" : 3.954,
+              "main" : false,
+              "nodes" : 4044,
+              "status" : 4
+            }
+          ],
+          "ctx" : 89,
+          "graph" : 2,
+          "n_cb" : 1,
+          "n_nodes" : 4493,
+          "now" : 73322.21608,
+          "t0" : 73315.12957,
+          "unix" : 1790359925.661
+        },
+        {
+          "cbs" : [
+            {
+              "ge" : 13.436,
+              "gs" : 2.359,
+              "i" : 1,
+              "ks" : 0,
+              "main" : true,
+              "nodes" : 449,
+              "status" : 4
+            },
+            {
+              "ge" : 139.793,
+              "gs" : 13.436,
+              "i" : 0,
+              "ks" : 4.52,
+              "main" : false,
+              "nodes" : 4044,
+              "status" : 4
+            }
+          ],
+          "ctx" : 89,
+          "graph" : 3,
+          "n_cb" : 1,
+          "n_nodes" : 4493,
+          "now" : 73322.368015,
+          "t0" : 73322.227795,
+          "unix" : 1790359925.813
+        }
+      ],
+      "config" : "stack without SMALLM_MM",
+      "droppedStatsLines" : 0,
+      "footprintBytes" : 420419864,
+      "gateReached" : true,
+      "hostEnd" : 73322.36869037502,
+      "hostStart" : 73301.61223600002,
+      "interrupted" : false,
+      "libraryMessages" : [
+
+      ],
+      "lowPowerMode" : false,
+      "memoryAfter" : {
+        "active" : 94848,
+        "appFaults" : 2702176,
+        "appPageins" : 587029,
+        "compressed" : 57313,
+        "free" : 5875,
+        "inactive" : 93454,
+        "pageSize" : 16384,
+        "systemPageins" : 169662635,
+        "systemPageouts" : 2134582,
+        "wired" : 496997
+      },
+      "memoryBefore" : {
+        "active" : 108693,
+        "appFaults" : 2685154,
+        "appPageins" : 587029,
+        "compressed" : 54040,
+        "free" : 8234,
+        "inactive" : 106313,
+        "pageSize" : 16384,
+        "systemPageins" : 169661959,
+        "systemPageouts" : 2134582,
+        "wired" : 471207
+      },
+      "position" : 2,
+      "pressureEvents" : [
+
+      ],
+      "round" : 3,
+      "startedAt" : "2026-09-25T18:11:45Z",
+      "thermalAfter" : "nominal",
+      "thermalBefore" : "nominal",
+      "thermalMax" : "nominal",
+      "thermalWaitSeconds" : 0.0050449371337890625,
+      "tokensPerSecond" : 73.59247673470385,
+      "ubatch" : 512,
+      "warmupCallSeconds" : [
+        6.539217
+      ]
+    },
+    {
+      "attempt" : 1,
+      "availableBytesAfter" : 6023718632,
+      "availableBytesBefore" : 6323595272,
+      "batteryLevel" : 0.9,
+      "batteryState" : "unplugged",
+      "callSeconds" : [
+
+      ],
+      "cell" : "pp512",
+      "commandBuffers" : [
+        {
+          "cbs" : [
+            {
+              "ge" : 606.674,
+              "gs" : 1.849,
+              "i" : 1,
+              "ks" : 0,
+              "main" : true,
+              "nodes" : 463,
+              "status" : 4
+            },
+            {
+              "code" : 1,
+              "domain" : "MTLCommandBufferErrorDomain",
+              "enc" : [
+                {
+                  "label" : "",
+                  "last" : [
+
+                  ],
+                  "signposts" : 0,
+                  "state" : 2
+                }
+              ],
+              "err" : "Discarded (victim of GPU error\/recovery) (00000005:kIOGPUCommandBufferCallbackErrorInnocentVictim)",
+              "ge" : 5611.78,
+              "gs" : 606.813,
+              "i" : 0,
+              "ks" : 2.778,
+              "main" : false,
+              "nodes" : 4174,
+              "status" : 5
+            }
+          ],
+          "ctx" : 90,
+          "graph" : 0,
+          "n_cb" : 1,
+          "n_nodes" : 4637,
+          "now" : 73388.101706,
+          "t0" : 73382.489217,
+          "unix" : 1790359991.548
+        }
+      ],
+      "config" : "upstream",
+      "droppedStatsLines" : 0,
+      "error" : "llama_decode failed (-3)",
+      "failure" : {
+        "callSeconds" : 5.618151166,
+        "code" : 1,
+        "commandBuffer" : 0,
+        "domain" : "MTLCommandBufferErrorDomain",
+        "error" : "Discarded (victim of GPU error\/recovery) (00000005:kIOGPUCommandBufferCallbackErrorInnocentVictim)",
+        "gpuEndMs" : 5611.78,
+        "gpuStartMs" : 606.813,
+        "mainCommandBuffer" : false,
+        "mainStartDelayMs" : 1.849,
+        "phase" : "warmup"
+      },
+      "footprintBytes" : 0,
+      "gateReached" : true,
+      "hostEnd" : 73388.10921925002,
+      "hostStart" : 73382.38373741668,
+      "interrupted" : false,
+      "libraryMessages" : [
+        "ggml_metal_synchronize: error: command buffer 0 failed with status 5",
+        "error: Discarded (victim of GPU error\/recovery) (00000005:kIOGPUCommandBufferCallbackErrorInnocentVictim)",
+        "ggml_metal_synchronize: error: command buffer 0 failed with status 5",
+        "error: Discarded (victim of GPU error\/recovery) (00000005:kIOGPUCommandBufferCallbackErrorInnocentVictim)",
+        "ggml_metal_synchronize: error: command buffer 0 failed with status 5",
+        "error: Discarded (victim of GPU error\/recovery) (00000005:kIOGPUCommandBufferCallbackErrorInnocentVictim)",
+        "ggml_metal_synchronize: error: command buffer 0 failed with status 5",
+        "error: Discarded (victim of GPU error\/recovery) (00000005:kIOGPUCommandBufferCallbackErrorInnocentVictim)",
+        "ggml_metal_synchronize: error: command buffer 0 failed with status 5",
+        "error: Discarded (victim of GPU error\/recovery) (00000005:kIOGPUCommandBufferCallbackErrorInnocentVictim)",
+        "ggml_metal_synchronize: error: command buffer 0 failed with status 5",
+        "error: Discarded (victim of GPU error\/recovery) (00000005:kIOGPUCommandBufferCallbackErrorInnocentVictim)",
+        "ggml_metal_synchronize: error: command buffer 0 failed with status 5",
+        "error: Discarded (victim of GPU error\/recovery) (00000005:kIOGPUCommandBufferCallbackErrorInnocentVictim)",
+        "ggml_metal_synchronize: error: command buffer 0 failed with status 5",
+        "error: Discarded (victim of GPU error\/recovery) (00000005:kIOGPUCommandBufferCallbackErrorInnocentVictim)",
+        "ggml_metal_synchronize: error: command buffer 0 failed with status 5",
+        "error: Discarded (victim of GPU error\/recovery) (00000005:kIOGPUCommandBufferCallbackErrorInnocentVictim)",
+        "ggml_metal_synchronize: error: command buffer 0 failed with status 5",
+        "error: Discarded (victim of GPU error\/recovery) (00000005:kIOGPUCommandBufferCallbackErrorInnocentVictim)",
+        "ggml_metal_synchronize: error: command buffer 0 failed with status 5",
+        "error: Discarded (victim of GPU error\/recovery) (00000005:kIOGPUCommandBufferCallbackErrorInnocentVictim)",
+        "ggml_metal_synchronize: error: command buffer 0 failed with status 5",
+        "error: Discarded (victim of GPU error\/recovery) (00000005:kIOGPUCommandBufferCallbackErrorInnocentVictim)",
+        "ggml_metal_graph_compute: backend is in error state from a previous command buffer failure - recreate the backend to recover",
+        "graph_compute: ggml_backend_sched_graph_compute_async failed with error -1",
+        "process_ubatch: failed to compute graph, compute status: -1",
+        "decode: removing memory module entries for seq_id = 0, pos = [0, +inf)",
+        "llama_decode: failed to decode, ret = -3",
+        "ggml_metal_synchronize: error: command buffer 0 failed with status 5",
+        "error: Discarded (victim of GPU error\/recovery) (00000005:kIOGPUCommandBufferCallbackErrorInnocentVictim)",
+        "ggml_metal_synchronize: error: command buffer 0 failed with status 5",
+        "error: Discarded (victim of GPU error\/recovery) (00000005:kIOGPUCommandBufferCallbackErrorInnocentVictim)"
+      ],
+      "lowPowerMode" : false,
+      "memoryAfter" : {
+        "active" : 94490,
+        "appFaults" : 2719141,
+        "appPageins" : 587029,
+        "compressed" : 57682,
+        "free" : 8287,
+        "inactive" : 92984,
+        "pageSize" : 16384,
+        "systemPageins" : 169669685,
+        "systemPageouts" : 2134585,
+        "wired" : 495042
+      },
+      "memoryBefore" : {
+        "active" : 102979,
+        "appFaults" : 2702197,
+        "appPageins" : 587029,
+        "compressed" : 56686,
+        "free" : 20790,
+        "inactive" : 96695,
+        "pageSize" : 16384,
+        "systemPageins" : 169669486,
+        "systemPageouts" : 2134582,
+        "wired" : 471337
+      },
+      "position" : 3,
+      "pressureEvents" : [
+
+      ],
+      "round" : 3,
+      "startedAt" : "2026-09-25T18:13:05Z",
+      "thermalAfter" : "nominal",
+      "thermalBefore" : "nominal",
+      "thermalMax" : "nominal",
+      "thermalWaitSeconds" : 0.0010919570922851562,
+      "tokensPerSecond" : 0,
+      "ubatch" : 512,
+      "warmupCallSeconds" : [
+        5.618151166
+      ]
+    },
+    {
+      "attempt" : 2,
+      "availableBytesAfter" : 6016853736,
+      "availableBytesBefore" : 6321498120,
+      "batteryLevel" : 0.9,
+      "batteryState" : "unplugged",
+      "callSeconds" : [
+
+      ],
+      "cell" : "pp512",
+      "commandBuffers" : [
+        {
+          "cbs" : [
+            {
+              "ge" : 605.505,
+              "gs" : 1.596,
+              "i" : 1,
+              "ks" : 0,
+              "main" : true,
+              "nodes" : 463,
+              "status" : 4
+            },
+            {
+              "code" : 1,
+              "domain" : "MTLCommandBufferErrorDomain",
+              "enc" : [
+                {
+                  "label" : "",
+                  "last" : [
+
+                  ],
+                  "signposts" : 0,
+                  "state" : 2
+                }
+              ],
+              "err" : "Discarded (victim of GPU error\/recovery) (00000005:kIOGPUCommandBufferCallbackErrorInnocentVictim)",
+              "ge" : 5630.375,
+              "gs" : 605.574,
+              "i" : 0,
+              "ks" : 2.981,
+              "main" : false,
+              "nodes" : 4174,
+              "status" : 5
+            }
+          ],
+          "ctx" : 91,
+          "graph" : 0,
+          "n_cb" : 1,
+          "n_nodes" : 4637,
+          "now" : 73547.702245,
+          "t0" : 73542.068312,
+          "unix" : 1790360151.15
+        }
+      ],
+      "config" : "upstream",
+      "droppedStatsLines" : 0,
+      "error" : "llama_decode failed (-3)",
+      "failure" : {
+        "callSeconds" : 5.641166083,
+        "code" : 1,
+        "commandBuffer" : 0,
+        "domain" : "MTLCommandBufferErrorDomain",
+        "error" : "Discarded (victim of GPU error\/recovery) (00000005:kIOGPUCommandBufferCallbackErrorInnocentVictim)",
+        "gpuEndMs" : 5630.375,
+        "gpuStartMs" : 605.574,
+        "mainCommandBuffer" : false,
+        "mainStartDelayMs" : 1.596,
+        "phase" : "warmup"
+      },
+      "footprintBytes" : 0,
+      "gateReached" : true,
+      "hostEnd" : 73547.71108445835,
+      "hostStart" : 73541.92134720835,
+      "interrupted" : false,
+      "libraryMessages" : [
+        "ggml_metal_synchronize: error: command buffer 0 failed with status 5",
+        "error: Discarded (victim of GPU error\/recovery) (00000005:kIOGPUCommandBufferCallbackErrorInnocentVictim)",
+        "ggml_metal_synchronize: error: command buffer 0 failed with status 5",
+        "error: Discarded (victim of GPU error\/recovery) (00000005:kIOGPUCommandBufferCallbackErrorInnocentVictim)",
+        "ggml_metal_synchronize: error: command buffer 0 failed with status 5",
+        "error: Discarded (victim of GPU error\/recovery) (00000005:kIOGPUCommandBufferCallbackErrorInnocentVictim)",
+        "ggml_metal_synchronize: error: command buffer 0 failed with status 5",
+        "error: Discarded (victim of GPU error\/recovery) (00000005:kIOGPUCommandBufferCallbackErrorInnocentVictim)",
+        "ggml_metal_synchronize: error: command buffer 0 failed with status 5",
+        "error: Discarded (victim of GPU error\/recovery) (00000005:kIOGPUCommandBufferCallbackErrorInnocentVictim)",
+        "ggml_metal_synchronize: error: command buffer 0 failed with status 5",
+        "error: Discarded (victim of GPU error\/recovery) (00000005:kIOGPUCommandBufferCallbackErrorInnocentVictim)",
+        "ggml_metal_synchronize: error: command buffer 0 failed with status 5",
+        "error: Discarded (victim of GPU error\/recovery) (00000005:kIOGPUCommandBufferCallbackErrorInnocentVictim)",
+        "ggml_metal_synchronize: error: command buffer 0 failed with status 5",
+        "error: Discarded (victim of GPU error\/recovery) (00000005:kIOGPUCommandBufferCallbackErrorInnocentVictim)",
+        "ggml_metal_synchronize: error: command buffer 0 failed with status 5",
+        "error: Discarded (victim of GPU error\/recovery) (00000005:kIOGPUCommandBufferCallbackErrorInnocentVictim)",
+        "ggml_metal_synchronize: error: command buffer 0 failed with status 5",
+        "error: Discarded (victim of GPU error\/recovery) (00000005:kIOGPUCommandBufferCallbackErrorInnocentVictim)",
+        "ggml_metal_synchronize: error: command buffer 0 failed with status 5",
+        "error: Discarded (victim of GPU error\/recovery) (00000005:kIOGPUCommandBufferCallbackErrorInnocentVictim)",
+        "ggml_metal_synchronize: error: command buffer 0 failed with status 5",
+        "error: Discarded (victim of GPU error\/recovery) (00000005:kIOGPUCommandBufferCallbackErrorInnocentVictim)",
+        "ggml_metal_graph_compute: backend is in error state from a previous command buffer failure - recreate the backend to recover",
+        "graph_compute: ggml_backend_sched_graph_compute_async failed with error -1",
+        "process_ubatch: failed to compute graph, compute status: -1",
+        "decode: removing memory module entries for seq_id = 0, pos = [0, +inf)",
+        "llama_decode: failed to decode, ret = -3",
+        "ggml_metal_synchronize: error: command buffer 0 failed with status 5",
+        "error: Discarded (victim of GPU error\/recovery) (00000005:kIOGPUCommandBufferCallbackErrorInnocentVictim)",
+        "ggml_metal_synchronize: error: command buffer 0 failed with status 5",
+        "error: Discarded (victim of GPU error\/recovery) (00000005:kIOGPUCommandBufferCallbackErrorInnocentVictim)"
+      ],
+      "lowPowerMode" : false,
+      "memoryAfter" : {
+        "active" : 111216,
+        "appFaults" : 2741153,
+        "appPageins" : 592813,
+        "compressed" : 62307,
+        "free" : 7763,
+        "inactive" : 69751,
+        "pageSize" : 16384,
+        "systemPageins" : 170108341,
+        "systemPageouts" : 2135554,
+        "wired" : 497450
+      },
+      "memoryBefore" : {
+        "active" : 84356,
+        "appFaults" : 2723034,
+        "appPageins" : 592739,
+        "compressed" : 45555,
+        "free" : 12703,
+        "inactive" : 61519,
+        "pageSize" : 16384,
+        "systemPageins" : 170105882,
+        "systemPageouts" : 2135499,
+        "wired" : 544354
+      },
+      "position" : 3,
+      "pressureEvents" : [
+
+      ],
+      "round" : 3,
+      "startedAt" : "2026-09-25T18:15:45Z",
+      "thermalAfter" : "nominal",
+      "thermalBefore" : "nominal",
+      "thermalMax" : "nominal",
+      "thermalWaitSeconds" : 33.80055797100067,
+      "tokensPerSecond" : 0,
+      "ubatch" : 512,
+      "warmupCallSeconds" : [
+        5.641166083
+      ]
+    },
+    {
+      "attempt" : 1,
+      "availableBytesAfter" : 6016476904,
+      "availableBytesBefore" : 6321268720,
+      "batteryLevel" : 0.9,
+      "batteryState" : "unplugged",
+      "callSeconds" : [
+        14.398167125,
+        7.859765833
+      ],
+      "cell" : "pp512",
+      "commandBuffers" : [
+        {
+          "cbs" : [
+            {
+              "ge" : 637.807,
+              "gs" : 1.584,
+              "i" : 1,
+              "ks" : 0,
+              "main" : true,
+              "nodes" : 449,
+              "status" : 4
+            },
+            {
+              "ge" : 6850.611,
+              "gs" : 637.808,
+              "i" : 0,
+              "ks" : 3.555,
+              "main" : false,
+              "nodes" : 4044,
+              "status" : 4
+            }
+          ],
+          "ctx" : 92,
+          "graph" : 0,
+          "n_cb" : 1,
+          "n_nodes" : 4493,
+          "now" : 73614.67143,
+          "t0" : 73607.820073,
+          "unix" : 1790360218.121
+        },
+        {
+          "cbs" : [
+            {
+              "ge" : 648.624,
+              "gs" : 1.144,
+              "i" : 1,
+              "ks" : 0,
+              "main" : true,
+              "nodes" : 449,
+              "status" : 4
+            },
+            {
+              "ge" : 6985.749,
+              "gs" : 648.638,
+              "i" : 0,
+              "ks" : 1.622,
+              "main" : false,
+              "nodes" : 4044,
+              "status" : 4
+            }
+          ],
+          "ctx" : 92,
+          "graph" : 1,
+          "n_cb" : 1,
+          "n_nodes" : 4493,
+          "now" : 73629.073529,
+          "t0" : 73614.678673,
+          "unix" : 1790360232.523
+        },
+        {
+          "cbs" : [
+            {
+              "ge" : 1487.535,
+              "gs" : 847.255,
+              "i" : 1,
+              "ks" : 0,
+              "main" : true,
+              "nodes" : 449,
+              "status" : 4
+            },
+            {
+              "ge" : 7795.915,
+              "gs" : 1487.536,
+              "i" : 0,
+              "ks" : 846.932,
+              "main" : false,
+              "nodes" : 4044,
+              "status" : 4
+            }
+          ],
+          "ctx" : 92,
+          "graph" : 2,
+          "n_cb" : 1,
+          "n_nodes" : 4493,
+          "now" : 73637.041793,
+          "t0" : 73629.245122,
+          "unix" : 1790360240.491
+        },
+        {
+          "cbs" : [
+            {
+              "ge" : 12.512,
+              "gs" : 1.637,
+              "i" : 1,
+              "ks" : 0,
+              "main" : true,
+              "nodes" : 449,
+              "status" : 4
+            },
+            {
+              "ge" : 136.038,
+              "gs" : 12.512,
+              "i" : 0,
+              "ks" : 2.087,
+              "main" : false,
+              "nodes" : 4044,
+              "status" : 4
+            }
+          ],
+          "ctx" : 92,
+          "graph" : 3,
+          "n_cb" : 1,
+          "n_nodes" : 4493,
+          "now" : 73637.194413,
+          "t0" : 73637.057727,
+          "unix" : 1790360240.644
+        }
+      ],
+      "config" : "stack without MULTICOL, GLU and STAGE",
+      "droppedStatsLines" : 0,
+      "footprintBytes" : 425335064,
+      "gateReached" : true,
+      "hostEnd" : 73637.19555725002,
+      "hostStart" : 73607.72598512501,
+      "interrupted" : true,
+      "libraryMessages" : [
+
+      ],
+      "lowPowerMode" : false,
+      "memoryAfter" : {
+        "active" : 77880,
+        "appFaults" : 2778184,
+        "appPageins" : 597381,
+        "compressed" : 31043,
+        "free" : 80384,
+        "inactive" : 65428,
+        "pageSize" : 16384,
+        "systemPageins" : 170353513,
+        "systemPageouts" : 2136266,
+        "wired" : 493752
+      },
+      "memoryBefore" : {
+        "active" : 109089,
+        "appFaults" : 2741412,
+        "appPageins" : 592940,
+        "compressed" : 52853,
+        "free" : 36262,
+        "inactive" : 79056,
+        "pageSize" : 16384,
+        "systemPageins" : 170136160,
+        "systemPageouts" : 2135561,
+        "wired" : 471227
+      },
+      "position" : 4,
+      "pressureEvents" : [
+
+      ],
+      "round" : 3,
+      "startedAt" : "2026-09-25T18:16:51Z",
+      "thermalAfter" : "nominal",
+      "thermalBefore" : "nominal",
+      "thermalMax" : "nominal",
+      "thermalWaitSeconds" : 0.0005609989166259766,
+      "tokensPerSecond" : 46.00606902412074,
+      "ubatch" : 512,
+      "warmupCallSeconds" : [
+        6.857232917
+      ]
+    },
+    {
+      "attempt" : 1,
+      "availableBytesAfter" : 6020703976,
+      "availableBytesBefore" : 6320187376,
+      "batteryLevel" : 0.9,
+      "batteryState" : "unplugged",
+      "callSeconds" : [
+        6.435407208,
+        6.619046
+      ],
+      "cell" : "pp512",
+      "commandBuffers" : [
+        {
+          "cbs" : [
+            {
+              "ge" : 606.146,
+              "gs" : 1.517,
+              "i" : 1,
+              "ks" : 0,
+              "main" : true,
+              "nodes" : 463,
+              "status" : 4
+            },
+            {
+              "ge" : 6362.986,
+              "gs" : 606.146,
+              "i" : 0,
+              "ks" : 3.175,
+              "main" : false,
+              "nodes" : 4174,
+              "status" : 4
+            }
+          ],
+          "ctx" : 93,
+          "graph" : 0,
+          "n_cb" : 1,
+          "n_nodes" : 4637,
+          "now" : 73703.678316,
+          "t0" : 73697.314642,
+          "unix" : 1790360307.129
+        },
+        {
+          "cbs" : [
+            {
+              "ge" : 602.691,
+              "gs" : 1.697,
+              "i" : 1,
+              "ks" : 0,
+              "main" : true,
+              "nodes" : 463,
+              "status" : 4
+            },
+            {
+              "ge" : 6428.372,
+              "gs" : 602.691,
+              "i" : 0,
+              "ks" : 2.062,
+              "main" : false,
+              "nodes" : 4174,
+              "status" : 4
+            }
+          ],
+          "ctx" : 93,
+          "graph" : 1,
+          "n_cb" : 1,
+          "n_nodes" : 4637,
+          "now" : 73710.118048,
+          "t0" : 73703.68916,
+          "unix" : 1790360313.569
+        },
+        {
+          "cbs" : [
+            {
+              "ge" : 618.677,
+              "gs" : 1.485,
+              "i" : 1,
+              "ks" : 0,
+              "main" : true,
+              "nodes" : 463,
+              "status" : 4
+            },
+            {
+              "ge" : 6616.361,
+              "gs" : 618.677,
+              "i" : 0,
+              "ks" : 1.826,
+              "main" : false,
+              "nodes" : 4174,
+              "status" : 4
+            }
+          ],
+          "ctx" : 93,
+          "graph" : 2,
+          "n_cb" : 1,
+          "n_nodes" : 4637,
+          "now" : 73716.741552,
+          "t0" : 73710.124679,
+          "unix" : 1790360320.192
+        },
+        {
+          "cbs" : [
+            {
+              "ge" : 14.9,
+              "gs" : 1.41,
+              "i" : 1,
+              "ks" : 0,
+              "main" : true,
+              "nodes" : 463,
+              "status" : 4
+            },
+            {
+              "ge" : 144.64,
+              "gs" : 14.9,
+              "i" : 0,
+              "ks" : 1.324,
+              "main" : false,
+              "nodes" : 4174,
+              "status" : 4
+            }
+          ],
+          "ctx" : 93,
+          "graph" : 3,
+          "n_cb" : 1,
+          "n_nodes" : 4637,
+          "now" : 73716.896553,
+          "t0" : 73716.751499,
+          "unix" : 1790360320.347
+        }
+      ],
+      "config" : "upstream again",
+      "droppedStatsLines" : 0,
+      "footprintBytes" : 422385944,
+      "gateReached" : true,
+      "hostEnd" : 73716.89719016668,
+      "hostStart" : 73697.21407162501,
+      "interrupted" : false,
+      "libraryMessages" : [
+
+      ],
+      "lowPowerMode" : false,
+      "memoryAfter" : {
+        "active" : 109941,
+        "appFaults" : 2795543,
+        "appPageins" : 597520,
+        "compressed" : 26752,
+        "free" : 17209,
+        "inactive" : 100328,
+        "pageSize" : 16384,
+        "systemPageins" : 170386352,
+        "systemPageouts" : 2136266,
+        "wired" : 494257
+      },
+      "memoryBefore" : {
+        "active" : 122636,
+        "appFaults" : 2778396,
+        "appPageins" : 597516,
+        "compressed" : 26790,
+        "free" : 43106,
+        "inactive" : 84914,
+        "pageSize" : 16384,
+        "systemPageins" : 170385846,
+        "systemPageouts" : 2136266,
+        "wired" : 471041
+      },
+      "position" : 5,
+      "pressureEvents" : [
+
+      ],
+      "round" : 3,
+      "startedAt" : "2026-09-25T18:18:20Z",
+      "thermalAfter" : "nominal",
+      "thermalBefore" : "nominal",
+      "thermalMax" : "nominal",
+      "thermalWaitSeconds" : 0.0010529756546020508,
+      "tokensPerSecond" : 78.44066570114745,
+      "ubatch" : 512,
+      "warmupCallSeconds" : [
+        6.369189958
+      ]
+    }
+  ],
+  "seed" : "15473341366196270675",
+  "started" : "2026-09-25T17:06:20Z",
+  "summaries" : [
+    {
+      "cell" : "pp512",
+      "config" : "upstream",
+      "excluded" : 0,
+      "failed" : 3,
+      "failuresByError" : {
+        "MTLCommandBufferErrorDomain 1" : 3
+      },
+      "longestCommandBufferMs" : 6887.622,
+      "medianTokensPerSecond" : 71.79764681131566,
+      "pairedRounds" : 0,
+      "runs" : 6
+    },
+    {
+      "cell" : "pp512",
+      "config" : "upstream again",
+      "excluded" : 0,
+      "failed" : 1,
+      "failuresByError" : {
+        "MTLCommandBufferErrorDomain 1" : 1
+      },
+      "longestCommandBufferMs" : 7635.431,
+      "medianTokensPerSecond" : 72.62637727157244,
+      "pairedRounds" : 3,
+      "ratioMax" : 1.0546235760891747,
+      "ratioMedian" : 0.944355509510272,
+      "ratioMin" : 0.8937466609511013,
+      "runs" : 5
+    },
+    {
+      "cell" : "pp512",
+      "config" : "stack",
+      "excluded" : 0,
+      "failed" : 0,
+      "failuresByError" : {
+
+      },
+      "longestCommandBufferMs" : 10877.451000000001,
+      "medianTokensPerSecond" : 68.28694348642387,
+      "pairedRounds" : 3,
+      "ratioMax" : 1.0092323518082387,
+      "ratioMedian" : 0.9283128212287952,
+      "ratioMin" : 0.6974474265248229,
+      "runs" : 4
+    },
+    {
+      "cell" : "pp512",
+      "config" : "stack without SMALLM_MM",
+      "excluded" : 0,
+      "failed" : 2,
+      "failuresByError" : {
+        "MTLCommandBufferErrorDomain 1" : 2
+      },
+      "longestCommandBufferMs" : 6820.299,
+      "medianTokensPerSecond" : 72.48957588692258,
+      "pairedRounds" : 3,
+      "ratioMax" : 1.005083860674646,
+      "ratioMedian" : 0.9942759715613745,
+      "ratioMin" : 0.9729458413284727,
+      "runs" : 6
+    },
+    {
+      "cell" : "pp512",
+      "config" : "stack without rows mode",
+      "excluded" : 0,
+      "failed" : 1,
+      "failuresByError" : {
+        "MTLCommandBufferErrorDomain 1" : 1
+      },
+      "longestCommandBufferMs" : 7855.979,
+      "medianTokensPerSecond" : 65.37704201211312,
+      "pairedRounds" : 3,
+      "ratioMax" : 0.9556100001229273,
+      "ratioMedian" : 0.9402701661201576,
+      "ratioMin" : 0.9090310838299288,
+      "runs" : 5
+    },
+    {
+      "cell" : "pp512",
+      "config" : "stack without MULTICOL, GLU and STAGE",
+      "excluded" : 1,
+      "failed" : 0,
+      "failuresByError" : {
+
+      },
+      "longestCommandBufferMs" : 9254.201,
+      "medianTokensPerSecond" : 67.50981042840831,
+      "pairedRounds" : 3,
+      "ratioMax" : 0.9402788730085293,
+      "ratioMedian" : 0.9397581339727071,
+      "ratioMin" : 0.7550519662481384,
+      "runs" : 4
+    }
+  ],
+  "thermalWaitLimitSeconds" : 3600,
+  "title" : "PTQ1_0 pp512: the stack with each flag left out",
+  "tool" : "BonsaiBench 3 diagnostics",
+  "waitForNominal" : true
+}

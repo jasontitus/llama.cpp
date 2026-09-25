@@ -79,9 +79,13 @@ within 1.1%, so the M5 numbers stand for the current branch.
     runs, whose calls slowed from 7.3 s to 10.8 s within the run (heat). Measured cleanly, the two flags that
     act at 512 tokens are neutral on the phone (`SMALLM_MM` 0.975x, rows mode 0.988x), and on the M5 the stack
     is 1.046x. The app's diagnostics now measure the full stack at pp512 under the overnight thermal gate.
+  - Measured cool (diagnostics, 2026-09-25), PTQ1_0 pp512 with the stack is 0.938x. The phone's per-op profile
+    traces it to `SMALLM_MM` (the 48-row BF16 projections 3.5x slower than upstream's kernel on the A19 at 512
+    columns) and rows mode (delta-net recurrence +18%); both are small-batch flags to cap by batch width.
   - 512-token prompt runs sometimes fail on the phone with an iOS GPU error, in every arm including plain
-    upstream (evening: about 1 in 4 runs; overnight, starting cool: 4 PTQ1 runs, no Q1 runs); see the app's
-    README.
+    upstream. Cause: the command buffer holding ~90% of the graph is discarded after ~5 s of GPU time. Splitting
+    the graph into 4 command buffers (`GGML_METAL_N_CB=4`, free) or 256-token micro-batches avoided it (0 of
+    20 runs, against 10 of 50 with the default). See the app's README.
 
 ## Results by device
 

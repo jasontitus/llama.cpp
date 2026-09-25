@@ -1,0 +1,897 @@
+{
+  "build" : {
+    "appDirtyFiles" : "0",
+    "frameworkDirtyFiles" : "0",
+    "frameworkRevision" : "928af1613f5169bc38d00973314a8d17cdde160d",
+    "frameworkSHA256" : "6d8390cb7f55a848394b959c528ad1c276569515828c82e1ea4df08708ef7283",
+    "sourceRevision" : "928af1613f5169bc38d00973314a8d17cdde160d"
+  },
+  "cancelled" : false,
+  "cells" : [
+    "pp512"
+  ],
+  "configs" : [
+    {
+      "cbStats" : false,
+      "flags" : {
+
+      },
+      "name" : "upstream, ops profiled",
+      "profileOps" : true,
+      "ubatch" : 512
+    },
+    {
+      "cbStats" : false,
+      "flags" : {
+        "GGML_GDN_ROWS_PLAIN" : "1",
+        "GGML_METAL_PTQ1_GLU" : "1",
+        "GGML_METAL_PTQ1_MULTICOL" : "1",
+        "GGML_METAL_PTQ1_MULTICOL_MAX" : "8",
+        "GGML_METAL_PTQ1_STAGE" : "1",
+        "GGML_METAL_SMALLM_MM" : "1"
+      },
+      "name" : "stack, ops profiled",
+      "profileOps" : true,
+      "ubatch" : 512
+    }
+  ],
+  "cooldownSeconds" : 60,
+  "device" : {
+    "appAvailableMemoryBytes" : 6017836800,
+    "gpuName" : "Apple A19 Pro GPU",
+    "highestAppleFamily" : 10,
+    "lowPowerMode" : false,
+    "machine" : "iPhone18,2",
+    "physicalMemoryBytes" : 12263424000,
+    "systemVersion" : "Version 27.0 (Build 24A437)",
+    "thermalState" : "nominal"
+  },
+  "finished" : "2026-09-25T17:06:20Z",
+  "launchEnvironment" : {
+
+  },
+  "model" : "Ternary-Bonsai-2-27B-PTQ1_0.gguf",
+  "modelBytes" : 5946648928,
+  "modelDescription" : "qwen35 27B PTQ1_0 - 1.75 bpw ternary (group 128)",
+  "modelSHA256Verified" : "53107f530aa52eb00912263ab1ee29bd199261c87cd7b4ad4ca1318c1fe33ee3",
+  "reference" : "upstream, ops profiled",
+  "rounds" : 2,
+  "runs" : [
+    {
+      "attempt" : 1,
+      "availableBytesAfter" : 6032287464,
+      "availableBytesBefore" : 6323546120,
+      "batteryLevel" : 0.9,
+      "batteryState" : "charging",
+      "callSeconds" : [
+        7.064203959
+      ],
+      "cell" : "pp512",
+      "config" : "upstream, ops profiled",
+      "footprintBytes" : 410147096,
+      "gateReached" : true,
+      "hostEnd" : 69152.19050079168,
+      "hostStart" : 69137.70104475002,
+      "interrupted" : false,
+      "libraryMessages" : [
+
+      ],
+      "lowPowerMode" : false,
+      "memoryAfter" : {
+        "active" : 93831,
+        "appFaults" : 1880141,
+        "appPageins" : 490991,
+        "compressed" : 60166,
+        "free" : 8787,
+        "inactive" : 90815,
+        "pageSize" : 16384,
+        "systemPageins" : 150721507,
+        "systemPageouts" : 2030297,
+        "wired" : 494889
+      },
+      "memoryBefore" : {
+        "active" : 90851,
+        "appFaults" : 1863708,
+        "appPageins" : 490991,
+        "compressed" : 61498,
+        "free" : 21881,
+        "inactive" : 102999,
+        "pageSize" : 16384,
+        "systemPageins" : 150714538,
+        "systemPageouts" : 2030166,
+        "wired" : 471259
+      },
+      "opProfile" : {
+        "nodes" : 4637,
+        "ops" : [
+          {
+            "count" : 128,
+            "key" : "MUL_MAT ptq1_0 5120x17408 n=512",
+            "microseconds" : 2642983.1670000004
+          },
+          {
+            "count" : 64,
+            "key" : "MUL_MAT ptq1_0 17408x5120 n=512",
+            "microseconds" : 1323885.9180000005
+          },
+          {
+            "count" : 48,
+            "key" : "MUL_MAT ptq1_0 5120x10240 n=512",
+            "microseconds" : 572957.334
+          },
+          {
+            "count" : 64,
+            "key" : "MUL_MAT ptq1_0 6144x5120 n=512",
+            "microseconds" : 464936.167
+          },
+          {
+            "count" : 48,
+            "key" : "GATED_DELTA_NET f32",
+            "microseconds" : 339933.41599999997
+          },
+          {
+            "count" : 48,
+            "key" : "MUL_MAT ptq1_0 5120x6144 n=512",
+            "microseconds" : 336323.7890000001
+          },
+          {
+            "count" : 16,
+            "key" : "MUL_MAT ptq1_0 5120x12288 n=512",
+            "microseconds" : 230418.665
+          },
+          {
+            "count" : 112,
+            "key" : "SWIGLU f32",
+            "microseconds" : 147323.20700000002
+          },
+          {
+            "count" : 257,
+            "key" : "MUL(+1) f32",
+            "microseconds" : 103950.83099999999
+          },
+          {
+            "count" : 64,
+            "key" : "CONT f32",
+            "microseconds" : 94280.584
+          },
+          {
+            "count" : 128,
+            "key" : "ADD f32",
+            "microseconds" : 59738.542
+          },
+          {
+            "count" : 16,
+            "key" : "FLASH_ATTN_EXT f32",
+            "microseconds" : 47899.124
+          },
+          {
+            "count" : 48,
+            "key" : "CONCAT f32",
+            "microseconds" : 43353.542
+          },
+          {
+            "count" : 32,
+            "key" : "MUL_MAT ptq1_0 5120x1024 n=512",
+            "microseconds" : 38872.168
+          },
+          {
+            "count" : 209,
+            "key" : "RMS_NORM(+1) f32",
+            "microseconds" : 38657.412999999986
+          },
+          {
+            "count" : 48,
+            "key" : "SSM_CONV(+1) f32",
+            "microseconds" : 33855.49800000001
+          },
+          {
+            "count" : 96,
+            "key" : "MUL_MAT bf16 5120x48 n=512",
+            "microseconds" : 30949.045000000006
+          },
+          {
+            "count" : 48,
+            "key" : "L2_NORM f32",
+            "microseconds" : 10564.747999999998
+          },
+          {
+            "count" : 96,
+            "key" : "CPY f32",
+            "microseconds" : 10280.791000000003
+          },
+          {
+            "count" : 1,
+            "key" : "MUL_MAT ptq1_0 5120x248320 n=1",
+            "microseconds" : 5837.875
+          },
+          {
+            "count" : 17,
+            "key" : "MUL f32",
+            "microseconds" : 4721.290999999999
+          },
+          {
+            "count" : 97,
+            "key" : "GET_ROWS f32",
+            "microseconds" : 4541.293999999999
+          },
+          {
+            "count" : 96,
+            "key" : "SCALE f32",
+            "microseconds" : 3892.752
+          },
+          {
+            "count" : 32,
+            "key" : "ROPE f32",
+            "microseconds" : 3011.375
+          },
+          {
+            "count" : 32,
+            "key" : "SET_ROWS f32",
+            "microseconds" : 2756.917
+          },
+          {
+            "count" : 16,
+            "key" : "SIGMOID f32",
+            "microseconds" : 2092.624
+          },
+          {
+            "count" : 1,
+            "key" : "MUL_MAT f32 1024x1024 n=2560",
+            "microseconds" : 758.583
+          }
+        ],
+        "totalMicroseconds" : 6598776.6599999955
+      },
+      "position" : 0,
+      "pressureEvents" : [
+
+      ],
+      "round" : 0,
+      "startedAt" : "2026-09-25T17:02:21Z",
+      "thermalAfter" : "nominal",
+      "thermalBefore" : "nominal",
+      "thermalMax" : "nominal",
+      "thermalWaitSeconds" : 0.005030989646911621,
+      "tokensPerSecond" : 72.4780885392893,
+      "ubatch" : 512,
+      "warmupCallSeconds" : [
+        6.852660917
+      ]
+    },
+    {
+      "attempt" : 1,
+      "availableBytesAfter" : 6026782440,
+      "availableBytesBefore" : 6320891912,
+      "batteryLevel" : 0.9,
+      "batteryState" : "charging",
+      "callSeconds" : [
+        7.430580709
+      ],
+      "cell" : "pp512",
+      "config" : "stack, ops profiled",
+      "footprintBytes" : 415668504,
+      "gateReached" : true,
+      "hostEnd" : 69227.48641783335,
+      "hostStart" : 69212.22898666668,
+      "interrupted" : false,
+      "libraryMessages" : [
+
+      ],
+      "lowPowerMode" : false,
+      "memoryAfter" : {
+        "active" : 77487,
+        "appFaults" : 1897754,
+        "appPageins" : 491094,
+        "compressed" : 93399,
+        "free" : 8098,
+        "inactive" : 73146,
+        "pageSize" : 16384,
+        "systemPageins" : 150892390,
+        "systemPageouts" : 2030726,
+        "wired" : 496358
+      },
+      "memoryBefore" : {
+        "active" : 74980,
+        "appFaults" : 1880323,
+        "appPageins" : 491069,
+        "compressed" : 56480,
+        "free" : 16983,
+        "inactive" : 56295,
+        "pageSize" : 16384,
+        "systemPageins" : 150861045,
+        "systemPageouts" : 2030602,
+        "wired" : 543750
+      },
+      "opProfile" : {
+        "nodes" : 4493,
+        "ops" : [
+          {
+            "count" : 128,
+            "key" : "MUL_MAT ptq1_0 5120x17408 n=512",
+            "microseconds" : 2766995.9589999993
+          },
+          {
+            "count" : 64,
+            "key" : "MUL_MAT ptq1_0 17408x5120 n=512",
+            "microseconds" : 1367709.123
+          },
+          {
+            "count" : 48,
+            "key" : "MUL_MAT ptq1_0 5120x10240 n=512",
+            "microseconds" : 594920.5430000001
+          },
+          {
+            "count" : 64,
+            "key" : "MUL_MAT ptq1_0 6144x5120 n=512",
+            "microseconds" : 474589.6649999999
+          },
+          {
+            "count" : 48,
+            "key" : "GATED_DELTA_NET f32",
+            "microseconds" : 408322.87700000004
+          },
+          {
+            "count" : 48,
+            "key" : "MUL_MAT ptq1_0 5120x6144 n=512",
+            "microseconds" : 348900.58199999994
+          },
+          {
+            "count" : 16,
+            "key" : "MUL_MAT ptq1_0 5120x12288 n=512",
+            "microseconds" : 240170.12300000002
+          },
+          {
+            "count" : 112,
+            "key" : "SWIGLU f32",
+            "microseconds" : 137469.71300000002
+          },
+          {
+            "count" : 96,
+            "key" : "MUL_MAT bf16 5120x48 n=512",
+            "microseconds" : 117956.54400000001
+          },
+          {
+            "count" : 257,
+            "key" : "MUL(+1) f32",
+            "microseconds" : 104340.043
+          },
+          {
+            "count" : 64,
+            "key" : "CONT f32",
+            "microseconds" : 98248.95999999999
+          },
+          {
+            "count" : 128,
+            "key" : "ADD f32",
+            "microseconds" : 61440.41900000001
+          },
+          {
+            "count" : 16,
+            "key" : "FLASH_ATTN_EXT f32",
+            "microseconds" : 49858.91900000001
+          },
+          {
+            "count" : 48,
+            "key" : "CONCAT f32",
+            "microseconds" : 44535.918
+          },
+          {
+            "count" : 209,
+            "key" : "RMS_NORM(+1) f32",
+            "microseconds" : 43033.208
+          },
+          {
+            "count" : 32,
+            "key" : "MUL_MAT ptq1_0 5120x1024 n=512",
+            "microseconds" : 40809.043
+          },
+          {
+            "count" : 48,
+            "key" : "SSM_CONV(+1) f32",
+            "microseconds" : 34296.75
+          },
+          {
+            "count" : 48,
+            "key" : "L2_NORM f32",
+            "microseconds" : 11129.084000000003
+          },
+          {
+            "count" : 1,
+            "key" : "MUL_MAT ptq1_0 5120x248320 n=1",
+            "microseconds" : 5574.875
+          },
+          {
+            "count" : 80,
+            "key" : "SET_ROWS f32",
+            "microseconds" : 5570.500000000002
+          },
+          {
+            "count" : 17,
+            "key" : "MUL f32",
+            "microseconds" : 4873.751
+          },
+          {
+            "count" : 96,
+            "key" : "SCALE f32",
+            "microseconds" : 3850.917999999999
+          },
+          {
+            "count" : 32,
+            "key" : "ROPE f32",
+            "microseconds" : 3271.332
+          },
+          {
+            "count" : 16,
+            "key" : "SIGMOID f32",
+            "microseconds" : 2215.3320000000003
+          },
+          {
+            "count" : 48,
+            "key" : "CPY f32",
+            "microseconds" : 1184.084
+          },
+          {
+            "count" : 1,
+            "key" : "MUL_MAT f32 1024x1024 n=2560",
+            "microseconds" : 806.333
+          },
+          {
+            "count" : 49,
+            "key" : "GET_ROWS f32",
+            "microseconds" : 242.084
+          }
+        ],
+        "totalMicroseconds" : 6972316.682000001
+      },
+      "position" : 1,
+      "pressureEvents" : [
+
+      ],
+      "round" : 0,
+      "startedAt" : "2026-09-25T17:03:35Z",
+      "thermalAfter" : "nominal",
+      "thermalBefore" : "nominal",
+      "thermalMax" : "nominal",
+      "thermalWaitSeconds" : 0.005102038383483887,
+      "tokensPerSecond" : 68.90443964626614,
+      "ubatch" : 512,
+      "warmupCallSeconds" : [
+        7.276850042
+      ]
+    },
+    {
+      "attempt" : 1,
+      "availableBytesAfter" : 6030141160,
+      "availableBytesBefore" : 6320039944,
+      "batteryLevel" : 0.9,
+      "batteryState" : "charging",
+      "callSeconds" : [
+        7.185878917
+      ],
+      "cell" : "pp512",
+      "config" : "stack, ops profiled",
+      "footprintBytes" : 412309784,
+      "gateReached" : true,
+      "hostEnd" : 69302.27684775002,
+      "hostStart" : 69287.52289004168,
+      "interrupted" : false,
+      "libraryMessages" : [
+
+      ],
+      "lowPowerMode" : false,
+      "memoryAfter" : {
+        "active" : 97665,
+        "appFaults" : 1915443,
+        "appPageins" : 491389,
+        "compressed" : 53596,
+        "free" : 18914,
+        "inactive" : 84555,
+        "pageSize" : 16384,
+        "systemPageins" : 150912837,
+        "systemPageouts" : 2030726,
+        "wired" : 493758
+      },
+      "memoryBefore" : {
+        "active" : 94504,
+        "appFaults" : 1898819,
+        "appPageins" : 491389,
+        "compressed" : 54542,
+        "free" : 48018,
+        "inactive" : 80695,
+        "pageSize" : 16384,
+        "systemPageins" : 150910103,
+        "systemPageouts" : 2030726,
+        "wired" : 470729
+      },
+      "opProfile" : {
+        "nodes" : 4493,
+        "ops" : [
+          {
+            "count" : 128,
+            "key" : "MUL_MAT ptq1_0 5120x17408 n=512",
+            "microseconds" : 2688296.4189999998
+          },
+          {
+            "count" : 64,
+            "key" : "MUL_MAT ptq1_0 17408x5120 n=512",
+            "microseconds" : 1307677.0829999999
+          },
+          {
+            "count" : 48,
+            "key" : "MUL_MAT ptq1_0 5120x10240 n=512",
+            "microseconds" : 585952.8330000001
+          },
+          {
+            "count" : 64,
+            "key" : "MUL_MAT ptq1_0 6144x5120 n=512",
+            "microseconds" : 468637.1229999999
+          },
+          {
+            "count" : 48,
+            "key" : "GATED_DELTA_NET f32",
+            "microseconds" : 390520.12500000006
+          },
+          {
+            "count" : 48,
+            "key" : "MUL_MAT ptq1_0 5120x6144 n=512",
+            "microseconds" : 346365.876
+          },
+          {
+            "count" : 16,
+            "key" : "MUL_MAT ptq1_0 5120x12288 n=512",
+            "microseconds" : 234874.45800000004
+          },
+          {
+            "count" : 112,
+            "key" : "SWIGLU f32",
+            "microseconds" : 133070.78799999997
+          },
+          {
+            "count" : 96,
+            "key" : "MUL_MAT bf16 5120x48 n=512",
+            "microseconds" : 103016.291
+          },
+          {
+            "count" : 257,
+            "key" : "MUL(+1) f32",
+            "microseconds" : 99930.833
+          },
+          {
+            "count" : 64,
+            "key" : "CONT f32",
+            "microseconds" : 91625.375
+          },
+          {
+            "count" : 128,
+            "key" : "ADD f32",
+            "microseconds" : 59886.587000000014
+          },
+          {
+            "count" : 16,
+            "key" : "FLASH_ATTN_EXT f32",
+            "microseconds" : 45891.209
+          },
+          {
+            "count" : 48,
+            "key" : "CONCAT f32",
+            "microseconds" : 42900.459
+          },
+          {
+            "count" : 209,
+            "key" : "RMS_NORM(+1) f32",
+            "microseconds" : 40802.874
+          },
+          {
+            "count" : 32,
+            "key" : "MUL_MAT ptq1_0 5120x1024 n=512",
+            "microseconds" : 39619.20799999999
+          },
+          {
+            "count" : 48,
+            "key" : "SSM_CONV(+1) f32",
+            "microseconds" : 33255.375
+          },
+          {
+            "count" : 48,
+            "key" : "L2_NORM f32",
+            "microseconds" : 10761.167000000001
+          },
+          {
+            "count" : 1,
+            "key" : "MUL_MAT ptq1_0 5120x248320 n=1",
+            "microseconds" : 5339.417
+          },
+          {
+            "count" : 80,
+            "key" : "SET_ROWS f32",
+            "microseconds" : 5108.000999999999
+          },
+          {
+            "count" : 17,
+            "key" : "MUL f32",
+            "microseconds" : 4347.751
+          },
+          {
+            "count" : 96,
+            "key" : "SCALE f32",
+            "microseconds" : 3883.2900000000004
+          },
+          {
+            "count" : 32,
+            "key" : "ROPE f32",
+            "microseconds" : 3005.416
+          },
+          {
+            "count" : 16,
+            "key" : "SIGMOID f32",
+            "microseconds" : 1654.0429999999997
+          },
+          {
+            "count" : 48,
+            "key" : "CPY f32",
+            "microseconds" : 1214.4159999999997
+          },
+          {
+            "count" : 1,
+            "key" : "MUL_MAT f32 1024x1024 n=2560",
+            "microseconds" : 595.375
+          },
+          {
+            "count" : 49,
+            "key" : "GET_ROWS f32",
+            "microseconds" : 225.5
+          }
+        ],
+        "totalMicroseconds" : 6748457.2919999985
+      },
+      "position" : 0,
+      "pressureEvents" : [
+
+      ],
+      "round" : 1,
+      "startedAt" : "2026-09-25T17:04:50Z",
+      "thermalAfter" : "nominal",
+      "thermalBefore" : "nominal",
+      "thermalMax" : "nominal",
+      "thermalWaitSeconds" : 0.0051010847091674805,
+      "tokensPerSecond" : 71.25085266726879,
+      "ubatch" : 512,
+      "warmupCallSeconds" : [
+        7.055890458
+      ]
+    },
+    {
+      "attempt" : 1,
+      "availableBytesAfter" : 6024980200,
+      "availableBytesBefore" : 6321154056,
+      "batteryLevel" : 0.9,
+      "batteryState" : "charging",
+      "callSeconds" : [
+        7.071191334
+      ],
+      "cell" : "pp512",
+      "config" : "upstream, ops profiled",
+      "footprintBytes" : 417372440,
+      "gateReached" : true,
+      "hostEnd" : 69377.14031179168,
+      "hostStart" : 69362.29903762501,
+      "interrupted" : false,
+      "libraryMessages" : [
+
+      ],
+      "lowPowerMode" : false,
+      "memoryAfter" : {
+        "active" : 93480,
+        "appFaults" : 1933753,
+        "appPageins" : 493077,
+        "compressed" : 58484,
+        "free" : 12988,
+        "inactive" : 90315,
+        "pageSize" : 16384,
+        "systemPageins" : 151019873,
+        "systemPageouts" : 2032074,
+        "wired" : 493221
+      },
+      "memoryBefore" : {
+        "active" : 268424,
+        "appFaults" : 1915605,
+        "appPageins" : 491395,
+        "compressed" : 61519,
+        "free" : 59271,
+        "inactive" : 251326,
+        "pageSize" : 16384,
+        "systemPageins" : 150977028,
+        "systemPageouts" : 2032071,
+        "wired" : 107948
+      },
+      "opProfile" : {
+        "nodes" : 4637,
+        "ops" : [
+          {
+            "count" : 128,
+            "key" : "MUL_MAT ptq1_0 5120x17408 n=512",
+            "microseconds" : 2651933.748000001
+          },
+          {
+            "count" : 64,
+            "key" : "MUL_MAT ptq1_0 17408x5120 n=512",
+            "microseconds" : 1332054.75
+          },
+          {
+            "count" : 48,
+            "key" : "MUL_MAT ptq1_0 5120x10240 n=512",
+            "microseconds" : 573309.5460000001
+          },
+          {
+            "count" : 64,
+            "key" : "MUL_MAT ptq1_0 6144x5120 n=512",
+            "microseconds" : 463314.8729999999
+          },
+          {
+            "count" : 48,
+            "key" : "GATED_DELTA_NET f32",
+            "microseconds" : 338663.79199999996
+          },
+          {
+            "count" : 48,
+            "key" : "MUL_MAT ptq1_0 5120x6144 n=512",
+            "microseconds" : 337128.997
+          },
+          {
+            "count" : 16,
+            "key" : "MUL_MAT ptq1_0 5120x12288 n=512",
+            "microseconds" : 231904.16700000002
+          },
+          {
+            "count" : 112,
+            "key" : "SWIGLU f32",
+            "microseconds" : 146196.45399999997
+          },
+          {
+            "count" : 257,
+            "key" : "MUL(+1) f32",
+            "microseconds" : 103917.245
+          },
+          {
+            "count" : 64,
+            "key" : "CONT f32",
+            "microseconds" : 94196.08800000002
+          },
+          {
+            "count" : 128,
+            "key" : "ADD f32",
+            "microseconds" : 59454.919
+          },
+          {
+            "count" : 16,
+            "key" : "FLASH_ATTN_EXT f32",
+            "microseconds" : 47693.833
+          },
+          {
+            "count" : 48,
+            "key" : "CONCAT f32",
+            "microseconds" : 43492.373999999996
+          },
+          {
+            "count" : 209,
+            "key" : "RMS_NORM(+1) f32",
+            "microseconds" : 39324.46100000001
+          },
+          {
+            "count" : 32,
+            "key" : "MUL_MAT ptq1_0 5120x1024 n=512",
+            "microseconds" : 38945.125
+          },
+          {
+            "count" : 48,
+            "key" : "SSM_CONV(+1) f32",
+            "microseconds" : 34775.12700000001
+          },
+          {
+            "count" : 96,
+            "key" : "MUL_MAT bf16 5120x48 n=512",
+            "microseconds" : 32327.709
+          },
+          {
+            "count" : 48,
+            "key" : "L2_NORM f32",
+            "microseconds" : 10933.415
+          },
+          {
+            "count" : 96,
+            "key" : "CPY f32",
+            "microseconds" : 10402.3
+          },
+          {
+            "count" : 1,
+            "key" : "MUL_MAT ptq1_0 5120x248320 n=1",
+            "microseconds" : 5315.25
+          },
+          {
+            "count" : 97,
+            "key" : "GET_ROWS f32",
+            "microseconds" : 4750.167
+          },
+          {
+            "count" : 17,
+            "key" : "MUL f32",
+            "microseconds" : 4747.2919999999995
+          },
+          {
+            "count" : 96,
+            "key" : "SCALE f32",
+            "microseconds" : 3826.8730000000005
+          },
+          {
+            "count" : 32,
+            "key" : "ROPE f32",
+            "microseconds" : 3143.9170000000004
+          },
+          {
+            "count" : 32,
+            "key" : "SET_ROWS f32",
+            "microseconds" : 2856.917
+          },
+          {
+            "count" : 16,
+            "key" : "SIGMOID f32",
+            "microseconds" : 1918.667
+          },
+          {
+            "count" : 1,
+            "key" : "MUL_MAT f32 1024x1024 n=2560",
+            "microseconds" : 725.25
+          }
+        ],
+        "totalMicroseconds" : 6617253.255999998
+      },
+      "position" : 1,
+      "pressureEvents" : [
+
+      ],
+      "round" : 1,
+      "startedAt" : "2026-09-25T17:06:05Z",
+      "thermalAfter" : "nominal",
+      "thermalBefore" : "nominal",
+      "thermalMax" : "nominal",
+      "thermalWaitSeconds" : 0.002995014190673828,
+      "tokensPerSecond" : 72.40646954894008,
+      "ubatch" : 512,
+      "warmupCallSeconds" : [
+        7.207476167
+      ]
+    }
+  ],
+  "seed" : "6141202790134779376",
+  "started" : "2026-09-25T17:01:21Z",
+  "summaries" : [
+    {
+      "cell" : "pp512",
+      "config" : "upstream, ops profiled",
+      "excluded" : 0,
+      "failed" : 0,
+      "failuresByError" : {
+
+      },
+      "medianTokensPerSecond" : 72.44227904411468,
+      "pairedRounds" : 0,
+      "runs" : 2
+    },
+    {
+      "cell" : "pp512",
+      "config" : "stack, ops profiled",
+      "excluded" : 0,
+      "failed" : 0,
+      "failuresByError" : {
+
+      },
+      "medianTokensPerSecond" : 70.07764615676746,
+      "pairedRounds" : 0,
+      "runs" : 2
+    }
+  ],
+  "thermalWaitLimitSeconds" : 3600,
+  "title" : "PTQ1_0 pp512: GPU time of every op, upstream and stack",
+  "tool" : "BonsaiBench 3 diagnostics",
+  "waitForNominal" : true
+}

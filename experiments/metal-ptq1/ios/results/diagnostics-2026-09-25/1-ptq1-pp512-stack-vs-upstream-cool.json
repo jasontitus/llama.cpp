@@ -1,0 +1,640 @@
+{
+  "armA" : {
+    "draft" : 0,
+    "flags" : {
+
+    },
+    "name" : "upstream"
+  },
+  "armB" : {
+    "draft" : 0,
+    "flags" : {
+      "GGML_GDN_ROWS_PLAIN" : "1",
+      "GGML_METAL_PTQ1_GLU" : "1",
+      "GGML_METAL_PTQ1_MULTICOL" : "1",
+      "GGML_METAL_PTQ1_MULTICOL_MAX" : "8",
+      "GGML_METAL_PTQ1_STAGE" : "1",
+      "GGML_METAL_SMALLM_MM" : "1"
+    },
+    "name" : "M5 stack (PTQ1)"
+  },
+  "build" : {
+    "appDirtyFiles" : "0",
+    "frameworkDirtyFiles" : "0",
+    "frameworkRevision" : "928af1613f5169bc38d00973314a8d17cdde160d",
+    "frameworkSHA256" : "6d8390cb7f55a848394b959c528ad1c276569515828c82e1ea4df08708ef7283",
+    "sourceRevision" : "928af1613f5169bc38d00973314a8d17cdde160d"
+  },
+  "cancelled" : false,
+  "cooldownSeconds" : 60,
+  "cycles" : 3,
+  "device" : {
+    "appAvailableMemoryBytes" : 6303246368,
+    "gpuName" : "Apple A19 Pro GPU",
+    "highestAppleFamily" : 10,
+    "lowPowerMode" : false,
+    "machine" : "iPhone18,2",
+    "physicalMemoryBytes" : 12263424000,
+    "systemVersion" : "Version 27.0 (Build 24A437)",
+    "thermalState" : "nominal"
+  },
+  "finished" : "2026-09-25T15:30:56Z",
+  "launchEnvironment" : {
+
+  },
+  "minAvailableBytes" : 6019213032,
+  "model" : "Ternary-Bonsai-2-27B-PTQ1_0.gguf",
+  "modelBytes" : 5946648928,
+  "modelDescription" : "qwen35 27B PTQ1_0 - 1.75 bpw ternary (group 128)",
+  "modelSHA256Verified" : "53107f530aa52eb00912263ab1ee29bd199261c87cd7b4ad4ca1318c1fe33ee3",
+  "peakFootprintBytes" : 423237912,
+  "prompt" : "<|im_start|>user\nWrite a Python function that merges two sorted lists into one sorted list, with a docstring.<|im_end|>\n<|im_start|>assistant\n<think>\n\n<\/think>\n\n",
+  "promptUbatch" : 512,
+  "quartets" : [
+    {
+      "accepted" : true,
+      "attempt" : 1,
+      "cell" : "pp512",
+      "cycle" : 0,
+      "observations" : [
+        {
+          "arm" : "upstream",
+          "availableBytes" : 6019213032,
+          "callSeconds" : [
+            6.901118083,
+            7.357238166
+          ],
+          "footprintBytes" : 423237912,
+          "gateReached" : true,
+          "interrupted" : false,
+          "libraryMessages" : [
+            "pipeline: kernel_mul_mm_ptq1_0_f32",
+            "pipeline: kernel_mul_mm_bf16_f32"
+          ],
+          "position" : 0,
+          "startedAt" : "2026-09-25T14:36:33Z",
+          "thermalAfter" : "nominal",
+          "thermalBefore" : "nominal",
+          "thermalMax" : "nominal",
+          "thermalWaitSeconds" : 0.0014469623565673828,
+          "tokensPerSecond" : 71.81753507328851,
+          "warmupCallSeconds" : [
+            6.443337209
+          ]
+        },
+        {
+          "arm" : "M5 stack (PTQ1)",
+          "availableBytes" : 6020081384,
+          "callSeconds" : [
+            7.45755825,
+            7.997788083
+          ],
+          "footprintBytes" : 422369560,
+          "gateReached" : true,
+          "interrupted" : false,
+          "libraryMessages" : [
+
+          ],
+          "position" : 1,
+          "startedAt" : "2026-09-25T14:37:54Z",
+          "thermalAfter" : "nominal",
+          "thermalBefore" : "nominal",
+          "thermalMax" : "nominal",
+          "thermalWaitSeconds" : 0.0012170076370239258,
+          "tokensPerSecond" : 66.25539007259722,
+          "warmupCallSeconds" : [
+            6.819652792
+          ]
+        },
+        {
+          "arm" : "M5 stack (PTQ1)",
+          "availableBytes" : 6020818664,
+          "callSeconds" : [
+            7.159144333,
+            7.599065708
+          ],
+          "footprintBytes" : 421632280,
+          "gateReached" : true,
+          "interrupted" : false,
+          "libraryMessages" : [
+
+          ],
+          "position" : 2,
+          "startedAt" : "2026-09-25T14:41:42Z",
+          "thermalAfter" : "nominal",
+          "thermalBefore" : "nominal",
+          "thermalMax" : "nominal",
+          "thermalWaitSeconds" : 85.06247007846832,
+          "tokensPerSecond" : 69.38510816387695,
+          "warmupCallSeconds" : [
+            6.661685375
+          ]
+        },
+        {
+          "arm" : "upstream",
+          "availableBytes" : 6020196072,
+          "callSeconds" : [
+            7.031919542,
+            7.412673875
+          ],
+          "footprintBytes" : 422254872,
+          "gateReached" : true,
+          "interrupted" : false,
+          "libraryMessages" : [
+
+          ],
+          "position" : 3,
+          "startedAt" : "2026-09-25T14:43:04Z",
+          "thermalAfter" : "nominal",
+          "thermalBefore" : "nominal",
+          "thermalMax" : "nominal",
+          "thermalWaitSeconds" : 0.005013942718505859,
+          "tokensPerSecond" : 70.89157655312356,
+          "warmupCallSeconds" : [
+            6.46226475
+          ]
+        }
+      ],
+      "ratio" : 0.9504683806844632,
+      "spread" : 1.0472371845951014
+    },
+    {
+      "accepted" : false,
+      "attempt" : 1,
+      "cell" : "pp512",
+      "cycle" : 1,
+      "observations" : [
+        {
+          "arm" : "upstream",
+          "availableBytes" : 6024799976,
+          "callSeconds" : [
+            6.957157625,
+            7.374968167
+          ],
+          "footprintBytes" : 417650968,
+          "gateReached" : true,
+          "interrupted" : false,
+          "libraryMessages" : [
+
+          ],
+          "position" : 0,
+          "startedAt" : "2026-09-25T14:44:25Z",
+          "thermalAfter" : "nominal",
+          "thermalBefore" : "nominal",
+          "thermalMax" : "nominal",
+          "thermalWaitSeconds" : 0.003919005393981934,
+          "tokensPerSecond" : 71.44787973962545,
+          "warmupCallSeconds" : [
+            6.478074458
+          ]
+        },
+        {
+          "arm" : "M5 stack (PTQ1)",
+          "availableBytes" : 6020703976,
+          "callSeconds" : [
+            7.409606208,
+            7.917052792
+          ],
+          "footprintBytes" : 421746968,
+          "gateReached" : true,
+          "interrupted" : false,
+          "libraryMessages" : [
+
+          ],
+          "position" : 1,
+          "startedAt" : "2026-09-25T14:47:41Z",
+          "thermalAfter" : "nominal",
+          "thermalBefore" : "nominal",
+          "thermalMax" : "nominal",
+          "thermalWaitSeconds" : 55.03739094734192,
+          "tokensPerSecond" : 66.81169066265518,
+          "warmupCallSeconds" : [
+            6.765217208
+          ]
+        },
+        {
+          "arm" : "M5 stack (PTQ1)",
+          "availableBytes" : 6020769512,
+          "callSeconds" : [
+            7.814584208,
+            9.541732875
+          ],
+          "footprintBytes" : 421681432,
+          "gateReached" : true,
+          "interrupted" : false,
+          "libraryMessages" : [
+
+          ],
+          "position" : 2,
+          "startedAt" : "2026-09-25T14:49:03Z",
+          "thermalAfter" : "nominal",
+          "thermalBefore" : "nominal",
+          "thermalMax" : "nominal",
+          "thermalWaitSeconds" : 0.004459977149963379,
+          "tokensPerSecond" : 58.99869166385406,
+          "warmupCallSeconds" : [
+            6.895714083
+          ]
+        },
+        {
+          "arm" : "upstream",
+          "availableBytes" : 0,
+          "callSeconds" : [
+            5.647538292
+          ],
+          "error" : "llama_decode failed (-3)",
+          "footprintBytes" : 0,
+          "gateReached" : true,
+          "interrupted" : false,
+          "libraryMessages" : [
+            "ggml_metal_synchronize: error: command buffer 0 failed with status 5",
+            "error: Discarded (victim of GPU error\/recovery) (00000005:kIOGPUCommandBufferCallbackErrorInnocentVictim)",
+            "ggml_metal_synchronize: error: command buffer 0 failed with status 5",
+            "error: Discarded (victim of GPU error\/recovery) (00000005:kIOGPUCommandBufferCallbackErrorInnocentVictim)",
+            "ggml_metal_synchronize: error: command buffer 0 failed with status 5",
+            "error: Discarded (victim of GPU error\/recovery) (00000005:kIOGPUCommandBufferCallbackErrorInnocentVictim)",
+            "ggml_metal_synchronize: error: command buffer 0 failed with status 5",
+            "error: Discarded (victim of GPU error\/recovery) (00000005:kIOGPUCommandBufferCallbackErrorInnocentVictim)",
+            "ggml_metal_synchronize: error: command buffer 0 failed with status 5",
+            "error: Discarded (victim of GPU error\/recovery) (00000005:kIOGPUCommandBufferCallbackErrorInnocentVictim)",
+            "ggml_metal_synchronize: error: command buffer 0 failed with status 5",
+            "error: Discarded (victim of GPU error\/recovery) (00000005:kIOGPUCommandBufferCallbackErrorInnocentVictim)",
+            "ggml_metal_synchronize: error: command buffer 0 failed with status 5",
+            "error: Discarded (victim of GPU error\/recovery) (00000005:kIOGPUCommandBufferCallbackErrorInnocentVictim)",
+            "ggml_metal_synchronize: error: command buffer 0 failed with status 5",
+            "error: Discarded (victim of GPU error\/recovery) (00000005:kIOGPUCommandBufferCallbackErrorInnocentVictim)",
+            "ggml_metal_synchronize: error: command buffer 0 failed with status 5",
+            "error: Discarded (victim of GPU error\/recovery) (00000005:kIOGPUCommandBufferCallbackErrorInnocentVictim)",
+            "ggml_metal_synchronize: error: command buffer 0 failed with status 5",
+            "error: Discarded (victim of GPU error\/recovery) (00000005:kIOGPUCommandBufferCallbackErrorInnocentVictim)",
+            "ggml_metal_synchronize: error: command buffer 0 failed with status 5",
+            "error: Discarded (victim of GPU error\/recovery) (00000005:kIOGPUCommandBufferCallbackErrorInnocentVictim)",
+            "ggml_metal_synchronize: error: command buffer 0 failed with status 5",
+            "error: Discarded (victim of GPU error\/recovery) (00000005:kIOGPUCommandBufferCallbackErrorInnocentVictim)",
+            "ggml_metal_graph_compute: backend is in error state from a previous command buffer failure - recreate the backend to recover",
+            "graph_compute: ggml_backend_sched_graph_compute_async failed with error -1",
+            "process_ubatch: failed to compute graph, compute status: -1",
+            "decode: removing memory module entries for seq_id = 0, pos = [0, +inf)",
+            "llama_decode: failed to decode, ret = -3",
+            "ggml_metal_synchronize: error: command buffer 0 failed with status 5",
+            "error: Discarded (victim of GPU error\/recovery) (00000005:kIOGPUCommandBufferCallbackErrorInnocentVictim)",
+            "ggml_metal_synchronize: error: command buffer 0 failed with status 5",
+            "error: Discarded (victim of GPU error\/recovery) (00000005:kIOGPUCommandBufferCallbackErrorInnocentVictim)"
+          ],
+          "position" : 3,
+          "startedAt" : "2026-09-25T14:56:08Z",
+          "thermalAfter" : "nominal",
+          "thermalBefore" : "nominal",
+          "thermalMax" : "nominal",
+          "thermalWaitSeconds" : 280.21594297885895,
+          "tokensPerSecond" : 0,
+          "warmupCallSeconds" : [
+            7.738591375
+          ]
+        }
+      ],
+      "ratio" : "nan",
+      "rejectReason" : "an observation failed",
+      "spread" : "inf"
+    },
+    {
+      "accepted" : false,
+      "attempt" : 2,
+      "cell" : "pp512",
+      "cycle" : 1,
+      "observations" : [
+        {
+          "arm" : "upstream",
+          "availableBytes" : 6019704552,
+          "callSeconds" : [
+            10.036195959,
+            11.412769417
+          ],
+          "footprintBytes" : 422746392,
+          "gateReached" : true,
+          "interrupted" : false,
+          "libraryMessages" : [
+
+          ],
+          "position" : 0,
+          "startedAt" : "2026-09-25T14:57:22Z",
+          "thermalAfter" : "fair",
+          "thermalBefore" : "nominal",
+          "thermalMax" : "fair",
+          "thermalWaitSeconds" : 0.0005639791488647461,
+          "tokensPerSecond" : 47.74123049990045,
+          "warmupCallSeconds" : [
+            8.519028834
+          ]
+        },
+        {
+          "arm" : "M5 stack (PTQ1)",
+          "availableBytes" : 6020507368,
+          "callSeconds" : [
+            7.410096167,
+            7.94870325
+          ],
+          "footprintBytes" : 421943576,
+          "gateReached" : true,
+          "interrupted" : false,
+          "libraryMessages" : [
+
+          ],
+          "position" : 1,
+          "startedAt" : "2026-09-25T15:07:18Z",
+          "thermalAfter" : "nominal",
+          "thermalBefore" : "nominal",
+          "thermalMax" : "nominal",
+          "thermalWaitSeconds" : 505.3820400238037,
+          "tokensPerSecond" : 66.67187793771029,
+          "warmupCallSeconds" : [
+            9.305701083
+          ]
+        },
+        {
+          "arm" : "M5 stack (PTQ1)",
+          "availableBytes" : 6020540136,
+          "callSeconds" : [
+            7.359479625,
+            7.768611458
+          ],
+          "footprintBytes" : 421910808,
+          "gateReached" : true,
+          "interrupted" : false,
+          "libraryMessages" : [
+
+          ],
+          "position" : 2,
+          "startedAt" : "2026-09-25T15:13:38Z",
+          "thermalAfter" : "nominal",
+          "thermalBefore" : "nominal",
+          "thermalMax" : "nominal",
+          "thermalWaitSeconds" : 235.1900120973587,
+          "tokensPerSecond" : 67.68864586958411,
+          "warmupCallSeconds" : [
+            8.592414417
+          ]
+        },
+        {
+          "arm" : "upstream",
+          "availableBytes" : 6019426024,
+          "callSeconds" : [
+            7.016902083,
+            7.615140417
+          ],
+          "footprintBytes" : 423024920,
+          "gateReached" : true,
+          "interrupted" : false,
+          "libraryMessages" : [
+
+          ],
+          "position" : 3,
+          "startedAt" : "2026-09-25T15:15:02Z",
+          "thermalAfter" : "nominal",
+          "thermalBefore" : "nominal",
+          "thermalMax" : "nominal",
+          "thermalWaitSeconds" : 0.005086064338684082,
+          "tokensPerSecond" : 69.98339432105941,
+          "warmupCallSeconds" : [
+            6.565339791
+          ]
+        }
+      ],
+      "ratio" : 1.141311972848799,
+      "rejectReason" : "spread 1.466 over the gate",
+      "spread" : 1.4658900407103108
+    },
+    {
+      "accepted" : true,
+      "attempt" : 3,
+      "cell" : "pp512",
+      "cycle" : 1,
+      "observations" : [
+        {
+          "arm" : "upstream",
+          "availableBytes" : 6019917544,
+          "callSeconds" : [
+            6.679384417,
+            7.054229208
+          ],
+          "footprintBytes" : 422533400,
+          "gateReached" : true,
+          "interrupted" : false,
+          "libraryMessages" : [
+
+          ],
+          "position" : 0,
+          "startedAt" : "2026-09-25T15:17:44Z",
+          "thermalAfter" : "nominal",
+          "thermalBefore" : "nominal",
+          "thermalMax" : "nominal",
+          "thermalWaitSeconds" : 20.029451966285706,
+          "tokensPerSecond" : 74.56158502493184,
+          "warmupCallSeconds" : [
+            6.4027625
+          ]
+        },
+        {
+          "arm" : "M5 stack (PTQ1)",
+          "availableBytes" : 6020835048,
+          "callSeconds" : [
+            7.521615084,
+            7.760244584
+          ],
+          "footprintBytes" : 421615896,
+          "gateReached" : true,
+          "interrupted" : false,
+          "libraryMessages" : [
+
+          ],
+          "position" : 1,
+          "startedAt" : "2026-09-25T15:19:04Z",
+          "thermalAfter" : "nominal",
+          "thermalBefore" : "nominal",
+          "thermalMax" : "nominal",
+          "thermalWaitSeconds" : 0.005017995834350586,
+          "tokensPerSecond" : 67.00755158380636,
+          "warmupCallSeconds" : [
+            6.7694465
+          ]
+        },
+        {
+          "arm" : "M5 stack (PTQ1)",
+          "availableBytes" : 6020671208,
+          "callSeconds" : [
+            7.055058417,
+            7.37291575
+          ],
+          "footprintBytes" : 421779736,
+          "gateReached" : true,
+          "interrupted" : false,
+          "libraryMessages" : [
+
+          ],
+          "position" : 2,
+          "startedAt" : "2026-09-25T15:20:26Z",
+          "thermalAfter" : "nominal",
+          "thermalBefore" : "nominal",
+          "thermalMax" : "nominal",
+          "thermalWaitSeconds" : 0.0047550201416015625,
+          "tokensPerSecond" : 70.97323492178943,
+          "warmupCallSeconds" : [
+            6.631167125
+          ]
+        },
+        {
+          "arm" : "upstream",
+          "availableBytes" : 6019704552,
+          "callSeconds" : [
+            6.804171291,
+            7.102328958
+          ],
+          "footprintBytes" : 422746392,
+          "gateReached" : true,
+          "interrupted" : false,
+          "libraryMessages" : [
+
+          ],
+          "position" : 3,
+          "startedAt" : "2026-09-25T15:21:48Z",
+          "thermalAfter" : "nominal",
+          "thermalBefore" : "nominal",
+          "thermalMax" : "nominal",
+          "thermalWaitSeconds" : 0.0013419389724731445,
+          "tokensPerSecond" : 73.63462996907757,
+          "warmupCallSeconds" : [
+            6.53600425
+          ]
+        }
+      ],
+      "ratio" : 0.93106822270173,
+      "spread" : 1.0591826330652179
+    },
+    {
+      "accepted" : true,
+      "attempt" : 1,
+      "cell" : "pp512",
+      "cycle" : 2,
+      "observations" : [
+        {
+          "arm" : "upstream",
+          "availableBytes" : 6019589864,
+          "callSeconds" : [
+            6.863735375,
+            8.089648792
+          ],
+          "footprintBytes" : 422861080,
+          "gateReached" : true,
+          "interrupted" : false,
+          "libraryMessages" : [
+
+          ],
+          "position" : 0,
+          "startedAt" : "2026-09-25T15:23:09Z",
+          "thermalAfter" : "nominal",
+          "thermalBefore" : "nominal",
+          "thermalMax" : "nominal",
+          "thermalWaitSeconds" : 0.00463104248046875,
+          "tokensPerSecond" : 68.47948187272704,
+          "warmupCallSeconds" : [
+            6.415995958
+          ]
+        },
+        {
+          "arm" : "M5 stack (PTQ1)",
+          "availableBytes" : 6020589288,
+          "callSeconds" : [
+            6.897970208,
+            7.215028791
+          ],
+          "footprintBytes" : 421861656,
+          "gateReached" : true,
+          "interrupted" : false,
+          "libraryMessages" : [
+
+          ],
+          "position" : 1,
+          "startedAt" : "2026-09-25T15:26:10Z",
+          "thermalAfter" : "nominal",
+          "thermalBefore" : "nominal",
+          "thermalMax" : "nominal",
+          "thermalWaitSeconds" : 40.037588000297546,
+          "tokensPerSecond" : 72.55722189681705,
+          "warmupCallSeconds" : [
+            6.594915583
+          ]
+        },
+        {
+          "arm" : "M5 stack (PTQ1)",
+          "availableBytes" : 6021146344,
+          "callSeconds" : [
+            8.36823375,
+            8.399035292
+          ],
+          "footprintBytes" : 421304600,
+          "gateReached" : true,
+          "interrupted" : false,
+          "libraryMessages" : [
+
+          ],
+          "position" : 2,
+          "startedAt" : "2026-09-25T15:27:31Z",
+          "thermalAfter" : "nominal",
+          "thermalBefore" : "nominal",
+          "thermalMax" : "nominal",
+          "thermalWaitSeconds" : 0.005023956298828125,
+          "tokensPerSecond" : 61.0713645397472,
+          "warmupCallSeconds" : [
+            7.105711167
+          ]
+        },
+        {
+          "arm" : "upstream",
+          "availableBytes" : 6023259880,
+          "callSeconds" : [
+            6.654671875,
+            7.02010575
+          ],
+          "footprintBytes" : 419191064,
+          "gateReached" : true,
+          "interrupted" : false,
+          "libraryMessages" : [
+
+          ],
+          "position" : 3,
+          "startedAt" : "2026-09-25T15:30:35Z",
+          "thermalAfter" : "nominal",
+          "thermalBefore" : "nominal",
+          "thermalMax" : "nominal",
+          "thermalWaitSeconds" : 40.03236699104309,
+          "tokensPerSecond" : 74.88238771268502,
+          "warmupCallSeconds" : [
+            6.371881291
+          ]
+        }
+      ],
+      "ratio" : 0.9321068902282353,
+      "spread" : 1.188072715316431
+    }
+  ],
+  "spreadGate" : 1.2,
+  "started" : "2026-09-25T14:35:33Z",
+  "summaries" : [
+    {
+      "aMean" : 72.3778660343056,
+      "acceptedQuartets" : 3,
+      "bMean" : 67.87497852977238,
+      "cell" : "pp512",
+      "complete" : true,
+      "mtpTokenDifferenceQuartets" : 0,
+      "rejectedQuartets" : 2,
+      "speedupGeomean" : 0.9378390214706733,
+      "speedupMax" : 0.9504683806844632,
+      "speedupMin" : 0.93106822270173,
+      "tokenMismatchQuartets" : 0
+    }
+  ],
+  "thermalWaitLimitSeconds" : 3600,
+  "tool" : "BonsaiBench 3",
+  "waitForNominal" : true
+}

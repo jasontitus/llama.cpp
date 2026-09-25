@@ -304,6 +304,24 @@ cooldown:
 - PTQ1_0 generation is compute-bound on the phone too: 5.7 tok/s upstream in chat128, against about 9.6
   for Q1_0 in chat128.
 
+**Diagnostics results, 2026-09-25** (`../results/diagnostics-2026-09-25/`, build `928af16`; PTQ1_0, every run
+starting at nominal):
+
+- **GPU errors come from the long command buffer.** With the default split (a small first command buffer, then
+  one holding ~90% of the graph) 10 of 50 pp512 runs failed during the day (3/20 in the error screen, 7/30 in
+  the leave-one-out screen); with 4 command buffers or 256-token micro-batches, 0 of 20. Each recorded failure
+  is the long command buffer discarded after 5.00-5.01 s of GPU time, encoder "affected" (a victim). Four
+  command buffers cost nothing (0.999x, 5 clean pairs); 256-token micro-batches were ~3% faster.
+- **PTQ1_0 pp512, our stack vs upstream, cool: 0.938x** (0.931-0.950, 3 quartets). Not the earlier ~0.70x,
+  which was heat. The per-op GPU profile (every op timed alone) puts the stack at 1.038x the GPU time of upstream
+  and names two device-specific costs: the 48-row BF16 projections take 110.5 ms instead of 31.6 ms under
+  `SMALLM_MM` (its small-row kernel is fast on M5 but 3.5x slower than upstream's mul_mm on the A19 at 512
+  columns), and the delta-net recurrence 399 instead of 339 ms in rows mode (`GDN_ROWS_PLAIN`). Both flags exist
+  for small batches; capping them by batch width on phones is the fix to try.
+- **The leave-one-out screen is inconclusive:** page-ins of up to 8.2 GB per run (weights re-read from flash) and
+  7 GPU failures left too few clean runs; its upstream-vs-upstream null came out 0.944x. The profile above
+  answers the question it was meant to.
+
 **Phone diagnostics (2026-09-25).** "Run the phone diagnostics" runs four studies under the overnight thermal
 gate, each saving `Documents/bonsaidiag-<time>.json` (the A-B-B-A one `bonsaibench-<time>.json`):
 
