@@ -43,6 +43,10 @@ if (a.bin_a is None) != (a.src_a is None):
     p.error('--bin-a and --src-a must be provided together')
 if a.bin_a is not None and a.output.exists() and any(a.output.iterdir()):
     p.error('separate-binary comparisons require a fresh output directory')
+# the default paths assume the tool's old location; fail before any run rather than at the first MTP cell
+for path, needed in ((a.model, True), (a.mtp_model, any(c.startswith('s1') for c in a.server))):
+    if needed and not path.is_file():
+        p.error(f'model not found: {path}')
 a.output.mkdir(parents=True, exist_ok=True)
 (a.output / 'rejected').mkdir(exist_ok=True)
 
@@ -132,9 +136,12 @@ def server_obs(cell, arm, cycle):
         gen = statistics.mean(r['timings']['predicted_per_second'] for r in rows)
         return dict(tps=agg, gen_tps_mean=gen, wall_s=span, requests=rows, command=cmd)
     finally:
-        os.killpg(proc.pid, signal.SIGTERM)
+        # a server that failed to start has already exited; keep its error rather than a ProcessLookupError
         try:
+            os.killpg(proc.pid, signal.SIGTERM)
             proc.wait(timeout=30)
+        except ProcessLookupError:
+            pass
         except subprocess.TimeoutExpired:
             os.killpg(proc.pid, signal.SIGKILL); proc.wait()
         logf.close()

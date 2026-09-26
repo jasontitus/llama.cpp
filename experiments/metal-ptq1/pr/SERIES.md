@@ -14,7 +14,7 @@ _research_ is from the research branch with other flags on, and is replaced as e
 |---|---|---|---|---|---|
 | 1 | `downstream/metal-ios-command-buffers` | 4 command buffers per graph on iPhone-class OSes; abort-callback clamp; free all command buffers | ggml-metal.cpp, ggml-metal-context.m | iPhone 17 Pro Max: 10/50 pp512 runs failed with 1, 0/10 with 4; bitwise-identical output (M5, 1/4/8) | ready (`b899e2d`); waiting for the phone's decode-cost measurement (1 vs 4 at 1 and 8 tokens) |
 | 2 | `downstream/qwen35-gdn-rows-plain` | qwen35: in-place delta-net state rows for plain decode (`GGML_GDN_ROWS_PLAIN`) | src/models/qwen35.cpp, delta-net-base.cpp, llama-cparams.h, llama-context.cpp | per-PR, M5: tg128 1.076x, pp512 1.046x, 1 request 1.070x; bitwise | ready (`2787e12`) |
-| 3 | `downstream/metal-ptq1-multicol-8` | PTQ1_0 multi-column 5-8 columns: partial tiles on #262's kernel, `GGML_METAL_PTQ1_MULTICOL_MAX` | mul_mv.metal, ggml-metal-device.cpp, test-backend-ops | per-PR, M5: _A-B-B-A running_; 2-4 columns bitwise = #262 | ready (`9f69b28`) pending the A-B-B-A |
+| 3 | `downstream/metal-ptq1-multicol-8` | PTQ1_0 multi-column 5-8 columns: partial tiles on #262's kernel, `GGML_METAL_PTQ1_MULTICOL_MAX` | mul_mv.metal, ggml-metal-device.cpp, test-backend-ops | per-PR, M5: pp6-pp8 2.1-2.4x, MTP at 3/4 requests 2.13x/1.93x vs #262; 2-4 columns bitwise = #262 | ready (`9f69b28`) |
 | 4 | – | PTQ1_0 fused gate/up + SwiGLU mat-vec (`GGML_METAL_PTQ1_GLU`) and activation staging (`GGML_METAL_PTQ1_STAGE`), possibly two PRs | same | _research_: plain decode and 2-4-token steps (ABBA 1 in EXPERIMENTS.md) | to port |
 | 5 | – | PQ2_0 multi-column + fused GLU | same | _research_: PQ2 decode +11%, 2 requests +33% | to port |
 | 6 | – | small-row routing for the 48-row projections (`GGML_METAL_SMALLM`, `GGML_METAL_SMALLM_MM` with its width cap) | ggml-metal-ops.cpp, mul_mv.metal | _research_: Bonsai 1 decode +14% with rows mode; A19 needs the cap at 512 columns | to port |
@@ -144,7 +144,23 @@ Correctness (M5 Max):
   bitwise equal to #262; max 8 first differs at the first 5-token batch (a different summation order than
   `mul_mv_ext`), max relative difference 3.7e-5, same top token at every position.
 
-Speed: _A-B-B-A running (max 4 vs max 8: pp4 control, pp5-pp8, tg128 control, MTP with 3 and 4 requests)_.
+Speed: M5 Max, Ternary Bonsai 2 27B PTQ1_0, this branch, `GGML_METAL_PTQ1_MULTICOL=1` in both arms, max 4 (#262)
+vs max 8 (this PR), three A-B-B-A quartets with 8 s cooldowns (tok/s; MTP rows are llama-server with draft-mtp,
+draft 1, aggregate over the requests, 128 greedy tokens each):
+
+| Case | Columns per step | #262 | This PR | Speedup [quartet range] |
+|---|---:|---:|---:|---:|
+| pp4 (control) | 4 | 69.86 | 70.34 | 1.007 [1.000-1.013] |
+| pp5 | 5 | 45.14 | 61.82 | 1.370 [1.368-1.373] |
+| pp6 | 6 | 30.76 | 74.78 | 2.433 [2.373-2.552] |
+| pp7 | 7 | 34.91 | 73.20 | 2.097 [2.059-2.164] |
+| pp8 | 8 | 40.45 | 86.82 | 2.146 [2.138-2.161] |
+| tg128 (control) | 1 | 43.67 | 43.39 | 0.994 [0.987-1.003] |
+| MTP, 3 requests | 6 | 24.48 | 52.23 | 2.134 [2.123-2.148] |
+| MTP, 4 requests | 8 | 28.53 | 55.07 | 1.932 [1.888-2.023] |
+
+Generated tokens identical in every pair; no quartet rejected. 5 columns gain less because the 3+2 split costs
+the same as 3+3 (80.9 vs 80.2 ms per step).
 
 ### Requirements
 
