@@ -17,9 +17,11 @@ _research_ is from the research branch with other flags on, and is replaced as e
 | 3 | `downstream/metal-ptq1-multicol-8` | PTQ1_0 multi-column 5-8 columns: partial tiles on #262's kernel, `GGML_METAL_PTQ1_MULTICOL_MAX` | mul_mv.metal, ggml-metal-device.cpp, test-backend-ops | per-PR, M5: pp6-pp8 2.1-2.4x, MTP at 3/4 requests 2.13x/1.93x vs #262; 2-4 columns bitwise = #262 | ready to open (`9f69b28`) |
 | 4 | `downstream/metal-ptq1-glu` (on 3) | PTQ1_0 fused gate/up + SwiGLU mat-vec (`GGML_METAL_PTQ1_GLU`), without staging | mul_mv.metal, ggml-metal-device.*, ggml-metal-ops.cpp, test-backend-ops | per-PR, M5: 0.98-1.01x (no gain without staging) | **not proposed** in this form (`db4f5df` kept on the fork) |
 | 4' | – | PTQ1_0 activation staging (`GGML_METAL_PTQ1_STAGE`) with the staged fused GLU | same + ggml-metal.cpp (scratch size) | research build, M5: staging +5% at 2-8 columns, +3% MTP; fused GLU on top +1-3%; M1 Ultra: about neutral with its four-row fix, profile keeps it off | optional, low priority |
-| 5 | – | PQ2_0 multi-column + fused GLU | same | _research_: PQ2 decode +11%, 2 requests +33% | to port |
-| 6 | – | small-row routing for the 48-row projections (`GGML_METAL_SMALLM`, `GGML_METAL_SMALLM_MM` with its width cap) | ggml-metal-ops.cpp, mul_mv.metal | _research_: Bonsai 1 decode +14% with rows mode; A19 needs the cap at 512 columns | to port |
-| 7 | – | Q1_0 K32 tensor prefill in an optional Metal library | kernels/mul_mm_q1.metal, CMakeLists, ggml-metal-device.* | _research_: M5 pp512 1.07x over the other Q1 flags, bitwise | to port |
+| 5 | – | PQ2_0 multi-column for 2 columns (`GGML_METAL_PQ2_MULTICOL`) | mul_mv.metal, ggml-metal-device.*, ggml-metal-ops.cpp | screen, M5: pp2 1.167x, 2 requests 1.154x, MTP 1 request 1.159x | to port |
+| – | – | PQ2_0 fused GLU (`GGML_METAL_PQ2_GLU`) | | screen, M5: 0.997-1.011x on top of multi-column | dropped |
+| – | – | small-row mat-vec for one column (`GGML_METAL_SMALLM`) | | screen, M5: Q1_0 0.992-1.004x, PTQ1_0 0.998-1.002x | dropped |
+| 6 | – | keep the 48-row projections on mat-vec at prefill (`GGML_METAL_SMALLM_MM` + width cap) | ggml-metal-ops.cpp | screen, M5 Q1_0: pp64 1.033x, pp128 1.028x, pp512 1.007x; A19 needs the cap at 512 | low priority |
+| 7 | – | Q1_0 K32 tensor prefill (`GGML_METAL_Q1_SWIZZLE_LOG`) | kernels/mul_mm_q1.metal, CMakeLists, ggml-metal-device.* | screen, M5: pp128 1.076x, pp512 1.067x, tg128 1.000x; bitwise | to port |
 | later | – | batch-invariant mode; PTQ1 tensor mat-vec (M5/A19 opt-in) | | | undecided |
 
 Ported code differs from the research branch only in how switches are read and in test scaffolding; each PR
@@ -197,3 +199,20 @@ and it would need the per-family row choice.
 On Bonsai 2 27B, 14 of 64 FFN layers never fuse: the allocator places the GLU output over the FFN input
 (the in-place guard refuses it). Copying the input into the gate projection's unused output buffer first
 would let those layers fuse too (follow-up idea, unmeasured).
+
+## Screens of the remaining changes (2026-09-25)
+
+Research build (`build-dev`), same binary, one switch off (A) vs on (B), three A-B-B-A quartets per cell with 8 s
+cooldowns, no quartet rejected, identical tokens in every pair. Logs: development/m5/screen-*.log.
+
+| Change | Model | Cells (speedup [quartet range]) |
+|---|---|---|
+| PQ2_0 multi-column vs off | Bonsai 2 PQ2_0 | tg128 0.989 [0.977-1.000], pp2 1.167 [1.139-1.187], pp4 1.001, pp8 1.001, 2 requests 1.154, MTP 1 request 1.159 |
+| PQ2_0 fused GLU, on top of multi-column | Bonsai 2 PQ2_0 | tg128 1.011, pp2 1.009, pp4 0.997, pp8 1.002, 2 requests 0.998, MTP 1 request 0.998 |
+| small-row mat-vec (`SMALLM`) | Bonsai 1 Q1_0 | tg128 0.992, pp2 1.004, 1 request 1.000 |
+| small-row mat-vec (`SMALLM`) | Bonsai 2 PTQ1_0 | tg128 1.002, 1 request 0.998 |
+| 48-row projections kept on mat-vec (`SMALLM_MM`) | Bonsai 1 Q1_0 | pp16 1.000, pp64 1.033, pp128 1.028, pp512 1.007 |
+| Q1_0 K32 prefill | Bonsai 1 Q1_0 | tg128 1.000, pp128 1.076 [1.075-1.076], pp512 1.067 [1.067-1.068] |
+
+The earlier "Bonsai 1 decode +14%" for small-row routing was measured together with rows mode (PR 2); alone it does
+nothing on the M5.
