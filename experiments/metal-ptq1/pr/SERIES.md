@@ -17,11 +17,11 @@ _research_ is from the research branch with other flags on, and is replaced as e
 | 3 | `downstream/metal-ptq1-multicol-8` | PTQ1_0 multi-column 5-8 columns: partial tiles on #262's kernel, `GGML_METAL_PTQ1_MULTICOL_MAX` | mul_mv.metal, ggml-metal-device.cpp, test-backend-ops | per-PR, M5: pp6-pp8 2.1-2.4x, MTP at 3/4 requests 2.13x/1.93x vs #262; 2-4 columns bitwise = #262 | open: #277 (`9f69b28`) |
 | 4 | `downstream/metal-ptq1-glu` (on 3) | PTQ1_0 fused gate/up + SwiGLU mat-vec (`GGML_METAL_PTQ1_GLU`), without staging | mul_mv.metal, ggml-metal-device.*, ggml-metal-ops.cpp, test-backend-ops | per-PR, M5: 0.98-1.01x (no gain without staging) | **not proposed** in this form (`db4f5df` kept on the fork) |
 | 4' | – | PTQ1_0 activation staging (`GGML_METAL_PTQ1_STAGE`) with the staged fused GLU | same + ggml-metal.cpp (scratch size) | research build, M5: staging +5% at 2-8 columns, +3% MTP; fused GLU on top +1-3%; M1 Ultra: about neutral with its four-row fix, profile keeps it off | optional, low priority |
-| 5 | `downstream/metal-pq2-multicol` | PQ2_0 mat-vec for 2 columns (`GGML_METAL_PQ2_MULTICOL`) | mul_mv.metal, ggml-metal-device.*, ggml-metal-ops.cpp, test-backend-ops | per-PR, M5: pp2 1.175x, 2 requests 1.154x, MTP 1 request 1.165x, controls flat; off = upstream bitwise | ready to open (`9ae2fda`); hold until 1-3 are reviewed |
+| 5 | `downstream/metal-pq2-multicol` | PQ2_0 mat-vec for 2 columns (`GGML_METAL_PQ2_MULTICOL`) | mul_mv.metal, ggml-metal-device.*, ggml-metal-ops.cpp, test-backend-ops | per-PR, M5: pp2 1.175x, 2 requests 1.154x, MTP 1 request 1.165x, controls flat; off = upstream bitwise | open: #279 (`89bde0c`, one commit) |
 | – | – | PQ2_0 fused GLU (`GGML_METAL_PQ2_GLU`) | | screen, M5: 0.997-1.011x on top of multi-column | dropped |
 | – | – | small-row mat-vec for one column (`GGML_METAL_SMALLM`) | | screen, M5: Q1_0 0.992-1.004x, PTQ1_0 0.998-1.002x | dropped |
 | 6 | – | keep the 48-row projections on mat-vec at prefill (`GGML_METAL_SMALLM_MM` + width cap) | ggml-metal-ops.cpp | screen, M5 Q1_0: pp64 1.033x, pp128 1.028x, pp512 1.007x; A19 needs the cap at 512 | low priority |
-| 7 | `downstream/metal-q1-mm-k32` | Q1_0 static-K32 tensor mul_mm for full tiles (`GGML_METAL_Q1_MM_K32`); the grid swizzle is left out (screen: 0.997-0.999x on top of K32) | kernels/mul_mm.metal (tensor branch), ggml-metal-device.cpp, test-backend-ops | per-PR, M5: pp128 1.076x, pp512 1.071x, tg128 1.000x; prefill logits bitwise equal | ready to open (`32145a9`); hold until 1-3 are reviewed |
+| 7 | `downstream/metal-q1-mm-k32` | Q1_0 static-K32 tensor mul_mm for full tiles (`GGML_METAL_Q1_MM_K32`); the grid swizzle is left out (screen: 0.997-0.999x on top of K32) | kernels/mul_mm.metal (tensor branch), ggml-metal-device.cpp, test-backend-ops | per-PR, M5: pp128 1.076x, pp512 1.071x, tg128 1.000x; prefill logits bitwise equal | open: #280 (`96c3886`, one commit) |
 | later | – | batch-invariant mode; PTQ1 tensor mat-vec (M5/A19 opt-in) | | | undecided |
 
 Ported code differs from the research branch only in how switches are read and in test scaffolding; each PR
@@ -222,4 +222,4 @@ nothing on the M5.
 Upstream's AGENTS.md prefers commits written by the contributor, or short ones with an `Assisted-by: Claude ...`
 trailer, and gives long messages with `Co-authored-by: Claude` as the bad example. The PR branches so far use the
 long form. Upstream squash-merges (the maintainer writes the final message), so the open PRs can stay as they are;
-branches not yet opened should become one short commit each before opening (the contributor's choice).
+#279 and #280 were squashed to one short commit each (`Assisted-by:` trailer) right after they were opened.
