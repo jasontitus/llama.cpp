@@ -21,7 +21,7 @@ _research_ is from the research branch with other flags on, and is replaced as e
 | – | – | PQ2_0 fused GLU (`GGML_METAL_PQ2_GLU`) | | screen, M5: 0.997-1.011x on top of multi-column | dropped |
 | – | – | small-row mat-vec for one column (`GGML_METAL_SMALLM`) | | screen, M5: Q1_0 0.992-1.004x, PTQ1_0 0.998-1.002x | dropped |
 | 6 | – | keep the 48-row projections on mat-vec at prefill (`GGML_METAL_SMALLM_MM` + width cap) | ggml-metal-ops.cpp | screen, M5 Q1_0: pp64 1.033x, pp128 1.028x, pp512 1.007x; A19 needs the cap at 512 | low priority |
-| 7 | – | Q1_0 K32 tensor prefill (`GGML_METAL_Q1_SWIZZLE_LOG`) | kernels/mul_mm_q1.metal, CMakeLists, ggml-metal-device.* | screen, M5: pp128 1.076x, pp512 1.067x, tg128 1.000x; bitwise | to port |
+| 7 | `downstream/metal-q1-mm-k32` | Q1_0 static-K32 tensor mul_mm for full tiles (`GGML_METAL_Q1_MM_K32`); the grid swizzle is left out (screen: 0.997-0.999x on top of K32) | kernels/mul_mm.metal (tensor branch), ggml-metal-device.cpp, test-backend-ops | per-PR, M5: pp128 1.076x, pp512 1.071x, tg128 1.000x; prefill logits bitwise equal | ready to open (`32145a9`); hold until 1-3 are reviewed |
 | later | – | batch-invariant mode; PTQ1 tensor mat-vec (M5/A19 opt-in) | | | undecided |
 
 Ported code differs from the research branch only in how switches are read and in test scaffolding; each PR
@@ -216,3 +216,10 @@ cooldowns, no quartet rejected, identical tokens in every pair. Logs: developmen
 
 The earlier "Bonsai 1 decode +14%" for small-row routing was measured together with rows mode (PR 2); alone it does
 nothing on the M5.
+
+## Commit messages for upstream
+
+Upstream's AGENTS.md prefers commits written by the contributor, or short ones with an `Assisted-by: Claude ...`
+trailer, and gives long messages with `Co-authored-by: Claude` as the bad example. The PR branches so far use the
+long form. Upstream squash-merges (the maintainer writes the final message), so the open PRs can stay as they are;
+branches not yet opened should become one short commit each before opening (the contributor's choice).
