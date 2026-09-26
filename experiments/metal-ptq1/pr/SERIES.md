@@ -16,7 +16,7 @@ _research_ is from the research branch with other flags on, and is replaced as e
 | 2 | `downstream/qwen35-gdn-rows-plain` | qwen35: in-place delta-net state rows for plain decode (`GGML_GDN_ROWS_PLAIN`) | src/models/qwen35.cpp, delta-net-base.cpp, llama-cparams.h, llama-context.cpp | per-PR, M5: tg128 1.076x, pp512 1.046x, 1 request 1.070x; bitwise | ready (`2787e12`) |
 | 3 | `downstream/metal-ptq1-multicol-8` | PTQ1_0 multi-column 5-8 columns: partial tiles on #262's kernel, `GGML_METAL_PTQ1_MULTICOL_MAX` | mul_mv.metal, ggml-metal-device.cpp, test-backend-ops | per-PR, M5: pp6-pp8 2.1-2.4x, MTP at 3/4 requests 2.13x/1.93x vs #262; 2-4 columns bitwise = #262 | ready (`9f69b28`) |
 | 4 | `downstream/metal-ptq1-glu` (on 3) | PTQ1_0 fused gate/up + SwiGLU mat-vec (`GGML_METAL_PTQ1_GLU`), without staging | mul_mv.metal, ggml-metal-device.*, ggml-metal-ops.cpp, test-backend-ops | per-PR, M5: 0.98-1.01x (no gain without staging) | **not proposed** in this form (`db4f5df` kept on the fork) |
-| 4' | – | PTQ1_0 activation staging (`GGML_METAL_PTQ1_STAGE`) with the staged fused GLU | same + ggml-metal.cpp (scratch size) | research build, M5: staging +5% at 2-8 columns, +3% MTP; fused GLU on top +1-3%; the M1 prefers staging off | optional, low priority |
+| 4' | – | PTQ1_0 activation staging (`GGML_METAL_PTQ1_STAGE`) with the staged fused GLU | same + ggml-metal.cpp (scratch size) | research build, M5: staging +5% at 2-8 columns, +3% MTP; fused GLU on top +1-3%; M1 Ultra: about neutral with its four-row fix, profile keeps it off | optional, low priority |
 | 5 | – | PQ2_0 multi-column + fused GLU | same | _research_: PQ2 decode +11%, 2 requests +33% | to port |
 | 6 | – | small-row routing for the 48-row projections (`GGML_METAL_SMALLM`, `GGML_METAL_SMALLM_MM` with its width cap) | ggml-metal-ops.cpp, mul_mv.metal | _research_: Bonsai 1 decode +14% with rows mode; A19 needs the cap at 512 columns | to port |
 | 7 | – | Q1_0 K32 tensor prefill in an optional Metal library | kernels/mul_mm_q1.metal, CMakeLists, ggml-metal-device.* | _research_: M5 pp512 1.07x over the other Q1 flags, bitwise | to port |
@@ -185,8 +185,10 @@ quartet rejected, identical tokens:
 
 The unstaged fused kernel reads each activation block once for gate and up but loses what the unfused
 multi-column kernel gets from four rows per simdgroup; only with staged activations does fusion pay (+1-3%).
-Staging plus fusion together: about +8% at 2-4 columns and +5-6% for MTP on the M5, while the M1 Ultra
-session measured staging as a loss there. Worth one optional PR at most, after 1-3.
+Staging plus fusion together: about +8% at 2-4 columns and +5-6% for MTP on the M5. On the M1 Ultra, staging
+with the M5's two-row tiles cost 31% on MTP (one exploratory quartet); with the family-7 four-row default
+(`7414230`) the full stack was -0.7%, and the M1 profile keeps staging off. Worth one optional PR at most, after 1-3,
+and it would need the per-family row choice.
 
 On Bonsai 2 27B, 14 of 64 FFN layers never fuse: the allocator places the GLU output over the FFN input
 (the in-place guard refuses it). Copying the input into the gate projection's unused output buffer first
