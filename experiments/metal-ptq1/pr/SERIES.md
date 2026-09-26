@@ -15,7 +15,8 @@ _research_ is from the research branch with other flags on, and is replaced as e
 | 1 | `downstream/metal-ios-command-buffers` | 4 command buffers per graph on iPhone-class OSes; abort-callback clamp; free all command buffers | ggml-metal.cpp, ggml-metal-context.m | iPhone 17 Pro Max: 10/50 pp512 runs failed with 1, 0/10 with 4; bitwise-identical output (M5, 1/4/8) | ready (`b899e2d`); waiting for the phone's decode-cost measurement (1 vs 4 at 1 and 8 tokens) |
 | 2 | `downstream/qwen35-gdn-rows-plain` | qwen35: in-place delta-net state rows for plain decode (`GGML_GDN_ROWS_PLAIN`) | src/models/qwen35.cpp, delta-net-base.cpp, llama-cparams.h, llama-context.cpp | per-PR, M5: tg128 1.076x, pp512 1.046x, 1 request 1.070x; bitwise | ready (`2787e12`) |
 | 3 | `downstream/metal-ptq1-multicol-8` | PTQ1_0 multi-column 5-8 columns: partial tiles on #262's kernel, `GGML_METAL_PTQ1_MULTICOL_MAX` | mul_mv.metal, ggml-metal-device.cpp, test-backend-ops | per-PR, M5: pp6-pp8 2.1-2.4x, MTP at 3/4 requests 2.13x/1.93x vs #262; 2-4 columns bitwise = #262 | ready (`9f69b28`) |
-| 4 | – | PTQ1_0 fused gate/up + SwiGLU mat-vec (`GGML_METAL_PTQ1_GLU`) and activation staging (`GGML_METAL_PTQ1_STAGE`), possibly two PRs | same | _research_: plain decode and 2-4-token steps (ABBA 1 in EXPERIMENTS.md) | to port |
+| 4 | `downstream/metal-ptq1-glu` (on 3) | PTQ1_0 fused gate/up + SwiGLU mat-vec (`GGML_METAL_PTQ1_GLU`), without staging | mul_mv.metal, ggml-metal-device.*, ggml-metal-ops.cpp, test-backend-ops | per-PR, M5: 0.98-1.01x (no gain without staging) | **not proposed** in this form (`db4f5df` kept on the fork) |
+| 4' | – | PTQ1_0 activation staging (`GGML_METAL_PTQ1_STAGE`) with the staged fused GLU | same + ggml-metal.cpp (scratch size) | research build, M5: staging +5% at 2-8 columns, +3% MTP; fused GLU on top +1-3%; the M1 prefers staging off | optional, low priority |
 | 5 | – | PQ2_0 multi-column + fused GLU | same | _research_: PQ2 decode +11%, 2 requests +33% | to port |
 | 6 | – | small-row routing for the 48-row projections (`GGML_METAL_SMALLM`, `GGML_METAL_SMALLM_MM` with its width cap) | ggml-metal-ops.cpp, mul_mv.metal | _research_: Bonsai 1 decode +14% with rows mode; A19 needs the cap at 512 columns | to port |
 | 7 | – | Q1_0 K32 tensor prefill in an optional Metal library | kernels/mul_mm_q1.metal, CMakeLists, ggml-metal-device.* | _research_: M5 pp512 1.07x over the other Q1 flags, bitwise | to port |
@@ -167,3 +168,26 @@ the same as 3+3 (80.9 vs 80.2 ms per step).
 - [x] I have read and agree with the contributing guidelines
 - AI usage disclosure: YES. Claude (Anthropic) assisted with the implementation, testing, measurements and this
   description; the contributor reviewed and owns the change.
+
+## PR 4 findings: fusion needs staging
+
+Measured on the M5 with `GGML_METAL_PTQ1_MULTICOL=1` (max 8) in both arms, three A-B-B-A quartets each, no
+quartet rejected, identical tokens:
+
+| Case | Fused GLU, unstaged (PR 4 branch) | Staging alone (research build) | Fused GLU on top of staging (research build) |
+|---|---:|---:|---:|
+| tg128 | 1.009 | 0.998 | 1.016 |
+| pp2 | 0.998 | 1.055 | 1.028 |
+| pp4 | 0.982 | 1.053 | 1.023 |
+| pp8 | 0.986 | 1.049 | 1.006 |
+| server, 1 request (plain / MTP) | 1.002 / 0.990 | – / 1.032 | – / 1.028 |
+| server MTP, 4 requests | 0.983 | 1.036 | 1.012 |
+
+The unstaged fused kernel reads each activation block once for gate and up but loses what the unfused
+multi-column kernel gets from four rows per simdgroup; only with staged activations does fusion pay (+1-3%).
+Staging plus fusion together: about +8% at 2-4 columns and +5-6% for MTP on the M5, while the M1 Ultra
+session measured staging as a loss there. Worth one optional PR at most, after 1-3.
+
+On Bonsai 2 27B, 14 of 64 FFN layers never fuse: the allocator places the GLU output over the FFN input
+(the in-place guard refuses it). Copying the input into the gate projection's unused output buffer first
+would let those layers fuse too (follow-up idea, unmeasured).
