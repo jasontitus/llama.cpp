@@ -787,6 +787,40 @@ ggml_metal_pipeline_with_params ggml_metal_library_get_pipeline_solve_tri(ggml_m
     return res;
 }
 
+// fused PTQ1_0 gate/up + SWIGLU; op is the gate projection
+ggml_metal_pipeline_with_params ggml_metal_library_get_pipeline_mul_mv_ptq1_glu(ggml_metal_library_t lib, const ggml_tensor * op) {
+    const int ne11 = op->src[1]->ne[1];
+
+    const int nr0 = 2;
+    const int nsg = 1;
+    // at most four columns per tile, split evenly
+    const int nr1 = (ne11 + (ne11 + 3)/4 - 1) / ((ne11 + 3)/4);
+
+    char base[256];
+    char name[256];
+
+    snprintf(base, 256, "kernel_mul_mv_ptq1_0_f32_glu_c%d", nr1);
+    snprintf(name, 256, "%s_nsg=%d", base, nsg);
+
+    ggml_metal_pipeline_with_params res = ggml_metal_library_get_pipeline(lib, name);
+    if (!res.pipeline) {
+        ggml_metal_cv_t cv = ggml_metal_cv_init();
+
+        ggml_metal_cv_set_int16(cv, nsg, FC_MUL_MV + 0);
+
+        res = ggml_metal_library_compile_pipeline(lib, base, name, cv);
+
+        ggml_metal_cv_free(cv);
+    }
+
+    res.nr0  = nr0;
+    res.nr1  = nr1;
+    res.nsg  = nsg;
+    res.smem = 0;
+
+    return res;
+}
+
 ggml_metal_pipeline_with_params ggml_metal_library_get_pipeline_mul_mv_ext(ggml_metal_library_t lib, const ggml_tensor * op, int nsg, int nxpsg, int r1ptg) {
     char base[256];
     char name[256];
@@ -882,9 +916,9 @@ ggml_metal_pipeline_with_params ggml_metal_library_get_pipeline_mul_mm(ggml_meta
     return res;
 }
 
-// widest batch the multi-column kernel takes, as column tiles of at most four; wider batches keep the default route.
+// widest batch the multi-column kernels take, as column tiles of at most four; wider batches keep the default route.
 // GGML_METAL_PTQ1_MULTICOL_MAX is clamped to 4..8 (default 8); 4 keeps the kernel to 2-4 columns
-static int ggml_metal_ptq1_multicol_max(void) {
+int ggml_metal_ptq1_multicol_max(void) {
     static const int max_cols = [] {
         const char * env = getenv("GGML_METAL_PTQ1_MULTICOL_MAX");
         return env ? std::min(8, std::max(4, atoi(env))) : 8;

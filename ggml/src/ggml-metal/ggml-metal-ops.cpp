@@ -2666,11 +2666,121 @@ static bool ggml_metal_op_mul_mat_q1_0_pc_supported(const ggml_tensor * op) {
     return ne02 == 1 && ne03 == 1 && ne12 == 1 && ne13 == 1;
 }
 
+static bool ggml_metal_tensors_overlap(const ggml_tensor * a, const ggml_tensor * b) {
+    const char * a0 = (const char *) a->data;
+    const char * b0 = (const char *) b->data;
+    return a0 < b0 + ggml_nbytes(b) && b0 < a0 + ggml_nbytes(a);
+}
+
+// PTQ1_0 FFN gate/up/SWIGLU triple, either projection order (GGML_METAL_PTQ1_GLU=1).
+// Returns the GLU node when the three can run as one fused kernel, else nullptr.
+static const ggml_tensor * ggml_metal_op_ptq1_glu_fusable(ggml_metal_op_t ctx, int idx) {
+    static const bool enabled = getenv("GGML_METAL_PTQ1_GLU") && atoi(getenv("GGML_METAL_PTQ1_GLU")) == 1;
+    if (!enabled || !ctx->use_fusion || idx + 2 >= ctx->n_nodes()) {
+        return nullptr;
+    }
+
+    // the two projections are siblings, not a chain: only the GLU output may leave the subgraph
+    const ggml_op ops[3] = { GGML_OP_MUL_MAT, GGML_OP_MUL_MAT, GGML_OP_GLU };
+    const int gi[3] = { ctx->gf_index(idx), ctx->gf_index(idx + 1), ctx->gf_index(idx + 2) };
+    if (!ggml_can_fuse_subgraph_ext(ctx->graph(), gi, 3, ops, &gi[2], 1)) {
+        return nullptr;
+    }
+
+    const ggml_tensor * a   = ctx->node(idx);
+    const ggml_tensor * b   = ctx->node(idx + 1);
+    const ggml_tensor * glu = ctx->node(idx + 2);
+
+    if (ggml_get_glu_op(glu) != GGML_GLU_OP_SWIGLU || ggml_get_op_params_i32(glu, 1) != 0 || !glu->src[1]) {
+        return nullptr;
+    }
+    if (!((glu->src[0] == a && glu->src[1] == b) || (glu->src[0] == b && glu->src[1] == a))) {
+        return nullptr;
+    }
+
+    const ggml_tensor * w = a->src[0];
+    const ggml_tensor * x = a->src[1];
+    const int64_t n = x->ne[1];
+
+    // the allocator may place the GLU output in memory freed by the FFN input (its last reader is the
+    // second projection); fused, the kernel would read x while writing there
+    return a->src[1] == b->src[1] && !ggml_metal_tensors_overlap(glu, x) &&
+           w->type == GGML_TYPE_PTQ1_0 && b->src[0]->type == w->type &&
+           ggml_are_same_shape(w, b->src[0]) && ggml_are_same_stride(w, b->src[0]) &&
+           x->type == GGML_TYPE_F32 && glu->type == GGML_TYPE_F32 && x->nb[0] == sizeof(float) &&
+           w->ne[0] % ggml_blck_size(GGML_TYPE_PTQ1_0) == 0 && w->ne[2] == 1 && w->ne[3] == 1 && x->ne[2] == 1 && x->ne[3] == 1 &&
+           ggml_is_contiguous(glu) && glu->ne[0] == w->ne[1] && glu->ne[1] == n &&
+           n >= 1 && n <= ggml_metal_ptq1_multicol_max() ? glu : nullptr;
+}
+
+static int ggml_metal_op_mul_mat_ptq1_glu(ggml_metal_op_t ctx, int idx, const ggml_tensor * glu) {
+    ggml_metal_library_t lib = ctx->lib;
+    ggml_metal_encoder_t enc = ctx->enc;
+
+    const ggml_tensor * gate = glu->src[0];
+    const ggml_tensor * up   = glu->src[1];
+
+    const ggml_tensor * w = gate->src[0];
+    const ggml_tensor * x = gate->src[1];
+
+    // the first node was checked by the caller; the fused kernel also reads the second
+    // projection's weights and writes the GLU output
+    for (int i = 1; i < 3; ++i) {
+        if (!ggml_metal_op_concurrency_check(ctx, ctx->node(idx + i))) {
+            ggml_metal_op_concurrency_reset(ctx);
+            break;
+        }
+    }
+
+    auto pipeline = ggml_metal_library_get_pipeline_mul_mv_ptq1_glu(lib, gate);
+
+    ggml_metal_kargs_mul_mv args = {
+        /*.ne00 =*/ (int32_t) w->ne[0],
+        /*.ne01 =*/ (int32_t) w->ne[1],
+        /*.ne02 =*/ 1,
+        /*.nb00 =*/ w->nb[0],
+        /*.nb01 =*/ w->nb[1],
+        /*.nb02 =*/ w->nb[2],
+        /*.nb03 =*/ w->nb[3],
+        /*.ne10 =*/ (int32_t) x->ne[0],
+        /*.ne11 =*/ (int32_t) x->ne[1],
+        /*.ne12 =*/ 1,
+        /*.nb10 =*/ x->nb[0],
+        /*.nb11 =*/ x->nb[1],
+        /*.nb12 =*/ x->nb[2],
+        /*.nb13 =*/ x->nb[3],
+        /*.ne0  =*/ (int32_t) glu->ne[0],
+        /*.ne1  =*/ (int32_t) glu->ne[1],
+        /*.nr0  =*/ pipeline.nr0,
+        /*.r2   =*/ 1,
+        /*.r3   =*/ 1,
+    };
+
+    ggml_metal_encoder_set_pipeline(enc, pipeline);
+    ggml_metal_encoder_set_bytes   (enc, &args, sizeof(args), 0);
+    ggml_metal_encoder_set_buffer  (enc, ggml_metal_get_buffer_id(w),          1);
+    ggml_metal_encoder_set_buffer  (enc, ggml_metal_get_buffer_id(x),          2);
+    ggml_metal_encoder_set_buffer  (enc, ggml_metal_get_buffer_id(glu),        3);
+    ggml_metal_encoder_set_buffer  (enc, ggml_metal_get_buffer_id(up->src[0]), 4);
+
+    const int nr0 = pipeline.nr0;
+    const int nr1 = pipeline.nr1;
+    const int nsg = pipeline.nsg;
+
+    ggml_metal_encoder_dispatch_threadgroups(enc, (args.ne01 + nr0*nsg - 1)/(nr0*nsg), (args.ne11 + nr1 - 1)/nr1, 1, 32, nsg, 1);
+
+    return 3;
+}
+
 int ggml_metal_op_mul_mat(ggml_metal_op_t ctx, int idx) {
     ggml_tensor * op = ctx->node(idx);
 
     ggml_metal_library_t lib = ctx->lib;
     ggml_metal_encoder_t enc = ctx->enc;
+
+    if (const ggml_tensor * glu = ggml_metal_op_ptq1_glu_fusable(ctx, idx)) {
+        return ggml_metal_op_mul_mat_ptq1_glu(ctx, idx, glu);
+    }
 
     const int32_t hint = ggml_get_op_params_i32(op, 1);
 

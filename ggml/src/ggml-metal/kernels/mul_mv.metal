@@ -1159,6 +1159,125 @@ template [[host_name("kernel_mul_mv_ptq1_0_f32_mc_c2")]] kernel mul_mv_ptq1_mult
 template [[host_name("kernel_mul_mv_ptq1_0_f32_mc_c3")]] kernel mul_mv_ptq1_multicol_t kernel_mul_mv_ptq1_0_multicol<4, 3>;
 template [[host_name("kernel_mul_mv_ptq1_0_f32_mc_c4")]] kernel mul_mv_ptq1_multicol_t kernel_mul_mv_ptq1_0_multicol<4, 4>;
 
+// Fused FFN gate/up projections + SWIGLU for PTQ1_0, 1-8 columns in tiles of at most four.
+// Gate and up share src1, so each block's collapse coefficients are computed once and reused for
+// nr0 gate rows and nr0 up rows. Both dots use the multi-column arithmetic above; the epilogue is
+// kernel_swiglu's expression, so only the dots' own rounding differs from the unfused graph.
+template<int nr0, int nr1>
+kernel void kernel_mul_mv_ptq1_0_glu(
+        constant ggml_metal_kargs_mul_mv & args,
+        device const char * src0g,
+        device const char * src1,
+        device       char * dst,
+        device const char * src0u,
+        uint3  tgpig[[threadgroup_position_in_grid]],
+        ushort tiisg[[thread_index_in_simdgroup]],
+        ushort sgitg[[simdgroup_index_in_threadgroup]]) {
+    const short NSG = FC_mul_mv_nsg;
+
+    const int nb = args.ne00/QK_PTQ1_0;
+
+    const int r0 = tgpig.x;
+    const int r1 = tgpig.y * nr1;
+
+    // columns of this tile that exist: nr1 except in a partial last tile
+    const short ncols = (short) min(nr1, args.ne11 - r1);
+
+    const int first_row = (r0 * NSG + sgitg) * nr0;
+
+    device const float * y = (device const float *) (src1 + (uint64_t) r1*args.nb11);
+
+    device const block_ptq1_0 * ag[nr0];
+    device const block_ptq1_0 * au[nr0];
+    for (int row = 0; row < nr0; ++row) {
+        const uint64_t offset0 = (uint64_t) min(first_row + row, args.ne01 - 1)*args.nb01;
+        ag[row] = (device const block_ptq1_0 *) (src0g + offset0);
+        au[row] = (device const block_ptq1_0 *) (src0u + offset0);
+    }
+
+    // 15 collapse coefficients, the qh activation, and the qh trit's 3^n
+    float yl[nr1][17];
+    float sumg[nr0][nr1] = {};
+    float sumu[nr0][nr1] = {};
+
+    const short ix = (tiisg/8);
+    const short it = (tiisg%8);
+
+    device const float * yb = y + ix*QK_PTQ1_0;
+
+    {
+        const float pow3f[4] = {1.0f, 3.0f, 9.0f, 27.0f};
+        FOR_UNROLL (short col = 0; col < nr1; ++col) {
+            yl[col][16] = pow3f[it >> 1];
+        }
+    }
+
+    for (int ib = ix; ib < nb; ib += N_SIMDWIDTH/8) {
+        // Reuse collapse coefficients across rows: c[k-1] = y_{k-1} - 3*y_k, c[4] = y_4.
+        float sumy[nr1] = {};
+        FOR_UNROLL (short col = 0; col < nr1; ++col) {
+            // a partial last tile re-reads its final valid column; that result is not written
+            device const float * yc = (device const float *) ((device const char *) yb + min(col, (short) (ncols - 1))*args.nb11);
+
+            FOR_UNROLL (short k = 0; k < 2; ++k) {
+                const short m = 2*it + k;
+                float v[5];
+                FOR_UNROLL (short n = 0; n < 5; ++n) {
+                    v[n] = yc[n*16 + m];
+                    sumy[col] += v[n];
+                }
+                FOR_UNROLL (short n = 0; n < 4; ++n) {
+                    yl[col][5*k + n] = v[n] - 3.0f*v[n+1];
+                }
+                yl[col][5*k + 4] = v[4];
+            }
+            {
+                float v[5];
+                FOR_UNROLL (short n = 0; n < 5; ++n) {
+                    v[n] = yc[80 + n*8 + it];
+                    sumy[col] += v[n];
+                }
+                FOR_UNROLL (short n = 0; n < 4; ++n) {
+                    yl[col][10 + n] = v[n] - 3.0f*v[n+1];
+                }
+                yl[col][14] = v[4];
+            }
+            {
+                const float v = yc[120 + it];
+                yl[col][15] = v;
+                sumy[col] += v;
+            }
+        }
+
+        FOR_UNROLL (short row = 0; row < nr0; row++) {
+            ptq1_0_dot_multicol<nr1>(ag[row] + ib, yl, sumy, it, sumg[row]);
+            ptq1_0_dot_multicol<nr1>(au[row] + ib, yl, sumy, it, sumu[row]);
+        }
+
+        yb += QK_PTQ1_0 * (N_SIMDWIDTH/8);
+    }
+
+    device float * dst_f32 = (device float *) dst + (uint64_t)r1*args.ne0;
+
+    for (int row = 0; row < nr0; ++row) {
+        FOR_UNROLL (short col = 0; col < nr1; ++col) {
+            const float x0 = simd_sum(sumg[row][col]);
+            const float x1 = simd_sum(sumu[row][col]);
+            if (tiisg == 0 && first_row + row < args.ne01 && col < ncols) {
+                const float silu = x0 / (1.0f + exp(-x0));
+                dst_f32[(uint64_t) col*args.ne0 + first_row + row] = silu*x1;
+            }
+        }
+    }
+}
+
+// two rows per simdgroup: gate and up double the accumulators, and four rows spill on M5
+typedef decltype(kernel_mul_mv_ptq1_0_glu<2, 1>) mul_mv_ptq1_glu_t;
+template [[host_name("kernel_mul_mv_ptq1_0_f32_glu_c1")]] kernel mul_mv_ptq1_glu_t kernel_mul_mv_ptq1_0_glu<2, 1>;
+template [[host_name("kernel_mul_mv_ptq1_0_f32_glu_c2")]] kernel mul_mv_ptq1_glu_t kernel_mul_mv_ptq1_0_glu<2, 2>;
+template [[host_name("kernel_mul_mv_ptq1_0_f32_glu_c3")]] kernel mul_mv_ptq1_glu_t kernel_mul_mv_ptq1_0_glu<2, 3>;
+template [[host_name("kernel_mul_mv_ptq1_0_f32_glu_c4")]] kernel mul_mv_ptq1_glu_t kernel_mul_mv_ptq1_0_glu<2, 4>;
+
 [[host_name("kernel_mul_mv_ptq1_0_f32")]]
 kernel void kernel_mul_mv_ptq1_0_f32(
         constant ggml_metal_kargs_mul_mv & args,
